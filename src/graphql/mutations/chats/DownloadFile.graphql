@@ -1,0 +1,8 @@
+mutation DownloadFile($fileId: String!) {
+  downloadFile(fileId: $fileId) {
+    base64
+    filename
+    hash
+    mimetype
+  }
+}

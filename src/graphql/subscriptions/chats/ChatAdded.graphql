@@ -1,0 +1,6 @@
+subscription ChatAdded($userId: String!) {
+  chatAdded(userId: $userId) {
+    id
+    chatName
+  }
+}

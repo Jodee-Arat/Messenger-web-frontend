@@ -1,0 +1,7 @@
+mutation ExchangeKeys($data: ExchangeKeysInput!, $chatId: String!) {
+  exchangeKey(chatId: $chatId, data: $data) {
+    openKeyServerDiffie
+    publicKeyE
+    publicKeyN
+  }
+}

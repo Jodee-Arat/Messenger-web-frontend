@@ -1,0 +1,7 @@
+{
+  "message": {
+    "hello": "Hello, World!",
+    "welcome": "Welcome to our application!",
+    "goodbye": "Goodbye! See you next time!"
+  }
+}

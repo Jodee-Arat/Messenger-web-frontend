@@ -1,0 +1,3 @@
+mutation CreateUserWEmail($data: createUserWEmail!) {
+  createUserWEmail(data: $data)
+}

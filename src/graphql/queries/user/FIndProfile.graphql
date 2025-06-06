@@ -1,0 +1,7 @@
+query FindProfile {
+  findProfile {
+    id
+    username
+    password
+  }
+}

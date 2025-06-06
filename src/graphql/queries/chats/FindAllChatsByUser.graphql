@@ -1,0 +1,6 @@
+query FindAllChatsByUser($filters: FiltersInput!) {
+  findAllChatsByUser(filters: $filters) {
+    chatName
+    id
+  }
+}

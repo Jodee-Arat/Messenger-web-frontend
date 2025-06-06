@@ -1,0 +1,20 @@
+subscription ChatMessageAdded($chatId: String!, $userId: String!) {
+  chatMessageAdded(chatId: $chatId, userId: $userId) {
+    id
+    files {
+      fileName
+      fileFormat
+      fileSize
+      id
+    }
+    hash
+    text
+    chat {
+      chatName
+    }
+    user {
+      username
+      id
+    }
+  }
+}
