@@ -1,13 +1,29 @@
 query FindAllMessagesByChat($chatId: String!, $filters: FiltersInput!) {
   findAllMessagesByChat(chatId: $chatId, filters: $filters) {
     id
-    hash
     text
     files {
       fileName
       fileFormat
       fileSize
       id
+    }
+    repliedToLinks {
+      id
+      repliedTo {
+        id
+        text
+        files {
+          fileName
+          fileFormat
+          fileSize
+          id
+        }
+        user {
+          username
+          id
+        }
+      }
     }
     chat {
       chatName

@@ -34,12 +34,16 @@ import {
   createChatSchemaType,
 } from "@/schemas/user/create-chat.schema";
 
-interface CreateChatProp {}
+interface CreateChatModalProp {}
 
-const CreateChat: FC<CreateChatProp> = ({}) => {
+const CreateChatModal: FC<CreateChatModalProp> = ({}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  const { data, loading: isLoadingFindAllUsers } = useFindAllUsersQuery();
+  const {
+    data,
+    loading: isLoadingFindAllUsers,
+    refetch,
+  } = useFindAllUsersQuery({ skip: !isOpen });
 
   const form = useForm<createChatSchemaType>({
     resolver: zodResolver(createChatSchema),
@@ -51,7 +55,7 @@ const CreateChat: FC<CreateChatProp> = ({}) => {
 
   const { isValid } = form.formState;
 
-  const users = data?.findAllUsers;
+  const users = data?.findAllUsers ?? [];
 
   const [createChat, { loading: isLoadingCreate }] = useCreateChatMutation({
     onCompleted() {
@@ -82,6 +86,8 @@ const CreateChat: FC<CreateChatProp> = ({}) => {
         setIsOpen(open);
         if (!open) {
           form.reset();
+        } else {
+          refetch();
         }
       }}
     >
@@ -134,7 +140,7 @@ const CreateChat: FC<CreateChatProp> = ({}) => {
                         Select users to add to the chat.
                       </FormDescription>
                     </div>
-                    {users!.map((item) => (
+                    {users.map((item) => (
                       <FormField
                         key={item.id}
                         control={form.control}
@@ -189,4 +195,4 @@ const CreateChat: FC<CreateChatProp> = ({}) => {
   );
 };
 
-export default CreateChat;
+export default CreateChatModal;

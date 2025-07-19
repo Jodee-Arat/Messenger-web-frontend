@@ -1,5 +1,5 @@
-subscription ChatMessageAdded($chatId: String!, $userId: String!) {
-  chatMessageAdded(chatId: $chatId, userId: $userId) {
+subscription ChatMessageEdit($chatId: String!, $userId: String!) {
+  chatMessageEdit(chatId: $chatId, userId: $userId) {
     id
     text
 

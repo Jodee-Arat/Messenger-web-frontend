@@ -1,8 +1,6 @@
-mutation DownloadFile($fileId: String!) {
-  downloadFile(fileId: $fileId) {
-    base64
+mutation DownloadFile($fileId: String!, $chatId: String!) {
+  downloadFile(fileId: $fileId, chatId: $chatId) {
     filename
-    hash
-    mimetype
+    fileUrl
   }
 }

@@ -1,4 +1,4 @@
-export type messageType = {
+export type MessageFileType = {
   fileName: string;
   fileFormat: string;
   fileSize: string;

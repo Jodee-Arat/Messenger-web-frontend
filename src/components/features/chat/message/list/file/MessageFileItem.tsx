@@ -6,52 +6,28 @@ import { Button } from "@/components/ui/common/Button";
 
 import { useDownloadFileMutation } from "@/graphql/generated/output";
 
-import { base64ToUint8Array } from "@/utils/base64-to-Uint8Array";
-import { decryptBytesDes } from "@/utils/crypto/des/file/decrypt-bytes-des";
-import { decryptHashRsa } from "@/utils/crypto/rsa/decrypt-hash-rsa";
-import { sha1HashBytes } from "@/utils/crypto/sha-1/file/sha-1-hash-bytes";
 import { downloadFile } from "@/utils/download-file";
 import { formatBytes } from "@/utils/format-bytes";
 
-import { messageType } from "../../../types/message-file.type";
+import { messageType } from "../../../../../../types/message-file.type";
 
 interface MessageFileItemProp {
   file: messageType;
-  sessionKey: bigint;
-  keyE: bigint;
-  keyN: bigint;
+  chatId: string;
+  isSelected: boolean;
 }
 
 const MessageFileItem: FC<MessageFileItemProp> = ({
   file,
-  keyE,
-  keyN,
-  sessionKey,
+  chatId,
+  isSelected,
 }) => {
   const [download, { loading: isLoadingDownload }] = useDownloadFileMutation({
     onCompleted: async (data) => {
       if (data.downloadFile) {
-        const { base64, filename, hash, mimetype } = data.downloadFile;
+        const { fileUrl, filename } = data.downloadFile;
 
-        const encryptedBytes = base64ToUint8Array(base64);
-        const decryptedBytes = decryptBytesDes(
-          sessionKey.toString(),
-          new Uint8Array(encryptedBytes)
-        );
-        if (!decryptBytesDes) {
-          toast.error("Failed to decrypt file.");
-          return;
-        }
-        const hashDecryptedBytes = await sha1HashBytes(decryptedBytes!);
-
-        const decryptedHash = decryptHashRsa(hash, keyE, keyN);
-
-        if (hashDecryptedBytes !== decryptedHash) {
-          toast.error("File integrity check failed.");
-          return;
-        }
-
-        downloadFile(decryptedBytes!, filename, mimetype);
+        downloadFile(fileUrl, filename);
       } else {
         toast.error("Failed to download file.");
       }
@@ -62,15 +38,15 @@ const MessageFileItem: FC<MessageFileItemProp> = ({
     <Button
       className="cursor-pointer p-0 hover:bg-transparent"
       variant="ghost"
-      disabled={isLoadingDownload}
+      disabled={isSelected || isLoadingDownload}
       onClick={() => {
         download({
           variables: {
             fileId: file.id,
+            chatId,
           },
         });
       }}
-      asChild
     >
       <div className="flex w-20 select-none">
         <File className="size-8" />

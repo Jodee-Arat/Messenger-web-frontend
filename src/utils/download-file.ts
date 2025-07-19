@@ -1,13 +1,12 @@
-export function downloadFile(
-  bytes: Uint8Array,
-  filename: string,
-  mimetype: string
-) {
-  const blob = new Blob([new Uint8Array(bytes)], { type: mimetype });
+export async function downloadFile(fileUrl: string, filename: string) {
+  const response = await fetch(fileUrl);
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  link.href = url;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 }

@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
+  FindAllChatsByUserQuery,
   useChatAddedSubscription,
+  useChatUpdatedSubscription,
   useDeleteChatMutation,
   useFindAllChatsByUserQuery,
 } from "@/graphql/generated/output";
@@ -13,17 +15,20 @@ import { useCurrent } from "@/hooks/useCurrent";
 
 import { cn } from "@/utils/tw-merge";
 
-import ChatsSidebarItem from "./ChatsSidebarItem";
-import CreateChat from "./CreateChat";
-import Search from "./Search";
+import Search from "../../../ui/elements/Search";
 
-interface ChatsType {
+import ChatsSidebarItem from "./ChatDropdownTrigger";
+import CreateChat from "./CreateChatModal";
+
+export interface ChatsType {
   id: string;
   chatName?: string | null;
 }
 
 const ChatsSidebar = () => {
-  const [allChats, setAllChats] = useState<ChatsType[]>([]);
+  const [allChats, setAllChats] = useState<
+    FindAllChatsByUserQuery["findAllChatsByUser"]
+  >([]);
 
   const { user } = useCurrent();
 
@@ -35,6 +40,11 @@ const ChatsSidebar = () => {
     });
 
   const { data: newChatData } = useChatAddedSubscription({
+    variables: { userId: user?.id ?? "" },
+    skip: !user?.id,
+  });
+
+  const { data: updateChatData } = useChatUpdatedSubscription({
     variables: { userId: user?.id ?? "" },
     skip: !user?.id,
   });
@@ -68,8 +78,17 @@ const ChatsSidebar = () => {
   useEffect(() => {
     if (!newChatData || !newChatData.chatAdded) return;
 
-    setAllChats((prevChats) => [...prevChats, newChatData.chatAdded]);
+    setAllChats((prevChats) => [newChatData.chatAdded, ...prevChats]);
   }, [newChatData]);
+
+  useEffect(() => {
+    if (!updateChatData || !updateChatData.chatUpdated) return;
+
+    const prevChats = allChats.filter(
+      (chat) => chat.id !== updateChatData.chatUpdated.id
+    );
+    setAllChats([updateChatData.chatUpdated, ...prevChats]);
+  }, [updateChatData]);
 
   return (
     <>

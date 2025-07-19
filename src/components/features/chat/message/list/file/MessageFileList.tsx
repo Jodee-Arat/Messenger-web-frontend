@@ -1,33 +1,29 @@
 import { FC } from "react";
 
-import { messageType } from "../../../types/message-file.type";
-
 import MessageFileItem from "./MessageFileItem";
+import { MessageFileType } from "@/types/message-file.type";
 
 interface MessageFileListProp {
-  files: messageType[];
-  sessionKey: bigint;
-  keyE: bigint;
-  keyN: bigint;
+  files: MessageFileType[];
+  chatId: string;
+  isSelected: boolean;
 }
 
 const MessageFileList: FC<MessageFileListProp> = ({
   files,
-  keyE,
-  keyN,
-  sessionKey,
+  chatId,
+  isSelected,
 }) => {
   return (
-    <div>
+    <div onClick={(e) => (!isSelected ? e.stopPropagation() : "")}>
       {files && (
         <div className="flex flex-wrap space-x-4 space-y-1">
           {files.map((file, index) => (
             <MessageFileItem
+              isSelected={isSelected}
               file={file}
               key={index}
-              sessionKey={sessionKey}
-              keyE={keyE}
-              keyN={keyN}
+              chatId={chatId}
             />
           ))}
         </div>

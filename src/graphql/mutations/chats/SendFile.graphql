@@ -1,10 +1,5 @@
-mutation SendFile(
-  $chatId: String!
-  $file: Upload!
-  $data: SendFileInput!
-  $messageId: String!
-) {
-  sendFile(chatId: $chatId, file: $file, data: $data, messageId: $messageId) {
+mutation SendFile($chatId: String!, $file: Upload!, $messageId: String!) {
+  sendFile(chatId: $chatId, file: $file, messageId: $messageId) {
     chatMessageId
     fileId
   }

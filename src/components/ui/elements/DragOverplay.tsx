@@ -4,15 +4,23 @@ import { cn } from "@/utils/tw-merge";
 
 interface DragOverplayProp {
   className?: string;
+  isOver?: boolean;
 }
 
 const DragOverplay: FC<PropsWithChildren<DragOverplayProp>> = ({
   children,
   className,
+  isOver = false,
 }) => {
   return (
     <div
-      className={`bg-card border-primary-foreground text-primary-foreground hover:border-primary hover:text-primary inset-0 z-50 flex h-full w-full items-center justify-center border-4 border-dashed transition-opacity duration-300 ease-in-out *:absolute`}
+      className={cn(
+        "bg-card absolute inset-0 flex h-full w-full items-center justify-center border-4 border-dashed transition-colors duration-500 ease-in-out",
+        isOver
+          ? "text-primary border-primary z-50 opacity-100"
+          : "border-primary-foreground text-primary-foreground -z-50 opacity-0",
+        className
+      )}
     >
       {children}
     </div>

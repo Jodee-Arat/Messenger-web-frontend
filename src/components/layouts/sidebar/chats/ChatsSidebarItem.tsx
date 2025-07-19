@@ -1,19 +1,8 @@
-"use client";
-
-import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/common/Button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/common/DropdownMenu";
 
 import { FindAllChatsByUserQuery } from "@/graphql/generated/output";
 
@@ -21,66 +10,75 @@ import { cn } from "@/utils/tw-merge";
 
 interface ChatsSidebarItemProps {
   chat: FindAllChatsByUserQuery["findAllChatsByUser"][0];
-  deleteChat: (chatId: string) => void;
 }
 
-const ChatsSidebarItem = ({ chat, deleteChat }: ChatsSidebarItemProps) => {
-  const [open, setOpen] = useState(false);
+const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
   const pathname = usePathname();
 
   const isActive = pathname === `/chat/${chat.id}`;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        onClick={(e) => e.preventDefault()}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setOpen(true);
-        }}
-        onPointerDown={(e) => {
-          if (e.button === 0) {
-            e.preventDefault();
-          }
-        }}
-        className=""
+    <div className="">
+      <Button
+        className={cn("h-max", isActive && "bg-accent")}
+        asChild
+        variant="ghost"
       >
-        <div className="">
-          <Button
-            className={cn("h-max", isActive && "bg-accent")}
-            asChild
-            variant="ghost"
-          >
-            <Link
-              href={`/chat/${chat.id}`}
-              className="flex w-full items-center justify-start space-x-2"
-            >
-              <Image
-                src={"/images/avatar/rostik.jpg"}
-                alt="frontend"
-                width={40}
-                height={40}
-                className="size-15 rounded-full object-cover object-top"
-              />
-              <div className="flex flex-col space-y-1 text-start">
-                <p className="text-[16px]">{chat.chatName}</p>
-                <p className="text-muted-foreground text-sm">
-                  ****************
-                </p>
-              </div>
-            </Link>
-          </Button>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[230px]">
-        <DropdownMenuItem
-          className="text-destructive"
-          onClick={() => deleteChat(chat.id)}
+        <Link
+          href={`/chat/${chat.id}`}
+          className="flex w-full items-center justify-start space-x-2"
         >
-          Delete chat
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <Image
+            src={"/images/avatar/rostik.jpg"}
+            alt="frontend"
+            width={40}
+            height={40}
+            className="size-15 rounded-full object-cover object-top"
+          />
+          <div className="flex flex-col space-y-1 text-start">
+            <p className="text-[16px]">{chat.chatName}</p>
+            <div>
+              {chat.draftMessages &&
+              chat.draftMessages.length > 0 &&
+              chat.draftMessages[0]?.text ? (
+                <p className="text-xs text-red-500">
+                  {chat.draftMessages[0]?.text}
+                </p>
+              ) : chat.draftMessages &&
+                chat.draftMessages.length > 0 &&
+                chat.draftMessages[0].files?.length &&
+                chat.draftMessages[0].files.length > 0 ? (
+                <p className="text-xs text-blue-400">
+                  {chat.draftMessages[0].files.length} файл(ов)
+                </p>
+              ) : chat.lastMessage && chat.lastMessage?.text ? (
+                <div className="flex items-center space-x-2">
+                  <h5 className="text-primary-foreground/80">
+                    {chat.lastMessage.user.username}
+                  </h5>
+                  <p className="text-muted-foreground text-xs">
+                    {chat.lastMessage?.text}
+                  </p>
+                </div>
+              ) : chat.lastMessage &&
+                chat.lastMessage.files?.length &&
+                chat.lastMessage.files.length > 0 ? (
+                <div className="flex items-center space-x-2">
+                  <h5 className="text-primary-foreground/80">
+                    {chat.lastMessage.user.username}
+                  </h5>
+                  <p className="text-xs text-blue-400">
+                    {chat.lastMessage.files.length} файл(ов)
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-xs">Пусто</p>
+              )}
+            </div>
+          </div>
+        </Link>
+      </Button>
+    </div>
   );
 };
 
