@@ -7,5 +7,6 @@ export type ForwardedMessageType = {
   user: {
     id: string;
     username: string;
+    avatarUrl?: string | null;
   };
 };

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { Checkbox } from "@/components/ui/common/Checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,6 +37,7 @@ import {
 } from "@/schemas/chat/forward-message.schema";
 
 interface ForwardMessageModalProp {
+  handleAddForwarded: (messageIds: string[]) => void;
   messageIds?: string[];
   handleClearMessagesId: () => void;
   chatId: string;
@@ -43,9 +46,12 @@ interface ForwardMessageModalProp {
 const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   messageIds,
   handleClearMessagesId,
+  handleAddForwarded,
   chatId,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const router = useRouter();
 
   const {
     data: dataChats,
@@ -73,8 +79,11 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   const [forwardMessage, { loading: isLoadingForwardingMessage }] =
     useForwardChatMessageMutation({
       onCompleted() {
-        toast.success("Message forwarded successfully.");
         setIsOpen(false);
+        if (form.getValues("targetChatsId").length === 1) {
+          router.push(`/chat/${form.getValues("targetChatsId")[0]}`);
+        }
+        toast.success("Message forwarded successfully.");
         form.reset();
       },
       onError(error) {
@@ -96,19 +105,24 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
       toast.error("Message text cannot be empty.");
       return;
     }
-    for (let targetChatId of targetChatsId) {
-      forwardMessage({
-        variables: {
-          chatId,
-          data: {
-            forwardedMessageIds: messageIds,
-            text: data.text ? data.text.trim() : "",
-            fileIds: [],
-            targetChatId,
-          },
-        },
-      });
+
+    if (targetChatsId.length === 1 && targetChatsId[0] === chatId) {
+      handleAddForwarded(messageIds);
+      handleClearMessagesId();
+      return;
     }
+
+    forwardMessage({
+      variables: {
+        chatId,
+        data: {
+          forwardedMessageIds: messageIds,
+          text: data.text ? data.text.trim() : "",
+          fileIds: [],
+          targetChatsId,
+        },
+      },
+    });
 
     handleClearMessagesId();
   };
@@ -133,6 +147,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Forward messages</DialogTitle>
+          <DialogDescription>hahahahaha</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

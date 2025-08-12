@@ -3,7 +3,6 @@ import { toast } from "sonner";
 
 import {
   useChatMessageAddedSubscription,
-  useChatMessageEditSubscription,
   useChatMessageRemovedSubscription,
   useFindAllMessagesByChatQuery,
   useRemoveMessagesMutation,
@@ -11,11 +10,14 @@ import {
 
 import { MessageType } from "../../../../../types/message.type";
 import ChatToolbar from "../../toolbar/ChatToolbar";
+import PinnedMessage from "../PinnedMessage";
 
 import ChatMessageDropdownTrigger from "./ChatMessageDropdownTrigger";
 import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ChatMessageListProp {
+  pinnedMessage: MessageType | null;
+  setPinnedMessage: (message: MessageType | null) => void;
   chatId: string;
   userId: string;
   startEdit: (
@@ -27,6 +29,8 @@ interface ChatMessageListProp {
 
 const ChatMessageList: FC<ChatMessageListProp> = ({
   chatId,
+  pinnedMessage,
+  setPinnedMessage,
   startEdit,
   userId,
   handleAddForwardedMessage,
@@ -57,12 +61,6 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
     },
   });
 
-  const { data: editMessageData } = useChatMessageEditSubscription({
-    variables: {
-      chatId,
-      userId,
-    },
-  });
   const [removeMessages] = useRemoveMessagesMutation({
     onCompleted() {
       setMessageIds([]);
@@ -120,23 +118,16 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
     const newMessage = newMessageData.chatMessageAdded;
 
+    if (newMessage.isEdited) {
+      setMessagesInfo((prevMessages) =>
+        prevMessages.map((message) =>
+          message.id === newMessage.id ? newMessage : message
+        )
+      );
+      return;
+    }
     setMessagesInfo((prevMessages) => [...prevMessages, newMessage]);
   }, [newMessageData]);
-
-  useEffect(() => {
-    if (!editMessageData || !editMessageData.chatMessageEdit) return;
-
-    const editMessage = editMessageData.chatMessageEdit;
-
-    const editMessagesInfo = messagesInfo.map((message) => {
-      if (message.id === editMessage.id) {
-        return editMessage;
-      }
-      return message;
-    });
-
-    setMessagesInfo(editMessagesInfo);
-  }, [editMessageData]);
 
   useEffect(() => {
     if (!removedMessagesData || !removedMessagesData.chatMessageRemoved) return;
@@ -176,6 +167,11 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
         handleClearMessagesId={handleClearMessagesId}
         handleAddForwarded={handleAddForwarded}
       />
+      <PinnedMessage
+        chatId={chatId}
+        pinnedMessage={pinnedMessage}
+        setPinnedMessage={setPinnedMessage}
+      />
       <div className="flex flex-1 flex-col-reverse overflow-y-auto">
         <div className="mb-2 flex flex-col gap-y-1">
           {messagesInfo.length === 0 ? (
@@ -193,6 +189,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
                 messageId={messagesInfo[index].id}
                 messageIds={messageIds}
                 chatId={chatId}
+                setPinnedMessage={setPinnedMessage}
               />
             ))
           )}

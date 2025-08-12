@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/common/Button";
+import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import { FindAllChatsByUserQuery } from "@/graphql/generated/output";
 
@@ -15,7 +16,9 @@ interface ChatsSidebarItemProps {
 const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
   const pathname = usePathname();
 
-  const isActive = pathname === `/chat/${chat.id}`;
+  const groupId = pathname.split("/")[2];
+
+  const isActive = pathname === `/group/${groupId}/${chat.id}`;
 
   return (
     <div className="">
@@ -25,15 +28,13 @@ const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
         variant="ghost"
       >
         <Link
-          href={`/chat/${chat.id}`}
+          href={`/group/${groupId}/${chat.id}`}
           className="flex w-full items-center justify-start space-x-2"
         >
-          <Image
-            src={"/images/avatar/rostik.jpg"}
-            alt="frontend"
-            width={40}
-            height={40}
-            className="size-15 rounded-full object-cover object-top"
+          <EntityAvatar
+            size="lg"
+            name={chat.chatName}
+            avatarUrl={chat.avatarUrl}
           />
           <div className="flex flex-col space-y-1 text-start">
             <p className="text-[16px]">{chat.chatName}</p>

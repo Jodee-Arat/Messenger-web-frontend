@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import { SendFileType } from "../../../types/send-file.type";
 
@@ -6,18 +6,26 @@ import FileItem from "./FileItem";
 
 interface FileListProp {
   files: SendFileType[];
+  filesEdited: SendFileType[];
   onDeleteFile: (id: string) => void;
   isLoadingSend: boolean;
 }
 
-const FileList: FC<FileListProp> = ({ files, onDeleteFile, isLoadingSend }) => {
+const FileList: FC<FileListProp> = ({
+  files,
+  filesEdited,
+  onDeleteFile,
+  isLoadingSend,
+}) => {
   return (
     <div className="flex gap-x-4 overflow-x-auto">
       {files.map((file, index) => (
         <FileItem
           key={index}
           file={file}
-          onDeleteFile={() => onDeleteFile(file.id!)}
+          onDeleteFile={() => {
+            onDeleteFile(file.id!);
+          }}
           isLoadingSend={isLoadingSend && files.length - 1 === index}
         />
       ))}

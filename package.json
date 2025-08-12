@@ -2,6 +2,11 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "backend"
+  ],
   "scripts": {
     "dev": "graphql-codegen --config graphql.config.ts && next dev --turbopack",
     "build": "graphql-codegen --config graphql.config.ts && next build",
@@ -24,6 +29,7 @@
     "@radix-ui/react-label": "^2.1.6",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.2",
+    "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.13",
     "@radix-ui/react-tooltip": "^1.2.6",
     "apollo-upload-client": "^18.0.1",
@@ -33,6 +39,7 @@
     "dotenv": "^16.5.0",
     "geist": "^1.4.2",
     "graphql": "^16.11.0",
+    "input-otp": "^1.4.2",
     "lucide-react": "^0.511.0",
     "next": "15.3.2",
     "next-intl": "^4.1.0",

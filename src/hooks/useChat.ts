@@ -21,12 +21,9 @@ export const useChat = (chatId: string) => {
   const [files, setFiles] = useState<SendFileType[]>([]);
   const [draftText, setDraftText] = useState<string>("");
   const [editId, setEditId] = useState<string | null>(null);
+  const [pinnedMessage, setPinnedMessage] = useState<MessageType | null>(null);
 
-  const [filesCopy, setFilesCopy] = useState<SendFileType[]>([]);
-  const [forwardedMessagesCopy, setForwardedMessagesCopy] = useState<
-    ForwardedMessageType[]
-  >([]);
-  const [textCopy, setTextCopy] = useState<string>("");
+  const [filesEdited, setFilesEdited] = useState<SendFileType[]>([]);
 
   const { data: chatData, loading: isLoadingFindChat } =
     useFindChatByChatIdQuery({
@@ -40,9 +37,14 @@ export const useChat = (chatId: string) => {
   useEffect(() => {
     if (!chat) return;
 
+    if (chat.pinnedMessage) {
+      setPinnedMessage(chat.pinnedMessage);
+    }
+
     const draft = chat.draftMessages?.[0];
     if (!draft) return;
     setDraftText(draft.text ?? "");
+    setEditId(draft?.editId ?? null);
     if (draft?.repliedToLinks) {
       const forwarded = draft.repliedToLinks
         .map((reply) => reply?.repliedTo)
@@ -62,7 +64,7 @@ export const useChat = (chatId: string) => {
 
   const [send, { loading: isLoadingSendFile }] = useSendFileMutation({
     onCompleted(data) {
-      setMessageId(data.sendFile.chatMessageId);
+      setMessageId(data.sendFile.chatDraftMessageId);
       setFiles((prevFilesId) => [
         ...prevFilesId.slice(0, -1),
         { ...prevFilesId[prevFilesId.length - 1], id: data.sendFile.fileId },
@@ -73,10 +75,13 @@ export const useChat = (chatId: string) => {
     },
   });
 
-  const handleClearTextForm = () => {
+  const handleClearForm = () => {
     setDraftText("");
     setFiles([]);
     setForwardedMessages([]);
+    setFilesEdited([]);
+    setEditId(null);
+    setFilesEdited([]);
   };
 
   const [removeFile] = useRemoveFileMutation({
@@ -90,10 +95,22 @@ export const useChat = (chatId: string) => {
 
   const handleDelete = (id: string) => {
     setMessageId(null);
+    let isFileEdited = false;
+    setFiles((prev) =>
+      prev.filter((file) => {
+        if (file.id === id) {
+          isFileEdited = true;
+        }
+        return file.id !== id;
+      })
+    );
+    if (isFileEdited) {
+      return;
+    }
+
     removeFile({
       variables: { fileId: id, chatId },
     });
-    setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
   const handleClearMessageId = () => setMessageId(null);
@@ -103,15 +120,40 @@ export const useChat = (chatId: string) => {
     forwardedMessages?: ForwardedMessageType[]
   ) => {
     setEditId(message.id);
-    setTextCopy(message.text ?? "");
-    setFilesCopy(
-      message.files?.map((file) => ({
+    setDraftText(message.text ?? "");
+    setFiles(
+      (message.files ?? []).map((file) => ({
         name: file.fileName,
         size: file.fileSize.toString(),
         id: file.id,
-      })) ?? []
+      }))
     );
-    setForwardedMessagesCopy(forwardedMessages ?? []);
+    setForwardedMessages(forwardedMessages ?? []);
+  };
+
+  const handleFileSend = async (file: File) => {
+    if (files.length >= 7) {
+      toast.error("You can only upload up to 5 files at a time.");
+      return;
+    }
+
+    if (files.some((fileState) => fileState.name === file.name)) {
+      toast.error("File with this name already exists in the chat.");
+      return;
+    }
+
+    setFiles((prevFiles) => [
+      ...prevFiles,
+      { name: file.name, size: file.size.toString(), id: "" },
+    ]);
+
+    send({
+      variables: {
+        chatId,
+        file,
+        messageId: messageId ?? "null",
+      },
+    });
   };
 
   const drop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -142,7 +184,6 @@ export const useChat = (chatId: string) => {
 
   return {
     files,
-    setFiles,
     messageId,
     isLoadingSendFile,
     handleDelete,
@@ -157,12 +198,11 @@ export const useChat = (chatId: string) => {
     setEditId,
     editId,
     startEdit,
-    handleClearTextForm,
-    filesCopy,
-    setFilesCopy,
-    forwardedMessagesCopy,
-    setForwardedMessagesCopy,
-    textCopy,
-    setTextCopy,
+    handleClearForm,
+    setFilesEdited,
+    filesEdited,
+    pinnedMessage,
+    setPinnedMessage,
+    handleFileSend,
   };
 };

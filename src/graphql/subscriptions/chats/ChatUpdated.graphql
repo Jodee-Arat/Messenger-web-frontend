@@ -2,6 +2,7 @@ subscription ChatUpdated($userId: String!) {
   chatUpdated(userId: $userId) {
     id
     chatName
+    avatarUrl
     draftMessages {
       files {
         fileName

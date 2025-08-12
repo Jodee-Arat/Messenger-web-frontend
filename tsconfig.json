@@ -7,6 +7,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -19,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["../../packages/shared/*"]
     }
   },
   "include": [
@@ -31,3 +33,39 @@
   ],
   "exclude": ["node_modules"]
 }
+// {
+//   "extends": "../../tsconfig.json",
+//   "compilerOptions": {
+//     "baseUrl": ".",
+//     "paths": {
+//       "@/*": ["./src/*"],
+//       "@shared/*": ["../../packages/shared/*"]
+//     },
+//     "moduleResolution": "node",
+//     "jsx": "preserve",
+//     "incremental": true,
+//     "noEmit": true,
+//     "allowJs": true,
+//     "skipLibCheck": true,
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "resolveJsonModule": true,
+//     "isolatedModules": true,
+//     "target": "ES2020",
+//     "lib": ["dom", "dom.iterable", "esnext"],
+//     "module": "esnext",
+//     "plugins": [
+//       {
+//         "name": "next"
+//       }
+//     ]
+//   },
+//   "include": [
+//     "next-env.d.ts",
+//     "**/*.ts",
+//     "**/*.tsx",
+//     ".next/types/**/*.ts",
+//     "tailwind.config.js"
+//   ],
+//   "exclude": ["node_modules"]
+// }

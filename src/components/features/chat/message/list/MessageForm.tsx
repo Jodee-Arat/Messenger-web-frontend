@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { FC } from "react";
 
+import EntityAvatar from "@/components/ui/elements/EntityAvatar";
+
 import { cn } from "@/utils/tw-merge";
 
 import MessageFileList from "./file/MessageFileList";
@@ -11,8 +13,10 @@ interface MessageFormProp {
   userId: string;
   user: {
     id: string;
+    avatarUrl?: string | null;
     username: string;
   };
+  isEdited?: boolean;
   text?: string | null;
   files?: MessageFileType[] | null | undefined;
   isSelected: boolean;
@@ -25,6 +29,7 @@ const MessageForm: FC<MessageFormProp> = ({
   files,
   isSelected,
   text,
+  isEdited,
 }) => {
   return (
     <div>
@@ -34,13 +39,14 @@ const MessageForm: FC<MessageFormProp> = ({
           user.id === userId ? "flex-row-reverse" : "flex-row"
         )}
       >
-        <Image
-          src={"/images/avatar/avatar.png"}
-          alt={user.username}
-          width={40}
-          height={40}
-          className="h-10 w-10 rounded-full object-cover"
-        />
+        <div className="mt-1">
+          <EntityAvatar
+            name={user.username}
+            avatarUrl={user.avatarUrl}
+            size="default"
+          />
+        </div>
+
         <div className="flex min-w-0 max-w-[400px] flex-1 flex-col">
           <h3
             className={cn(
@@ -50,6 +56,7 @@ const MessageForm: FC<MessageFormProp> = ({
           >
             {user.username}
           </h3>
+          {isEdited && <span className="text-xs text-gray-500">Edited</span>}
           {text && text !== "null" && (
             <p className="break-words text-left text-sm">{text}</p>
           )}

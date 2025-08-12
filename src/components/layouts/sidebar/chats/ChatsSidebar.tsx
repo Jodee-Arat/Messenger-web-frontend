@@ -1,23 +1,29 @@
 "use client";
 
+import { Settings2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/common/Button";
+
 import {
+  FindAllChatsByGroupQuery,
   FindAllChatsByUserQuery,
   useChatAddedSubscription,
+  useChatDeletedSubscription,
   useChatUpdatedSubscription,
   useDeleteChatMutation,
-  useFindAllChatsByUserQuery,
+  useFindAllChatsByGroupQuery,
 } from "@/graphql/generated/output";
 
-import { useCurrent } from "@/hooks/useCurrent";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import { cn } from "@/utils/tw-merge";
 
 import Search from "../../../ui/elements/Search";
 
-import ChatsSidebarItem from "./ChatDropdownTrigger";
+import ChatsSidebarDropdownTrigger from "./ChatDropdownTrigger";
 import CreateChat from "./CreateChatModal";
 
 export interface ChatsType {
@@ -25,22 +31,32 @@ export interface ChatsType {
   chatName?: string | null;
 }
 
-const ChatsSidebar = () => {
+export interface ChatsSidebarProps {
+  groupId: string;
+}
+
+const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
   const [allChats, setAllChats] = useState<
-    FindAllChatsByUserQuery["findAllChatsByUser"]
+    FindAllChatsByGroupQuery["findAllChatsByGroup"]
   >([]);
 
-  const { user } = useCurrent();
+  const { user } = useCurrentUser();
 
   const { data: allChatsData, loading: isLoadingFindAllChats } =
-    useFindAllChatsByUserQuery({
+    useFindAllChatsByGroupQuery({
       variables: {
         filters: {},
+        groupId: groupId ?? "",
       },
     });
 
   const { data: newChatData } = useChatAddedSubscription({
-    variables: { userId: user?.id ?? "" },
+    variables: { userId: user?.id ?? "", groupId: groupId ?? "" },
+    skip: !user?.id,
+  });
+
+  const { data: deletedChatData } = useChatDeletedSubscription({
+    variables: { userId: user?.id ?? "", groupId: groupId ?? "" },
     skip: !user?.id,
   });
 
@@ -70,9 +86,9 @@ const ChatsSidebar = () => {
   };
 
   useEffect(() => {
-    if (!allChatsData || !allChatsData.findAllChatsByUser) return;
+    if (!allChatsData || !allChatsData.findAllChatsByGroup) return;
 
-    setAllChats(allChatsData.findAllChatsByUser);
+    setAllChats(allChatsData.findAllChatsByGroup || []);
   }, [allChatsData]);
 
   useEffect(() => {
@@ -80,6 +96,14 @@ const ChatsSidebar = () => {
 
     setAllChats((prevChats) => [newChatData.chatAdded, ...prevChats]);
   }, [newChatData]);
+
+  useEffect(() => {
+    if (!deletedChatData || !deletedChatData.chatDeleted) return;
+
+    setAllChats((prevChats) =>
+      prevChats.filter((chat) => chat.id !== deletedChatData.chatDeleted.id)
+    );
+  }, [deletedChatData]);
 
   useEffect(() => {
     if (!updateChatData || !updateChatData.chatUpdated) return;
@@ -90,29 +114,42 @@ const ChatsSidebar = () => {
     setAllChats([updateChatData.chatUpdated, ...prevChats]);
   }, [updateChatData]);
 
+  if (isLoadingFindAllChats) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       {!isLoadingFindAllChats && (
         <aside
           className={cn(
-            "bg-card border-border mt-[75px] flex w-[350px] flex-col space-y-2 rounded-xl border p-3"
+            "bg-card border-border ml-[50px] mt-[80px] flex w-[350px] flex-col space-y-2 rounded-xl border p-3"
             // isCollapsed ? "w-16" : "w-64"
           )}
         >
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Chats</h1>
 
-            <CreateChat />
+            <CreateChat groupId={groupId} />
           </div>
           <Search />
-          {allChats.map((chat, index) => (
-            <ChatsSidebarItem
-              chat={chat}
-              key={index}
-              deleteChat={handleDeleteChat}
-            />
-          ))}
 
+          <div className="flex h-max flex-col space-y-2">
+            {allChats.map((chat, index) => (
+              <ChatsSidebarDropdownTrigger
+                chat={chat}
+                key={index}
+                deleteChat={handleDeleteChat}
+              />
+            ))}
+          </div>
+          <div className="flex h-full items-end justify-end">
+            <Button className="" size="icon" variant="default">
+              <Link href={`/group/${groupId}/settings`}>
+                <Settings2 />
+              </Link>
+            </Button>
+          </div>
           {/* <SidebarHeader /> */}
           {/* {isDashboardPage ? <DashboardNav /> : <UserNav />} */}
         </aside>

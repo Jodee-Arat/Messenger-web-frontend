@@ -9,10 +9,10 @@ import { useDownloadFileMutation } from "@/graphql/generated/output";
 import { downloadFile } from "@/utils/download-file";
 import { formatBytes } from "@/utils/format-bytes";
 
-import { messageType } from "../../../../../../types/message-file.type";
+import { MessageFileType } from "../../../../../../types/message-file.type";
 
 interface MessageFileItemProp {
-  file: messageType;
+  file: MessageFileType;
   chatId: string;
   isSelected: boolean;
 }

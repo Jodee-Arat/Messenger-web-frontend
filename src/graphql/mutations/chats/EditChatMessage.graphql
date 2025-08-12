@@ -1,7 +1,0 @@
-mutation EditChatMessage(
-  $chatId: String!
-  $messageId: String!
-  $data: SendChatMessageInput!
-) {
-  editChatMessage(chatId: $chatId, messageId: $messageId, data: $data)
-}

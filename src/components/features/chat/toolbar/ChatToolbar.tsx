@@ -32,6 +32,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
             Reply
           </Button>
           <ForwardMessageModal
+            handleAddForwarded={handleAddForwarded}
             chatId={chatId}
             messageIds={messageIds}
             handleClearMessagesId={handleClearMessagesId}

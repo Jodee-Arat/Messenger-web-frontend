@@ -1,45 +1,118 @@
-MesArat is a web application for secure messaging that leverages modern cryptographic algorithms and real-time communication via GraphQL subscriptions. This repository contains the frontend part of the project.
+# MesArat
 
-🚀 Features
-🔑 User registration and login
+MesArat is a modern web application for secure messaging that leverages advanced cryptographic algorithms and provides real-time communication via GraphQL subscriptions. This project is designed primarily for companies to efficiently manage employee communications and subdivisions, while also being perfectly suitable for individual users seeking a private and convenient messaging platform.
 
-💬 Create and participate in chats
+---
 
-✉️ Send messages and files
+## 🚀 Key Features
 
-♻️ Delete messages
+- 🔑 **User registration and login**
+- 💬 **Creating and participating in chats**
+- 🗂️ **Group creation with subdivisions:**
 
-🕒 Real-time communication — messages and notifications are delivered instantly via GraphQL Subscriptions
+  - Create company groups and multiple chats within them
+  - Add specific users to groups to organize teams and departments, for example:
+    - MesArat company group
+    - Frontend team chat
+    - Backend team chat
+    - General chat
+    - News chat, and more
 
-🛡️ Message encryption using DES
+- ✉️ **Advanced messaging functionality:**
 
-🤝 Key exchange via the Diffie-Hellman algorithm
+  - Reply to messages for better context
+  - Forward messages between chats and users
+  - Pin important messages for quick access
 
-✍️ Digital signatures using RSA
+- 📁 **Send files and attachments along with messages**
+- ♻️ **Delete messages**
+- 🕒 **Real-time communication:** instant delivery of messages and notifications via GraphQL subscriptions
+- 🔔 **Notifications for new messages and events**
 
-🔔 Notifications for new messages and events
+---
 
-📁 Send attachments together with messages
+## ⚙️ Settings and Personalization
 
-🔐 Security
-The project uses a hybrid approach to secure communication:
+- Manage chat, group, and user settings:
+  - Change avatars, names, descriptions, and bios
+  - Create an informative and comfortable communication environment
 
-DES (Data Encryption Standard) — symmetric encryption for messages and files
+---
 
-Diffie-Hellman — used to securely exchange DES symmetric keys between users
+## 🔒 Security and Future Plans
 
-RSA — used to generate digital signatures to verify message authenticity
+MesArat is built with a strong focus on security and privacy. Upcoming features include:
 
-All messages and files are encrypted on the client-side before sending and decrypted on the client-side after receiving.
+- **Secret chats** with end-to-end encryption for maximum privacy
+- **Advanced user protection**, including two-factor authentication and enhanced privacy controls
+- Audit and control capabilities for corporate accounts to comply with security policies
 
-🛠️ Tech Stack
-React + TypeScript
+---
 
-GraphQL + Apollo Client
+## 📸 Interface Screenshots
 
-Web Crypto API — used for encryption and decryption with DES.
-Other algorithms (RSA, Diffie-Hellman) are implemented manually without external libraries
+### Main Chats and Groups Screen, Message View and Sending
 
-TailwindCSS — for UI styling
+![Message View with Advanced Features](./screenshots/chat-list-message-view.png)
 
-Next.js
+### User and Group Settings
+
+![Profile and Group Settings](./screenshots/settings.png)
+
+_(Replace image paths with actual screenshots)_
+
+---
+
+## 💡 Usage Examples
+
+### Registration and Login
+
+- Register using email and password
+- Log in to start chatting and creating your own groups and chats
+
+### Creating Groups and Chats
+
+- Create a new group
+- Create multiple chats inside the group
+- Add only users who should have access to these chats
+
+### Sending and Managing Messages
+
+- Send messages with text and attachments
+- Reply to specific messages for context
+- Forward messages between chats
+- Pin important messages for easy access
+- Delete messages when necessary
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend:** React 19 + TypeScript — modern, type-safe UI development
+- **State management:** Zustand and React Hook Form for efficient state and form handling
+- **GraphQL:** Apollo Client with subscriptions for real-time data flow
+- **File uploads:** apollo-upload-client
+- **UI components:** Radix UI (Avatar, Dialog, Dropdown Menu, Tabs, Toast, Tooltip, etc.) and Geist UI for polished, accessible components
+- **Styling:** TailwindCSS with class-variance-authority and tailwind-merge for utility-first, responsive design, plus animations via tw-animate-css
+- **Validation:** Zod schema validation integrated with React Hook Form
+- **Internationalization:** next-intl for multilingual support
+- **Theming:** next-themes for light/dark mode support
+- **Notifications:** sonner library for toast notifications
+- **Build and tooling:** Next.js 15 with ESLint, Prettier (including sorting imports), TypeScript 5, and Parcel watcher for fast development cycles
+- **Other utilities:** clsx for conditional class names, dotenv for environment variables, lucide-react icons, input-otp for OTP inputs, and subscriptions-transport-ws for WebSocket GraphQL subscriptions
+
+---
+
+## 🚧 Current Project Status
+
+This is the **final frontend version** before starting mobile application development. The mobile app will retain full functionality with an optimized interface for smartphones and tablets and integrate native device features for enhanced user experience.
+
+---
+
+## 🤝 Contributing
+
+- Reach out for discussions about new features and ideas
+
+---
+
+If you have any questions or suggestions, feel free to reach out!

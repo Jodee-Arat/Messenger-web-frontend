@@ -1,6 +1,7 @@
 query FindAllMessagesByChat($chatId: String!, $filters: FiltersInput!) {
   findAllMessagesByChat(chatId: $chatId, filters: $filters) {
     id
+    isEdited
     text
     files {
       fileName
@@ -20,6 +21,7 @@ query FindAllMessagesByChat($chatId: String!, $filters: FiltersInput!) {
           id
         }
         user {
+          avatarUrl
           username
           id
         }
@@ -29,6 +31,7 @@ query FindAllMessagesByChat($chatId: String!, $filters: FiltersInput!) {
       chatName
     }
     user {
+      avatarUrl
       id
       username
     }

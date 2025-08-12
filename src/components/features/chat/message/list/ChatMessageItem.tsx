@@ -25,7 +25,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
   messageIds,
   chatId,
 }) => {
-  const { text, user, files } = messageInfo;
+  const { text, user, files, isEdited } = messageInfo;
   const isSelected = messageIds.includes(messageId);
 
   const forwardedMessages: ForwardedMessageType[] = (
@@ -47,6 +47,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
       user: {
         id: link.repliedTo!.user.id,
         username: link.repliedTo!.user.username,
+        avatarUrl: link.repliedTo!.user.avatarUrl ?? null,
       },
     }));
 
@@ -72,6 +73,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
           userId={userId}
           files={files}
           text={text}
+          isEdited={isEdited}
         />
 
         {messageInfo.repliedToLinks &&

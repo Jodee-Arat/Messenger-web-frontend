@@ -8,7 +8,10 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/common/ContextMenu";
 
-import { useRemoveMessagesMutation } from "@/graphql/generated/output";
+import {
+  usePinMessageMutation,
+  useRemoveMessagesMutation,
+} from "@/graphql/generated/output";
 
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 
@@ -19,6 +22,7 @@ import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ChatMessageDropdownProp {
   messageInfo: MessageType;
+  setPinnedMessage: (message: MessageType | null) => void;
   userId: string;
   chatId: string;
   messageId: string;
@@ -34,6 +38,7 @@ interface ChatMessageDropdownProp {
 
 const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
   chatId,
+  setPinnedMessage,
   startEdit,
   handleAddForwardedMessage,
   handleClearMessagesId,
@@ -49,6 +54,16 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
     },
     onError(err) {
       toast.error("Failed to delete messages: " + err.message);
+    },
+  });
+
+  const [pinMessage] = usePinMessageMutation({
+    onCompleted() {
+      setPinnedMessage(messageInfo);
+      toast.success("Message pinned successfully.");
+    },
+    onError(err) {
+      toast.error("Failed to pin message: " + err.message);
     },
   });
 
@@ -111,6 +126,16 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
           }
         >
           Edit
+        </ContextMenuItem>
+        <ContextMenuItem
+          className="cursor-pointer"
+          onClick={() => {
+            pinMessage({
+              variables: { chatId, messageId: messageInfo.id },
+            });
+          }}
+        >
+          Pin
         </ContextMenuItem>
         <ContextMenuItem
           className="text-destructive cursor-pointer"

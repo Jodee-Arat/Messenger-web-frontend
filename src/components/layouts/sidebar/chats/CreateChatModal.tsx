@@ -34,9 +34,11 @@ import {
   createChatSchemaType,
 } from "@/schemas/user/create-chat.schema";
 
-interface CreateChatModalProp {}
+interface CreateChatModalProp {
+  groupId: string;
+}
 
-const CreateChatModal: FC<CreateChatModalProp> = ({}) => {
+const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const {
@@ -71,6 +73,7 @@ const CreateChatModal: FC<CreateChatModalProp> = ({}) => {
   const onSubmit = (data: createChatSchemaType) => {
     createChat({
       variables: {
+        groupId,
         data: {
           chatName: data.chatName,
           userIds: data.userIds,

@@ -1,19 +1,9 @@
-"use client";
-
-import { useState } from "react";
-
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/common/ContextMenu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/common/DropdownMenu";
 
 import { FindAllChatsByUserQuery } from "@/graphql/generated/output";
 
