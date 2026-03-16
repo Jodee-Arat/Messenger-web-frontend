@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { useCheckChatAccessQuery } from "./graphql/generated/output";
-
 export default async function middleware(request: NextRequest) {
   const { url, cookies, nextUrl } = request;
 
@@ -18,10 +16,13 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/account/login", url));
   }
 
-  const chatMatch = nextUrl.pathname.match(/^\/chat\/([^\/]+)/);
+  const chatMatch = nextUrl.pathname.match(/^\/group\/[^\/]+\/([^\/]+)/);
   const chatId = chatMatch?.[1];
 
-  if (chatId) {
+  // Skip access check for known static sub-routes (e.g. /group/:id/settings)
+  const staticSubRoutes = ["settings"];
+
+  if (chatId && !staticSubRoutes.includes(chatId)) {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/graphql`, {
         method: "POST",
@@ -59,5 +60,5 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/chat/:path*"],
+  matcher: ["/group/:path*"],
 };

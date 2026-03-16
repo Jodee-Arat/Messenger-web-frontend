@@ -1,8 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import React from "react";
+import { useLoginUserMutation } from "@/shared/graphql/generated/output";
+import { useAuth } from "@/shared/hooks/useAuth";
+import {
+  LoginUserSchemaType,
+  loginUserSchema,
+} from "@/shared/schemas/auth/login-user.schema";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -10,46 +15,37 @@ import { Button } from "@/components/ui/common/Button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
-
-import { useLoginUserMutation } from "@/graphql/generated/output";
-
-import { useAuth } from "@/hooks/useAuth";
-
-import {
-  LoginUserSchemaType,
-  loginUserSchema,
-} from "@/schemas/auth/login-user.schema";
+import { PasswordInput } from "@/components/ui/common/PasswordInput";
 
 import AuthWrapper from "../AuthWrapper";
 
 const LoginAccountForm = () => {
   const form = useForm<LoginUserSchemaType>({
     resolver: zodResolver(loginUserSchema),
+    mode: "onChange",
     defaultValues: {
       login: "",
       password: "",
     },
   });
 
+  const t = useTranslations("auth");
+
   const { auth } = useAuth();
 
-  const router = useRouter();
-
   const [login, { loading: isLoadingLogin }] = useLoginUserMutation({
-    onCompleted() {
+    async onCompleted() {
       auth();
-      toast.success("You have successfully logged in");
-      setTimeout(() => router.push("/"), 1000);
+      toast.success(t("loginSuccess"));
+      window.location.href = "/";
     },
     onError() {
-      toast.error("Something went wrong");
+      toast.error(t("somethingWentWrong"));
     },
   });
 
@@ -62,23 +58,24 @@ const LoginAccountForm = () => {
       },
     });
   };
+
   return (
     <AuthWrapper
-      heading="Login on MesArat"
+      heading={t("login")}
       backButtonHref="/account/create"
-      backButtonLabel="Don't have an account? Sign up!"
+      backButtonLabel={t("noAccount")}
+      backButtonLinkText={t("register")}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-y-3">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <FormField
             control={form.control}
             name="login"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Login</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your login"
+                    placeholder={t("enterLogin")}
                     type="text"
                     disabled={isLoadingLogin}
                     {...field}
@@ -93,25 +90,22 @@ const LoginAccountForm = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="********"
+                  <PasswordInput
+                    placeholder={t("enterPassword")}
                     disabled={isLoadingLogin}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Пароль должен содержать минимум 8 символов, включая заглавную
-                  и строчную буквы, цифру и специальный символ.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button className="mt-3 w-full" disabled={isLoadingLogin || !isValid}>
-            {isLoadingLogin ? "Loading..." : "Login"}
+          <Button
+            className="mt-2 h-10 w-full rounded-md text-sm font-medium"
+            disabled={isLoadingLogin || !isValid}
+          >
+            {isLoadingLogin ? t("loading") : t("login")}
           </Button>
         </form>
       </Form>

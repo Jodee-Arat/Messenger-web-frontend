@@ -1,10 +1,9 @@
 "use client";
 
 import * as LabelPrimitive from "@radix-ui/react-label";
+import { cn } from "@/shared/utils/tw-merge";
 import { type VariantProps, cva } from "class-variance-authority";
 import { ComponentPropsWithoutRef, ComponentRef, forwardRef } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const labelVariants = cva(
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

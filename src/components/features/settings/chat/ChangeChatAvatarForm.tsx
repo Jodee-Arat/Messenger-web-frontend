@@ -1,10 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useChangeChatAvatarMutation,
+  useRemoveChatAvatarMutation,
+} from "@/shared/graphql/generated/output";
+import { useCurrentChat } from "@/shared/hooks/useCurrentChat";
+import {
+  TypeUploadFileSchema,
+  uploadFileSchema,
+} from "@/shared/schemas/upload-file.schema";
 import { Trash } from "lucide-react";
 import { type ChangeEvent, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import { Form, FormField } from "@/components/ui/common/Form";
@@ -13,19 +23,9 @@ import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import {
-  useChangeChatAvatarMutation,
-  useRemoveChatAvatarMutation,
-} from "@/graphql/generated/output";
-
-import { useCurrentChat } from "@/hooks/useCurrentChat";
-
-import {
-  TypeUploadFileSchema,
-  uploadFileSchema,
-} from "@/schemas/upload-file.schema";
-
 const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
+  const t = useTranslations("settings");
+  const tP = useTranslations("profileSettings");
   const { chat, isLoadingChat, refetch } = useCurrentChat(chatId);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,10 +43,10 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
         if (data?.changeChatAvatar) {
           refetch();
         }
-        toast.success("Avatar updated successfully");
+        toast.success(tP("avatarUpdated"));
       },
       onError() {
-        toast.error("Error updating avatar");
+        toast.error(tP("errorUpdatingAvatar"));
       },
     });
 
@@ -54,10 +54,10 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
     useRemoveChatAvatarMutation({
       onCompleted() {
         refetch();
-        toast.success("Avatar removed successfully");
+        toast.success(tP("avatarRemoved"));
       },
       onError() {
-        toast.error("Error removing avatar");
+        toast.error(tP("errorRemovingAvatar"));
       },
     });
 
@@ -65,11 +65,6 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
     const file = event.target.files?.[0];
 
     if (file) {
-      if (chat?.avatarUrl) {
-        remove({
-          variables: { chatId },
-        });
-      }
       form.setValue("file", file);
       update({
         variables: { avatar: file, chatId },
@@ -80,7 +75,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
   return isLoadingChat ? (
     <ChangeAvatarFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Avatar">
+    <FormWrapper heading={t("changeChatAvatar")}>
       <Form {...form}>
         <FormField
           control={form.control}
@@ -99,7 +94,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={(e) => handleImageChange(e)}
+                      onChange={e => handleImageChange(e)}
                     />
                     <Button
                       className="mt-5 lg:mt-0"
@@ -107,12 +102,14 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
                     >
-                      {chat?.avatarUrl ? "Change Avatar" : "Upload Avatar"}
+                      {chat?.avatarUrl
+                        ? t("changeChatAvatar")
+                        : tP("uploadAvatar")}
                     </Button>
                     {chat?.avatarUrl && (
                       <ConfirmModal
-                        heading="Remove Avatar"
-                        message="Are you sure you want to remove avatar chat?"
+                        heading={tP("removeAvatar")}
+                        message={t("removeChatAvatarConfirm")}
                         onConfirm={() => remove({ variables: { chatId } })}
                       >
                         <Button
@@ -130,8 +127,8 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                   </div>
                   <p className="text-muted-foreground text-sm">
                     {chat?.avatarUrl
-                      ? "Click to change your chat avatar"
-                      : "Upload a new avatar for your chat"}
+                      ? t("chatAvatarDesc")
+                      : t("uploadChatAvatar")}
                   </p>
                 </div>
               </div>

@@ -1,8 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useChangeChatInfoMutation } from "@/shared/graphql/generated/output";
+import { useCurrentChat } from "@/shared/hooks/useCurrentChat";
+import {
+  ChangeInfoChatSchema,
+  TypeChangeInfoChatSchema,
+} from "@/shared/schemas/chat/change-info-group.schema";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import {
@@ -19,16 +26,8 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import { Textarea } from "@/components/ui/common/Textarea";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import { useChangeChatInfoMutation } from "@/graphql/generated/output";
-
-import { useCurrentChat } from "@/hooks/useCurrentChat";
-
-import {
-  ChangeInfoChatSchema,
-  TypeChangeInfoChatSchema,
-} from "@/schemas/chat/change-info-group.schema";
-
 const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
+  const t = useTranslations("settings");
   const { chat, isLoadingChat, refetch } = useCurrentChat(chatId);
 
   const form = useForm<TypeChangeInfoChatSchema>({
@@ -42,10 +41,10 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
   const [update, { loading: isLoadingInfoUpdate }] = useChangeChatInfoMutation({
     onCompleted() {
       refetch();
-      toast.success("Chat updated successfully");
+      toast.success(t("chatUpdated"));
     },
     onError() {
-      toast.error("Error updating chat");
+      toast.error(t("chatUpdateError"));
     },
   });
 
@@ -63,7 +62,7 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
   return isLoadingChat ? (
     <ChangeInfoFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Chat Information">
+    <FormWrapper heading={t("changeChatInfo")}>
       <Form {...form}>
         <form className="grid gap-y-3" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
@@ -71,15 +70,15 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
             name="chatName"
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Chat Name</FormLabel>
+                <FormLabel>{t("chatNameLabel")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your chat name"
+                    placeholder={t("chatNamePlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Enter a chat name</FormDescription>
+                <FormDescription>{t("chatNameDesc")}</FormDescription>
               </FormItem>
             )}
           />
@@ -90,17 +89,15 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
             control={form.control}
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t("chatDescLabel")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Enter your chat description"
+                    placeholder={t("chatDescPlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Enter a brief chat description
-                </FormDescription>
+                <FormDescription>{t("chatDescDesc")}</FormDescription>
               </FormItem>
             )}
           ></FormField>
@@ -108,7 +105,7 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
 
           <div className="flex justify-end p-5">
             <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
-              Submit
+              {t("submit")}
             </Button>
           </div>
         </form>

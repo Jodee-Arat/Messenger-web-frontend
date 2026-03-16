@@ -1,9 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useFindAllChatsByUserQuery,
+  useForwardChatMessageMutation,
+} from "@/shared/graphql/generated/output";
+import {
+  ForwardMessageSchemaType,
+  forwardMessageSchema,
+} from "@/shared/schemas/chat/forward-message.schema";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import { Checkbox } from "@/components/ui/common/Checkbox";
@@ -26,16 +35,6 @@ import {
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
 
-import {
-  useFindAllChatsByUserQuery,
-  useForwardChatMessageMutation,
-} from "@/graphql/generated/output";
-
-import {
-  ForwardMessageSchemaType,
-  forwardMessageSchema,
-} from "@/schemas/chat/forward-message.schema";
-
 interface ForwardMessageModalProp {
   handleAddForwarded: (messageIds: string[]) => void;
   messageIds?: string[];
@@ -50,6 +49,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   chatId,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const t = useTranslations("messages");
 
   const router = useRouter();
 
@@ -83,26 +83,26 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
         if (form.getValues("targetChatsId").length === 1) {
           router.push(`/chat/${form.getValues("targetChatsId")[0]}`);
         }
-        toast.success("Message forwarded successfully.");
+        toast.success(t("messageForwarded"));
         form.reset();
       },
       onError(error) {
-        toast.error(`Error forwarding message: ${error.message}`);
+        toast.error(t("forwardError") + ": " + error.message);
       },
     });
 
   const onSubmit = (data: ForwardMessageSchemaType) => {
     if (!messageIds || messageIds.length === 0) {
-      toast.error("No messages selected to forward.");
+      toast.error(t("noMessagesSelected"));
       return;
     }
     const targetChatsId = data.targetChatsId;
     if (targetChatsId.length === 0) {
-      toast.error("You have to select at least one user.");
+      toast.error(t("selectAtLeastOneUser"));
       return;
     }
     if (data.text && data.text.trim() === "") {
-      toast.error("Message text cannot be empty.");
+      toast.error(t("messageTextEmpty"));
       return;
     }
 
@@ -130,7 +130,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
+      onOpenChange={open => {
         setIsOpen(open);
         if (!open) {
           form.reset();
@@ -141,13 +141,13 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
     >
       <DialogTrigger asChild>
         <Button className="" variant="default">
-          Forward
+          {t("forward")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Forward messages</DialogTitle>
-          <DialogDescription>hahahahaha</DialogDescription>
+          <DialogTitle>{t("forwardMessages")}</DialogTitle>
+          <DialogDescription>{""}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -156,16 +156,16 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
               name="text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message</FormLabel>
+                  <FormLabel>{t("messageLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter message"
+                      placeholder={t("enterMessagePlaceholder")}
                       disabled={isLoadingForwardingMessage}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Write a message to the forwarded ones
+                    {t("writeMessageToForward")}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -173,7 +173,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
             />
             {isLoadingFindAllChatsByUser ? (
               <div className="flex items-center justify-center">
-                <span>Loading chats...</span>
+                <span>{t("loadingChats")}</span>
               </div>
             ) : (
               <FormField
@@ -182,13 +182,15 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
                 render={() => (
                   <FormItem>
                     <div className="mb-4">
-                      <FormLabel className="text-base">Chats</FormLabel>
+                      <FormLabel className="text-base">
+                        {t("chatsLabel")}
+                      </FormLabel>
                       <FormDescription>
-                        Select chats to forward messages to.
+                        {t("selectChatsToForward")}
                       </FormDescription>
                     </div>
                     <div className="space-y-5">
-                      {chats.map((item) => (
+                      {chats.map(item => (
                         <FormField
                           key={item.id}
                           control={form.control}
@@ -202,7 +204,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
                                 <FormControl>
                                   <Checkbox
                                     checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
+                                    onCheckedChange={checked => {
                                       return checked
                                         ? field.onChange([
                                             ...field.value,
@@ -210,8 +212,8 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
                                           ])
                                         : field.onChange(
                                             field.value?.filter(
-                                              (value) => value !== item.id
-                                            )
+                                              value => value !== item.id,
+                                            ),
                                           );
                                     }}
                                   />
@@ -242,7 +244,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
                                           0 ? (
                                         <p className="text-xs text-blue-400">
                                           {item.draftMessages[0].files.length}{" "}
-                                          файл(ов)
+                                          {t("files")}
                                         </p>
                                       ) : item.lastMessage &&
                                         item.lastMessage?.text ? (
@@ -263,12 +265,12 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
                                           </h5>
                                           <p className="text-xs text-blue-400">
                                             {item.lastMessage.files.length}{" "}
-                                            файл(ов)
+                                            {t("files")}
                                           </p>
                                         </div>
                                       ) : (
                                         <p className="text-muted-foreground text-xs">
-                                          Пусто
+                                          {t("empty")}
                                         </p>
                                       )}
                                     </div>
@@ -295,7 +297,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
               }
               type="submit"
             >
-              Forward
+              {t("forward")}
             </Button>
           </form>
         </Form>

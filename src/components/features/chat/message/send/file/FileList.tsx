@@ -1,6 +1,5 @@
-import { FC, useState } from "react";
-
-import { SendFileType } from "../../../types/send-file.type";
+import { SendFileType } from "@/shared/types/send-file.type";
+import { FC } from "react";
 
 import FileItem from "./FileItem";
 

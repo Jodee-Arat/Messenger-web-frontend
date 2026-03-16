@@ -1,8 +1,7 @@
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
 import { FC } from "react";
 
 import MessageForm from "../MessageForm";
-
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ForwardMessageListProp {
   forwardedMessagesInfo: ForwardedMessageType[];

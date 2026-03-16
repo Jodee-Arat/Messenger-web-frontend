@@ -1,13 +1,12 @@
 "use client";
 
 import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { cn } from "@/shared/utils/tw-merge";
 import {
   type ComponentPropsWithoutRef,
   type ComponentRef,
   forwardRef,
 } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const Tabs = TabsPrimitive.Root;
 

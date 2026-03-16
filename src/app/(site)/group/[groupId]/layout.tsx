@@ -1,6 +1,5 @@
 import { PropsWithChildren } from "react";
 
-import LayoutContainer from "@/components/layouts/LayoutContainer";
 import ChatsSidebar from "@/components/layouts/sidebar/chats/ChatsSidebar";
 
 type LayoutProps = PropsWithChildren<{
@@ -14,11 +13,11 @@ const GroupLayout = async ({
   const params = await paramsPromise;
   const groupId = params.groupId;
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 py-2">
-        <ChatsSidebar groupId={groupId} />
-        <LayoutContainer>{children}</LayoutContainer>
-      </div>
+    <div className="flex min-w-0 flex-1">
+      <ChatsSidebar groupId={groupId} />
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {children}
+      </main>
     </div>
   );
 };

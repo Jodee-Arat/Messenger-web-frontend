@@ -1,13 +1,7 @@
+import { getMediaSource } from "@/shared/utils/get-media-source";
+import { cn } from "@/shared/utils/tw-merge";
 import { type VariantProps, cva } from "class-variance-authority";
 import { memo } from "react";
-
-import {
-  FindAllGroupsByUserQuery,
-  FindProfileQuery,
-} from "@/graphql/generated/output";
-
-import { getMediaSource } from "@/utils/get-media-source";
-import { cn } from "@/utils/tw-merge";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../common/Avatar";
 

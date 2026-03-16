@@ -1,10 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useChangeProfileAvatarMutation,
+  useRemoveProfileAvatarMutation,
+} from "@/shared/graphql/generated/output";
+import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
+import {
+  TypeUploadFileSchema,
+  uploadFileSchema,
+} from "@/shared/schemas/upload-file.schema";
 import { Trash } from "lucide-react";
 import { type ChangeEvent, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import { Form, FormField } from "@/components/ui/common/Form";
@@ -13,19 +23,8 @@ import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import {
-  useChangeProfileAvatarMutation,
-  useRemoveProfileAvatarMutation,
-} from "@/graphql/generated/output";
-
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-import {
-  TypeUploadFileSchema,
-  uploadFileSchema,
-} from "@/schemas/upload-file.schema";
-
 const ChangeAvatarForm = () => {
+  const t = useTranslations("profileSettings");
   const { user, isLoadingProfile, refetch } = useCurrentUser();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,10 +42,10 @@ const ChangeAvatarForm = () => {
         if (data?.changeProfileAvatar) {
           refetch();
         }
-        toast.success("Avatar updated successfully");
+        toast.success(t("avatarUpdated"));
       },
       onError() {
-        toast.error("Error updating avatar");
+        toast.error(t("errorUpdatingAvatar"));
       },
     });
 
@@ -54,10 +53,10 @@ const ChangeAvatarForm = () => {
     useRemoveProfileAvatarMutation({
       onCompleted() {
         refetch();
-        toast.success("Avatar removed successfully");
+        toast.success(t("avatarRemoved"));
       },
       onError(error) {
-        toast.error("Error removing avatar");
+        toast.error(t("errorRemovingAvatar"));
       },
     });
 
@@ -65,9 +64,6 @@ const ChangeAvatarForm = () => {
     const file = event.target.files?.[0];
 
     if (file) {
-      if (user?.avatarUrl) {
-        remove();
-      }
       form.setValue("file", file);
       update({
         variables: { avatar: file },
@@ -78,7 +74,7 @@ const ChangeAvatarForm = () => {
   return isLoadingProfile ? (
     <ChangeAvatarFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Avatar">
+    <FormWrapper heading={t("changeAvatar")}>
       <Form {...form}>
         <FormField
           control={form.control}
@@ -97,7 +93,7 @@ const ChangeAvatarForm = () => {
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={(e) => handleImageChange(e)}
+                      onChange={e => handleImageChange(e)}
                     />
                     <Button
                       className="mt-5 lg:mt-0"
@@ -105,12 +101,12 @@ const ChangeAvatarForm = () => {
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
                     >
-                      {user?.avatarUrl ? "Change Avatar" : "Upload Avatar"}
+                      {user?.avatarUrl ? t("changeAvatar") : t("uploadAvatar")}
                     </Button>
                     {user?.avatarUrl && (
                       <ConfirmModal
-                        heading="Remove Avatar"
-                        message="Are you sure you want to remove your avatar?"
+                        heading={t("removeAvatar")}
+                        message={t("removeAvatarConfirm")}
                         onConfirm={() => remove()}
                       >
                         <Button
@@ -128,8 +124,8 @@ const ChangeAvatarForm = () => {
                   </div>
                   <p className="text-muted-foreground text-sm">
                     {user?.avatarUrl
-                      ? "Click to change your avatar"
-                      : "Upload a new avatar for your profile"}
+                      ? t("clickToChangeAvatar")
+                      : t("uploadNewAvatar")}
                   </p>
                 </div>
               </div>

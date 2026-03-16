@@ -1,9 +1,8 @@
 "use client";
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "@/shared/utils/tw-merge";
 import { ComponentPropsWithoutRef, ComponentRef, forwardRef } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 

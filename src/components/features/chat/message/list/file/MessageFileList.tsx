@@ -1,7 +1,7 @@
+import { MessageFileType } from "@/shared/types/message-file.type";
 import { FC } from "react";
 
 import MessageFileItem from "./MessageFileItem";
-import { MessageFileType } from "@/types/message-file.type";
 
 interface MessageFileListProp {
   files: MessageFileType[];

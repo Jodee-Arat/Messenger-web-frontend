@@ -1,12 +1,11 @@
-import Image from "next/image";
+import { MessageFileType } from "@/shared/types/message-file.type";
+import { cn } from "@/shared/utils/tw-merge";
 import { FC } from "react";
+import { useTranslations } from "next-intl";
 
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
-import { cn } from "@/utils/tw-merge";
-
 import MessageFileList from "./file/MessageFileList";
-import { MessageFileType } from "@/types/message-file.type";
 
 interface MessageFormProp {
   chatId: string;
@@ -31,12 +30,14 @@ const MessageForm: FC<MessageFormProp> = ({
   text,
   isEdited,
 }) => {
+  const t = useTranslations("messages");
+
   return (
     <div>
       <div
         className={cn(
           "flex items-start gap-3",
-          user.id === userId ? "flex-row-reverse" : "flex-row"
+          user.id === userId ? "flex-row-reverse" : "flex-row",
         )}
       >
         <div className="mt-1">
@@ -51,12 +52,14 @@ const MessageForm: FC<MessageFormProp> = ({
           <h3
             className={cn(
               user.id === userId ? "text-right" : "text-left",
-              "font-semibold"
+              "font-semibold",
             )}
           >
             {user.username}
           </h3>
-          {isEdited && <span className="text-xs text-gray-500">Edited</span>}
+          {isEdited && (
+            <span className="text-xs text-gray-500">{t("edited")}</span>
+          )}
           {text && text !== "null" && (
             <p className="break-words text-left text-sm">{text}</p>
           )}

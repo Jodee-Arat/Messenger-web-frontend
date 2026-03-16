@@ -2,10 +2,10 @@ import { CodegenConfig } from "@graphql-codegen/cli";
 import "dotenv/config";
 
 const config: CodegenConfig = {
-  schema: process.env.NEXT_PUBLIC_SERVER_URL,
-  documents: ["./src/graphql/**/*.graphql"],
+  schema: "../../backend/src/core/graphql/schema.gql",
+  documents: ["./src/shared/graphql/**/*.graphql"],
   generates: {
-    "./src/graphql/generated/output.ts": {
+    "./src/shared/graphql/generated/output.ts": {
       plugins: [
         "typescript",
         "typescript-operations",

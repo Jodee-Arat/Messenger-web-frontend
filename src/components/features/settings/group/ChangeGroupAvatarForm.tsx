@@ -1,10 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useChangeGroupAvatarMutation,
+  useRemoveGroupAvatarMutation,
+} from "@/shared/graphql/generated/output";
+import { useCurrentGroup } from "@/shared/hooks/useCurrentGroup";
+import {
+  TypeUploadFileSchema,
+  uploadFileSchema,
+} from "@/shared/schemas/upload-file.schema";
 import { Trash } from "lucide-react";
 import { type ChangeEvent, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import { Form, FormField } from "@/components/ui/common/Form";
@@ -13,21 +23,9 @@ import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import {
-  useChangeGroupAvatarMutation,
-  useChangeProfileAvatarMutation,
-  useRemoveGroupAvatarMutation,
-  useRemoveProfileAvatarMutation,
-} from "@/graphql/generated/output";
-
-import { useCurrentGroup } from "@/hooks/useCurrentGroup";
-
-import {
-  TypeUploadFileSchema,
-  uploadFileSchema,
-} from "@/schemas/upload-file.schema";
-
 const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
+  const t = useTranslations("settings");
+  const tP = useTranslations("profileSettings");
   const { group, isLoadingGroup, refetch } = useCurrentGroup(groupId);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +43,10 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
         if (data?.changeGroupAvatar) {
           refetch();
         }
-        toast.success("Avatar updated successfully");
+        toast.success(tP("avatarUpdated"));
       },
       onError() {
-        toast.error("Error updating avatar");
+        toast.error(tP("errorUpdatingAvatar"));
       },
     });
 
@@ -56,10 +54,10 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
     useRemoveGroupAvatarMutation({
       onCompleted() {
         refetch();
-        toast.success("Avatar removed successfully");
+        toast.success(tP("avatarRemoved"));
       },
       onError(error) {
-        toast.error("Error removing avatar");
+        toast.error(tP("errorRemovingAvatar"));
       },
     });
 
@@ -67,13 +65,6 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
     const file = event.target.files?.[0];
 
     if (file) {
-      if (group?.avatarUrl) {
-        remove({
-          variables: {
-            groupId,
-          },
-        });
-      }
       form.setValue("file", file);
       update({
         variables: { avatar: file, groupId },
@@ -84,7 +75,7 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
   return isLoadingGroup ? (
     <ChangeAvatarFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Avatar">
+    <FormWrapper heading={t("changeGroupAvatar")}>
       <Form {...form}>
         <FormField
           control={form.control}
@@ -103,7 +94,7 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={(e) => handleImageChange(e)}
+                      onChange={e => handleImageChange(e)}
                     />
                     <Button
                       className="mt-5 lg:mt-0"
@@ -111,12 +102,14 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
                     >
-                      {group?.avatarUrl ? "Change Avatar" : "Upload Avatar"}
+                      {group?.avatarUrl
+                        ? t("changeGroupAvatar")
+                        : tP("uploadAvatar")}
                     </Button>
                     {group?.avatarUrl && (
                       <ConfirmModal
-                        heading="Remove Avatar"
-                        message="Are you sure you want to remove avatar group?"
+                        heading={tP("removeAvatar")}
+                        message={t("removeGroupAvatarConfirm")}
                         onConfirm={() =>
                           remove({
                             variables: {
@@ -140,8 +133,8 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
                   </div>
                   <p className="text-muted-foreground text-sm">
                     {group?.avatarUrl
-                      ? "Click to change your group avatar"
-                      : "Upload a new avatar for your group"}
+                      ? t("groupAvatarDesc")
+                      : t("uploadGroupAvatar")}
                   </p>
                 </div>
               </div>

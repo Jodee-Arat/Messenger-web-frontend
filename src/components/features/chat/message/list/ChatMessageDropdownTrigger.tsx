@@ -1,5 +1,13 @@
+import {
+  usePinMessageMutation,
+  useRemoveMessagesMutation,
+} from "@/shared/graphql/generated/output";
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
+import { MessageType } from "@/shared/types/message.type";
+import { copyToClipboard } from "@/shared/utils/copy-to-clipboard";
 import { FC, useCallback } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import {
   ContextMenu,
@@ -8,17 +16,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/common/ContextMenu";
 
-import {
-  usePinMessageMutation,
-  useRemoveMessagesMutation,
-} from "@/graphql/generated/output";
-
-import { copyToClipboard } from "@/utils/copy-to-clipboard";
-
-import { MessageType } from "../../../../../types/message.type";
-
 import ChatMessageItem from "./ChatMessageItem";
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ChatMessageDropdownProp {
   messageInfo: MessageType;
@@ -32,8 +30,11 @@ interface ChatMessageDropdownProp {
   handleClearMessagesId: () => void;
   startEdit: (
     message: MessageType,
-    forwardedMessages?: ForwardedMessageType[]
+    forwardedMessages?: ForwardedMessageType[],
   ) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canPin?: boolean;
 }
 
 const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
@@ -47,23 +48,28 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
   messageIds,
   messageInfo,
   userId,
+  canEdit = true,
+  canDelete = true,
+  canPin = true,
 }) => {
+  const t = useTranslations("messages");
+
   const [removeMessage] = useRemoveMessagesMutation({
     onCompleted() {
-      toast.success("Messages deleted successfully.");
+      toast.success(t("messagesDeletedSuccess"));
     },
     onError(err) {
-      toast.error("Failed to delete messages: " + err.message);
+      toast.error(t("failedDeleteMessages") + ": " + err.message);
     },
   });
 
   const [pinMessage] = usePinMessageMutation({
     onCompleted() {
       setPinnedMessage(messageInfo);
-      toast.success("Message pinned successfully.");
+      toast.success(t("messagePinned"));
     },
     onError(err) {
-      toast.error("Failed to pin message: " + err.message);
+      toast.error(t("pinError") + ": " + err.message);
     },
   });
 
@@ -100,49 +106,55 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
           className="cursor-pointer"
           onClick={() => handleChooseMessage(messageId)}
         >
-          Select
+          {t("select")}
         </ContextMenuItem>
         <ContextMenuItem
           className="cursor-pointer"
           onClick={() => handleAddMessage()}
         >
-          Reply
+          {t("reply")}
         </ContextMenuItem>
         <ContextMenuItem
           className="cursor-pointer"
           onClick={() => copyToClipboard(messageInfo.text ?? "")}
         >
-          Copy
+          {t("copy")}
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() =>
-            startEdit(
-              messageInfo,
-              messageInfo?.repliedToLinks
-                ?.map((link) => link?.repliedTo)
-                .filter((msg): msg is ForwardedMessageType => !!msg) ?? []
-            )
-          }
-        >
-          Edit
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() => {
-            pinMessage({
-              variables: { chatId, messageId: messageInfo.id },
-            });
-          }}
-        >
-          Pin
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="text-destructive cursor-pointer"
-          onClick={() => handleRemoveMessage()}
-        >
-          Delete
-        </ContextMenuItem>
+        {canEdit && (
+          <ContextMenuItem
+            className="cursor-pointer"
+            onClick={() =>
+              startEdit(
+                messageInfo,
+                messageInfo?.repliedToLinks
+                  ?.map(link => link?.repliedTo)
+                  .filter((msg): msg is ForwardedMessageType => !!msg) ?? [],
+              )
+            }
+          >
+            {t("edit")}
+          </ContextMenuItem>
+        )}
+        {canPin && (
+          <ContextMenuItem
+            className="cursor-pointer"
+            onClick={() => {
+              pinMessage({
+                variables: { chatId, messageId: messageInfo.id },
+              });
+            }}
+          >
+            {t("pin")}
+          </ContextMenuItem>
+        )}
+        {canDelete && (
+          <ContextMenuItem
+            className="text-destructive cursor-pointer"
+            onClick={() => handleRemoveMessage()}
+          >
+            {t("delete")}
+          </ContextMenuItem>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );

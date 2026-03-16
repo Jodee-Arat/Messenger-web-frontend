@@ -1,6 +1,5 @@
+import { cn } from "@/shared/utils/tw-merge";
 import { FC, PropsWithChildren } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 interface DragOverplayProp {
   className?: string;

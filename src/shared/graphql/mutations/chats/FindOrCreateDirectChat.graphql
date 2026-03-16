@@ -1,0 +1,8 @@
+mutation FindOrCreateDirectChat($friendUserId: String!) {
+  findOrCreateDirectChat(friendUserId: $friendUserId) {
+    id
+    chatName
+    isGroup
+    groupId
+  }
+}

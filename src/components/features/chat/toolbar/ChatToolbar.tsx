@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { FC, memo } from "react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 
@@ -20,6 +21,8 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
   handleAddForwarded,
   chatId,
 }) => {
+  const t = useTranslations("messages");
+
   return (
     <div>
       {messageIds && messageIds.length > 0 && (
@@ -29,7 +32,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
             className=""
             variant="default"
           >
-            Reply
+            {t("reply")}
           </Button>
           <ForwardMessageModal
             handleAddForwarded={handleAddForwarded}
@@ -39,10 +42,10 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
           />
 
           <Button onClick={handleRemoveMessages} className="" variant="default">
-            Remove selection
+            {t("removeSelection")}
           </Button>
           <span className="text-sm">
-            {`message(s) selected: ${messageIds.length}`}
+            {t("messagesSelected") + ": " + messageIds.length}
           </span>
           <Button
             onClick={handleClearMessagesId}
@@ -51,7 +54,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
             size="icon"
             asChild
           >
-            <X className="size-7.5 p-0.5 px-1" />
+            <X className="size-7.5 py-0.5 px-1" />
           </Button>
         </div>
       )}

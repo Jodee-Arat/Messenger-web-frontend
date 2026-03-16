@@ -1,12 +1,10 @@
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
+import { MessageType } from "@/shared/types/message.type";
+import { cn } from "@/shared/utils/tw-merge";
 import { FC } from "react";
-
-import { cn } from "@/utils/tw-merge";
-
-import { MessageType } from "../../../../../types/message.type";
 
 import MessageForm from "./MessageForm";
 import ForwardMessageList from "./forward/ForwardMessageList";
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ChatMessageItemProp {
   messageInfo: MessageType;
@@ -32,13 +30,13 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
     messageInfo.repliedToLinks ?? []
   )
     .filter(
-      (link): link is NonNullable<typeof link> => !!link && !!link.repliedTo
+      (link): link is NonNullable<typeof link> => !!link && !!link.repliedTo,
     )
-    .map((link) => ({
+    .map(link => ({
       id: link.repliedTo!.id,
       text: link.repliedTo!.text ?? null,
       files:
-        link.repliedTo!.files?.map((f) => ({
+        link.repliedTo!.files?.map(f => ({
           id: f.id,
           fileName: f.fileName,
           fileFormat: f.fileFormat,
@@ -56,14 +54,16 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
       onClick={() => handleChooseMessage(messageId)}
       className={cn(
         "group relative flex w-full cursor-pointer items-start rounded-lg p-2 transition-colors",
-        isSelected ? "bg-accent hover:bg-accent/90" : "hover:bg-accent/50",
-        user.id === userId ? "flex-row-reverse" : "flex-row"
+        isSelected
+          ? "bg-primary/15 hover:bg-primary/20"
+          : "hover:bg-primary/10",
+        user.id === userId ? "flex-row-reverse" : "flex-row",
       )}
     >
       <div
         className={cn(
           "flex max-w-[80%] flex-col gap-2 break-words",
-          user.id === userId ? "items-end text-right" : "items-start text-left"
+          user.id === userId ? "items-end text-right" : "items-start text-left",
         )}
       >
         <MessageForm
@@ -81,7 +81,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
             <div
               className={cn(
                 "bg-muted border-muted/50 space-y-5 rounded-md border p-4",
-                user.id === userId ? "mr-10" : "ml-10"
+                user.id === userId ? "mr-10" : "ml-10",
               )}
             >
               <ForwardMessageList

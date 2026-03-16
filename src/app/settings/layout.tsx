@@ -1,21 +1,18 @@
 import { PropsWithChildren } from "react";
 
-import LayoutContainer from "@/components/layouts/LayoutContainer";
-import Header from "@/components/layouts/header/Header";
 import GroupsSidebar from "@/components/layouts/sidebar/groups/GroupsSidebar";
+import HomeSidebar from "@/components/layouts/sidebar/HomeSidebar";
 
-const SiteLayout = ({ children }: PropsWithChildren<unknown>) => {
+const SettingsLayout = ({ children }: PropsWithChildren<unknown>) => {
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 py-2">
-        <div className="fixed inset-y-0 z-50 h-[75px] w-full">
-          <Header />
-        </div>
-        <GroupsSidebar />
-        <LayoutContainer>{children}</LayoutContainer>
-      </div>
+    <div className="flex h-screen overflow-hidden">
+      <GroupsSidebar />
+      <HomeSidebar />
+      <main className="flex min-w-0 flex-1 flex-col overflow-y-auto p-6">
+        {children}
+      </main>
     </div>
   );
 };
 
-export default SiteLayout;
+export default SettingsLayout;

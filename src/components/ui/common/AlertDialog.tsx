@@ -1,14 +1,13 @@
 "use client";
 
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
+import { cn } from "@/shared/utils/tw-merge";
 import {
   ComponentPropsWithoutRef,
   ComponentRef,
   HTMLAttributes,
   forwardRef,
 } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 import { buttonVariants } from "./Button";
 

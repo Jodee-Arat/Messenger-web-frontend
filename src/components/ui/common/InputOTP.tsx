@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/shared/utils/tw-merge";
 import { OTPInput, OTPInputContext } from "input-otp";
 import { Minus } from "lucide-react";
 import * as React from "react";
@@ -9,8 +10,6 @@ import {
   forwardRef,
   useContext,
 } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const InputOTP = forwardRef<
   ComponentRef<typeof OTPInput>,

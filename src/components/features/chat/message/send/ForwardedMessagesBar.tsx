@@ -1,13 +1,11 @@
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
+import { cn } from "@/shared/utils/tw-merge";
 import { X } from "lucide-react";
 import { FC } from "react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import { Separator } from "@/components/ui/common/Separator";
-
-import { cn } from "@/utils/tw-merge";
-
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
-import { MessageType } from "@/types/message.type";
 
 interface ForwardedMessagesBarProp {
   forwardedMessages: ForwardedMessageType[];
@@ -18,8 +16,9 @@ const ForwardedMessagesBar: FC<ForwardedMessagesBarProp> = ({
   setForwardedMessages,
   forwardedMessages,
 }) => {
+  const t = useTranslations("messages");
   const usernames = new Set<string>();
-  forwardedMessages.forEach((message) => usernames.add(message.user.username));
+  forwardedMessages.forEach(message => usernames.add(message.user.username));
   return (
     <div className="flex justify-between">
       <div className="flex cursor-pointer items-center space-x-2">
@@ -39,7 +38,7 @@ const ForwardedMessagesBar: FC<ForwardedMessagesBarProp> = ({
                 ))}
               </h3>
               <span className="text-xs">
-                {forwardedMessages.length} messages
+                {forwardedMessages.length} {t("messagesCount")}
               </span>
             </div>
           </>
@@ -56,9 +55,9 @@ const ForwardedMessagesBar: FC<ForwardedMessagesBarProp> = ({
                     <>
                       <span>{forwardedMessages[0].files.length}</span>
                       {forwardedMessages[0].files.length > 1 ? (
-                        <span className="ml-1">files</span>
+                        <span className="ml-1">{t("files")}</span>
                       ) : (
-                        <span className="ml-1">file</span>
+                        <span className="ml-1">{t("files")}</span>
                       )}
                     </>
                   )}

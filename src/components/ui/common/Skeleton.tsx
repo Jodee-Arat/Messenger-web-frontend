@@ -1,6 +1,5 @@
+import { cn } from "@/shared/utils/tw-merge";
 import { HTMLAttributes } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (

@@ -1,11 +1,5 @@
+import { cn } from "@/shared/utils/tw-merge";
 import { type VariantProps, cva } from "class-variance-authority";
-
-import { FindProfileQuery } from "@/graphql/generated/output";
-
-import { getMediaSource } from "@/utils/get-media-source";
-import { cn } from "@/utils/tw-merge";
-
-import { Avatar, AvatarFallback, AvatarImage } from "../common/Avatar";
 
 const headingSizes = cva("", {
   variants: {

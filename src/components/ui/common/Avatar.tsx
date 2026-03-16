@@ -1,9 +1,8 @@
 "use client";
 
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { cn } from "@/shared/utils/tw-merge";
 import { ComponentProps } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 function Avatar({
   className,

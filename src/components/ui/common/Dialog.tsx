@@ -1,6 +1,7 @@
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "@/shared/utils/tw-merge";
 import { X } from "lucide-react";
 import {
   ComponentPropsWithoutRef,
@@ -8,8 +9,6 @@ import {
   HTMLAttributes,
   forwardRef,
 } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const Dialog = DialogPrimitive.Root;
 

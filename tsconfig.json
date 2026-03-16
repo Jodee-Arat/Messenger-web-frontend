@@ -1,28 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
     "noEmit": true,
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
     "incremental": true,
+    "jsx": "preserve",
     "plugins": [
       {
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["../../packages/shared/*"]
-    }
+      "@/*": ["./src/*"]
+    },
+    "isolatedModules": true,
+    "target": "ES2017",
+    "skipLibCheck": true,
+    "strict": false,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0", //без этого ошибка
+    "resolveJsonModule": true
   },
   "include": [
     "next-env.d.ts",
@@ -33,39 +33,3 @@
   ],
   "exclude": ["node_modules"]
 }
-// {
-//   "extends": "../../tsconfig.json",
-//   "compilerOptions": {
-//     "baseUrl": ".",
-//     "paths": {
-//       "@/*": ["./src/*"],
-//       "@shared/*": ["../../packages/shared/*"]
-//     },
-//     "moduleResolution": "node",
-//     "jsx": "preserve",
-//     "incremental": true,
-//     "noEmit": true,
-//     "allowJs": true,
-//     "skipLibCheck": true,
-//     "strict": true,
-//     "esModuleInterop": true,
-//     "resolveJsonModule": true,
-//     "isolatedModules": true,
-//     "target": "ES2020",
-//     "lib": ["dom", "dom.iterable", "esnext"],
-//     "module": "esnext",
-//     "plugins": [
-//       {
-//         "name": "next"
-//       }
-//     ]
-//   },
-//   "include": [
-//     "next-env.d.ts",
-//     "**/*.ts",
-//     "**/*.tsx",
-//     ".next/types/**/*.ts",
-//     "tailwind.config.js"
-//   ],
-//   "exclude": ["node_modules"]
-// }

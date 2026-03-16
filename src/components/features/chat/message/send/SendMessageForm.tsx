@@ -1,8 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useRemoveDraftMutation,
+  useSendChatDraftMessageMutation,
+  useSendChatMessageMutation,
+} from "@/shared/graphql/generated/output";
+import {
+  SendMessageSchemaType,
+  sendMessageSchema,
+} from "@/shared/schemas/chat/send-message.schema";
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
+import { SendFileType } from "@/shared/types/send-file.type";
+import { haveItemsChangedById } from "@/shared/utils/have-items-changedById";
 import { Paperclip, SendHorizonal, X } from "lucide-react";
 import { FC, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import {
@@ -14,24 +27,8 @@ import {
 import { Input } from "@/components/ui/common/Input";
 import { Textarea } from "@/components/ui/common/Textarea";
 
-import {
-  useRemoveDraftMutation,
-  useSendChatDraftMessageMutation,
-  useSendChatMessageMutation,
-} from "@/graphql/generated/output";
-
-import {
-  SendMessageSchemaType,
-  sendMessageSchema,
-} from "@/schemas/chat/send-message.schema";
-
-import { haveItemsChangedById } from "@/utils/have-items-changedById";
-
-import { SendFileType } from "../../types/send-file.type";
-
 import ForwardedMessagesBar from "./ForwardedMessagesBar";
 import FileList from "./file/FileList";
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface SendMessageFormProp {
   handleFileSend: (file: File) => void;
@@ -48,6 +45,8 @@ interface SendMessageFormProp {
   draftText: string;
   filesEdited: SendFileType[];
   setFilesEdited: (files: SendFileType[]) => void;
+  canSend?: boolean;
+  onTyping?: () => void;
 }
 
 const SendMessageForm: FC<SendMessageFormProp> = ({
@@ -65,12 +64,16 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
   setEditId,
   filesEdited,
   setFilesEdited,
+  canSend = true,
+  onTyping,
 }) => {
   const forwardedMessagesRef = useRef(forwardedMessages);
   const filesRef = useRef(files);
   const draftTextRef = useRef(draftText);
   const editIdRef = useRef(editId);
   const filesEditedRef = useRef(filesEdited);
+
+  const t = useTranslations("messages");
 
   const form = useForm<SendMessageSchemaType>({
     resolver: zodResolver(sendMessageSchema),
@@ -127,10 +130,10 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
     });
 
   const canSendMessage =
-    (form.watch("text")?.trim() ?? "") !== "" || files.length > 0;
+    canSend && ((form.watch("text")?.trim() ?? "") !== "" || files.length > 0);
 
   const handleFileInputChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -144,15 +147,15 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
     forwardedMessages?: ForwardedMessageType[],
     editId?: string | null,
     filesEdited: SendFileType[] = [],
-    isDraft = false
+    isDraft = false,
   ) => {
     const trimmedText = data.text ? data.text.trim() : "";
 
     let forwardedMessageIds: string[] = forwardedMessages
-      ? forwardedMessages.map((message) => message.id)
+      ? forwardedMessages.map(message => message.id)
       : [];
 
-    const filesId: string[] = files.map((file) => file.id);
+    const filesId: string[] = files.map(file => file.id);
 
     if (isDraft) {
       if (
@@ -221,11 +224,11 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
       const values = form.getValues();
       const isForwardedMessagesChanged = haveItemsChangedById(
         forwardedMessagesRef.current ?? [],
-        forwardedMessages ?? []
+        forwardedMessages ?? [],
       );
       const isFilesChanged = haveItemsChangedById(
         filesRef.current ?? [],
-        files ?? []
+        files ?? [],
       );
       const isTextChanged = values.text !== draftTextRef.current;
 
@@ -239,7 +242,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         forwardedMessagesRef.current,
         editIdRef.current,
         filesEditedRef.current,
-        true
+        true,
       );
     };
   }, []);
@@ -263,15 +266,15 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) =>
+          onSubmit={form.handleSubmit(data =>
             onSubmit(
               data,
               files,
               forwardedMessages,
               editIdRef.current,
               filesEditedRef.current,
-              false
-            )
+              false,
+            ),
           )}
           className="mt-3 flex items-center gap-x-2"
         >
@@ -293,25 +296,26 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
                 <FormControl>
                   <div className="relative">
                     <Textarea
-                      placeholder="Send message"
+                      placeholder={t("writeMessage")}
                       rows={1}
                       disabled={isLoadingSendMessage}
-                      onInput={(e) => {
+                      onInput={e => {
                         e.currentTarget.style.height = "auto";
                         e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                        onTyping?.();
                       }}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          form.handleSubmit((data) =>
+                          form.handleSubmit(data =>
                             onSubmit(
                               data,
                               files,
                               forwardedMessages,
                               editIdRef.current,
                               filesEditedRef.current,
-                              false
-                            )
+                              false,
+                            ),
                           )();
                         }
                       }}
@@ -335,7 +339,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
                 isLoadingSendFiles ||
                 isLoadingRemoveDraft
               }
-              onClick={(event) => {
+              onClick={event => {
                 event.preventDefault();
 
                 removeDraftMessage({

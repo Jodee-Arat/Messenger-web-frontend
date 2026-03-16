@@ -1,10 +1,9 @@
 "use client";
 
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import { cn } from "@/shared/utils/tw-merge";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import { ComponentProps } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 function DropdownMenu({
   ...props

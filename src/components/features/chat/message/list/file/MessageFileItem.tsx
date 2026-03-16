@@ -1,15 +1,12 @@
+import { useDownloadFileMutation } from "@/shared/graphql/generated/output";
+import { MessageFileType } from "@/shared/types/message-file.type";
+import { downloadFile } from "@/shared/utils/download-file";
+import { formatBytes } from "@/shared/utils/format-bytes";
 import { File } from "lucide-react";
 import { FC } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/common/Button";
-
-import { useDownloadFileMutation } from "@/graphql/generated/output";
-
-import { downloadFile } from "@/utils/download-file";
-import { formatBytes } from "@/utils/format-bytes";
-
-import { MessageFileType } from "../../../../../../types/message-file.type";
 
 interface MessageFileItemProp {
   file: MessageFileType;

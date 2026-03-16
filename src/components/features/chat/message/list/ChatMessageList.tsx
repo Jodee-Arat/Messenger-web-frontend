@@ -1,19 +1,19 @@
-import { FC, useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-
 import {
   useChatMessageAddedSubscription,
   useChatMessageRemovedSubscription,
   useFindAllMessagesByChatQuery,
   useRemoveMessagesMutation,
-} from "@/graphql/generated/output";
+} from "@/shared/graphql/generated/output";
+import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
+import { MessageType } from "@/shared/types/message.type";
+import { FC, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
-import { MessageType } from "../../../../../types/message.type";
 import ChatToolbar from "../../toolbar/ChatToolbar";
-import PinnedMessage from "../PinnedMessage";
+import PinnedMessage from "./PinnedMessage";
 
 import ChatMessageDropdownTrigger from "./ChatMessageDropdownTrigger";
-import { ForwardedMessageType } from "@/types/forward/forwarded-message.type";
 
 interface ChatMessageListProp {
   pinnedMessage: MessageType | null;
@@ -22,9 +22,12 @@ interface ChatMessageListProp {
   userId: string;
   startEdit: (
     message: MessageType,
-    forwardedMessages?: ForwardedMessageType[]
+    forwardedMessages?: ForwardedMessageType[],
   ) => void;
   handleAddForwardedMessage: (messages: MessageType[]) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canPin?: boolean;
 }
 
 const ChatMessageList: FC<ChatMessageListProp> = ({
@@ -34,7 +37,11 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
   startEdit,
   userId,
   handleAddForwardedMessage,
+  canEdit = true,
+  canDelete = true,
+  canPin = true,
 }) => {
+  const t = useTranslations("messages");
   const [messageIds, setMessageIds] = useState<string[]>([]);
   const [messagesInfo, setMessagesInfo] = useState<MessageType[]>([]);
 
@@ -65,10 +72,10 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
     onCompleted() {
       setMessageIds([]);
 
-      toast.success("Messages deleted successfully.");
+      toast.success(t("messagesDeletedSuccess"));
     },
     onError(err) {
-      toast.error("Failed to delete messages: " + err.message);
+      toast.error(t("failedDeleteMessages") + ": " + err.message);
     },
   });
 
@@ -90,15 +97,15 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
   const handleChooseMessage = (messageId: string) => {
     if (messageIds.includes(messageId)) {
-      setMessageIds((prev) => prev.filter((id) => id !== messageId));
+      setMessageIds(prev => prev.filter(id => id !== messageId));
     } else {
-      setMessageIds((prev) => [...prev, messageId]);
+      setMessageIds(prev => [...prev, messageId]);
     }
   };
 
   const handleAddForwarded = (messageIds: string[], reply = true) => {
-    const messages = messagesInfo.filter((message) =>
-      messageIds.includes(message.id)
+    const messages = messagesInfo.filter(message =>
+      messageIds.includes(message.id),
     );
 
     handleAddForwardedMessage(messages);
@@ -119,14 +126,14 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
     const newMessage = newMessageData.chatMessageAdded;
 
     if (newMessage.isEdited) {
-      setMessagesInfo((prevMessages) =>
-        prevMessages.map((message) =>
-          message.id === newMessage.id ? newMessage : message
-        )
+      setMessagesInfo(prevMessages =>
+        prevMessages.map(message =>
+          message.id === newMessage.id ? newMessage : message,
+        ),
       );
       return;
     }
-    setMessagesInfo((prevMessages) => [...prevMessages, newMessage]);
+    setMessagesInfo(prevMessages => [...prevMessages, newMessage]);
   }, [newMessageData]);
 
   useEffect(() => {
@@ -134,12 +141,12 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
     const removedMessagesId = removedMessagesData.chatMessageRemoved;
 
-    const removedIds = removedMessagesId.map((msg) => msg.id);
+    const removedIds = removedMessagesId.map(msg => msg.id);
     const updatedMessages = messagesInfo
-      .filter((message) => !removedIds.includes(message.id))
-      .map((message) => {
+      .filter(message => !removedIds.includes(message.id))
+      .map(message => {
         const cleanedLinks =
-          message.repliedToLinks?.filter((link) => {
+          message.repliedToLinks?.filter(link => {
             return link?.repliedTo && !removedIds.includes(link.repliedTo.id);
           }) ?? [];
 
@@ -154,7 +161,9 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
   if (isLoadingFindAllMessages) {
     return (
-      <div className="flex flex-1 items-center justify-center">Loading...</div>
+      <div className="flex flex-1 items-center justify-center">
+        {t("loading")}
+      </div>
     );
   }
 
@@ -175,7 +184,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
       <div className="flex flex-1 flex-col-reverse overflow-y-auto">
         <div className="mb-2 flex flex-col gap-y-1">
           {messagesInfo.length === 0 ? (
-            <div>Пусто</div>
+            <div>{t("empty")}</div>
           ) : (
             messagesInfo.map((messageInfo, index) => (
               <ChatMessageDropdownTrigger
@@ -190,6 +199,9 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
                 messageIds={messageIds}
                 chatId={chatId}
                 setPinnedMessage={setPinnedMessage}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canPin={canPin}
               />
             ))
           )}

@@ -1,0 +1,3 @@
+mutation UnPinChat($chatId: String!) {
+  unPinChat(chatId: $chatId)
+}

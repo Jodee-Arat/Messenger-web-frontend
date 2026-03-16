@@ -1,8 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useChangeGroupInfoMutation } from "@/shared/graphql/generated/output";
+import { useCurrentGroup } from "@/shared/hooks/useCurrentGroup";
+import {
+  ChangeInfoGroupSchema,
+  TypeChangeInfoGroupSchema,
+} from "@/shared/schemas/group/change-info-group.schema";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import {
@@ -19,19 +26,8 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import { Textarea } from "@/components/ui/common/Textarea";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import {
-  useChangeGroupInfoMutation,
-  useChangeProfileInfoMutation,
-} from "@/graphql/generated/output";
-
-import { useCurrentGroup } from "@/hooks/useCurrentGroup";
-
-import {
-  ChangeInfoGroupSchema,
-  TypeChangeInfoGroupSchema,
-} from "@/schemas/group/change-info-group.schema";
-
 const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
+  const t = useTranslations("settings");
   const { group, isLoadingGroup, refetch } = useCurrentGroup(groupId);
 
   const form = useForm<TypeChangeInfoGroupSchema>({
@@ -46,13 +42,13 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
     {
       onCompleted() {
         refetch();
-        toast.success("Group updated successfully");
+        toast.success(t("groupUpdated"));
       },
       onError(error) {
         console.log(error);
-        toast.error("Error updating group");
+        toast.error(t("groupUpdateError"));
       },
-    }
+    },
   );
 
   const { isValid, isDirty } = form.formState;
@@ -69,7 +65,7 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
   return isLoadingGroup ? (
     <ChangeInfoFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Group Information">
+    <FormWrapper heading={t("changeGroupInfo")}>
       <Form {...form}>
         <form className="grid gap-y-3" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
@@ -77,15 +73,15 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
             name="groupName"
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Group Name</FormLabel>
+                <FormLabel>{t("groupNameLabel")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your group name"
+                    placeholder={t("groupNamePlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Enter a group name</FormDescription>
+                <FormDescription>{t("groupNameDesc")}</FormDescription>
               </FormItem>
             )}
           />
@@ -96,17 +92,15 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
             control={form.control}
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t("groupDescLabel")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Enter your group description"
+                    placeholder={t("groupDescPlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Enter a brief group description
-                </FormDescription>
+                <FormDescription>{t("groupDescDesc")}</FormDescription>
               </FormItem>
             )}
           ></FormField>
@@ -114,7 +108,7 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
 
           <div className="flex justify-end p-5">
             <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
-              Submit
+              {t("submit")}
             </Button>
           </div>
         </form>

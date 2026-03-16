@@ -1,13 +1,10 @@
-import Image from "next/image";
+import { FindAllChatsByUserQuery } from "@/shared/graphql/generated/output";
+import { cn } from "@/shared/utils/tw-merge";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/common/Button";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
-
-import { FindAllChatsByUserQuery } from "@/graphql/generated/output";
-
-import { cn } from "@/utils/tw-merge";
 
 interface ChatsSidebarItemProps {
   chat: FindAllChatsByUserQuery["findAllChatsByUser"][0];
@@ -29,15 +26,15 @@ const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
       >
         <Link
           href={`/group/${groupId}/${chat.id}`}
-          className="flex w-full items-center justify-start space-x-2"
+          className="flex w-full items-center justify-start gap-3 overflow-hidden"
         >
           <EntityAvatar
             size="lg"
             name={chat.chatName}
             avatarUrl={chat.avatarUrl}
           />
-          <div className="flex flex-col space-y-1 text-start">
-            <p className="text-[16px]">{chat.chatName}</p>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-start">
+            <p className="truncate text-[15px] font-medium">{chat.chatName}</p>
             <div>
               {chat.draftMessages &&
               chat.draftMessages.length > 0 &&
@@ -53,19 +50,19 @@ const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
                   {chat.draftMessages[0].files.length} файл(ов)
                 </p>
               ) : chat.lastMessage && chat.lastMessage?.text ? (
-                <div className="flex items-center space-x-2">
-                  <h5 className="text-primary-foreground/80">
+                <div className="flex items-center gap-1.5 truncate">
+                  <h5 className="text-primary-foreground/80 shrink-0">
                     {chat.lastMessage.user.username}
                   </h5>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground truncate text-xs">
                     {chat.lastMessage?.text}
                   </p>
                 </div>
               ) : chat.lastMessage &&
                 chat.lastMessage.files?.length &&
                 chat.lastMessage.files.length > 0 ? (
-                <div className="flex items-center space-x-2">
-                  <h5 className="text-primary-foreground/80">
+                <div className="flex items-center gap-1.5 truncate">
+                  <h5 className="text-primary-foreground/80 shrink-0">
                     {chat.lastMessage.user.username}
                   </h5>
                   <p className="text-xs text-blue-400">

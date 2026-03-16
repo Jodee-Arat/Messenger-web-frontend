@@ -1,4 +1,5 @@
 import { Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ReactNode, useState } from "react";
 
 import { Button } from "@/components/ui/common/Button";
@@ -29,7 +30,7 @@ type SettingsModalProps = {
 };
 
 const SettingsModal = ({
-  title = "Settings",
+  title: titleProp,
   children,
   open,
   onOpenChange,
@@ -40,9 +41,11 @@ const SettingsModal = ({
   contentClassName,
   titleClassName,
 }: SettingsModalProps) => {
+  const t = useTranslations("settings");
+  const title = titleProp === undefined ? t("title") : titleProp;
   const isControlled = open !== undefined;
   const [internalOpen, setInternalOpen] = useState<boolean>(
-    defaultOpen ?? false
+    defaultOpen ?? false,
   );
   const currentOpen = isControlled ? (open as boolean) : internalOpen;
 

@@ -1,6 +1,5 @@
+import { cn } from "@/shared/utils/tw-merge";
 import { HTMLAttributes, forwardRef } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (

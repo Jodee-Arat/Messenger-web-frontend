@@ -7,14 +7,14 @@ const Logo = () => {
   return (
     <Link
       href="/"
-      className="flex items-center gap-x-4 transition-opacity hover:opacity-75"
+      className="flex items-center gap-x-3 transition-opacity hover:opacity-75"
     >
       <Image
         src="/images/logo256x256.ico"
         alt="MesArat"
-        className="size-20"
-        width={80}
-        height={80}
+        className="size-10"
+        width={40}
+        height={40}
       />
 
       <div className="hidden leading-tight lg:block">

@@ -1,0 +1,89 @@
+query FindChatByChatId($chatId: String!) {
+  findChatByChatId(chatId: $chatId) {
+    chatName
+    avatarUrl
+    updatedAt
+    isSecret
+    isGroup
+    description
+    pinnedMessage {
+      id
+      text
+      createdAt
+      isEdited
+      files {
+        fileName
+        fileFormat
+        fileSize
+        id
+      }
+      chat {
+        id
+      }
+      user {
+        id
+        username
+      }
+      repliedToLinks {
+        id
+        repliedTo {
+          id
+          text
+          files {
+            fileName
+            fileFormat
+            fileSize
+            id
+          }
+          user {
+            username
+            id
+          }
+        }
+      }
+    }
+    draftMessages {
+      editId
+      id
+      text
+      files {
+        fileName
+        fileFormat
+        fileSize
+        id
+      }
+      repliedToLinks {
+        id
+        repliedTo {
+          id
+          text
+          files {
+            fileName
+            fileFormat
+            fileSize
+            id
+          }
+          user {
+            username
+            id
+          }
+        }
+      }
+    }
+    members {
+      id
+      isCreator
+      user {
+        id
+        username
+        avatarUrl
+      }
+      roles {
+        id
+        name
+        color
+        permissions
+      }
+    }
+  }
+}

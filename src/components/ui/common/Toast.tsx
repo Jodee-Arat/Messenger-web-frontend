@@ -1,6 +1,7 @@
 "use client";
 
 import * as ToastPrimitives from "@radix-ui/react-toast";
+import { cn } from "@/shared/utils/tw-merge";
 import { type VariantProps, cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import {
@@ -9,8 +10,6 @@ import {
   ReactElement,
   forwardRef,
 } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const ToastProvider = ToastPrimitives.Provider;
 

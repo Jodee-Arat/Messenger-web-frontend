@@ -1,12 +1,14 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/common/Button";
 import { Input } from "@/components/ui/common/Input";
 
 const Search = () => {
+  const t = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -18,9 +20,9 @@ const Search = () => {
     <div className="hidden px-2 lg:block">
       <form className="relative flex items-center" onSubmit={onSubmit}>
         <Input
-          placeholder="Search..."
+          placeholder={t("search")}
           value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
+          onChange={event => setSearchTerm(event.target.value)}
           className="rounded-4xl w-full py-4"
         />
         <Button

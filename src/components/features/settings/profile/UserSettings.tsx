@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 import {
   Tabs,
   TabsContent,
@@ -8,78 +12,64 @@ import Heading from "@/components/ui/elements/Heading";
 
 import ChangeAvatarForm from "./ChangeAvatarForm";
 import ChangeInfoForm from "./ChangeInfoForm";
+import TotpSettings from "./TotpSettings";
+import AppearanceSettings from "./AppearanceSettings";
+import SessionsList from "./SessionsList";
 
 const UserSettings = () => {
+  const tS = useTranslations("settings");
+  const tP = useTranslations("profileSettings");
+  const tA = useTranslations("appearance");
+  const tSes = useTranslations("sessions");
+
   return (
-    <div className="mt-[82px] lg:px-10">
+    <div className="lg:px-10">
       <Heading
-        title="User Settings"
-        description="Manage your account settings"
+        title={tS("userSettings")}
+        description={tS("manageAccount")}
         size="lg"
       />
       <Tabs defaultValue="profile" className="mt-3 w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="sessions">Sessions</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile">{tP("profileTab")}</TabsTrigger>
+          <TabsTrigger value="security">{tP("securityTab")}</TabsTrigger>
+          <TabsTrigger value="appearance">{tP("appearanceTab")}</TabsTrigger>
+          <TabsTrigger value="sessions">{tP("sessionsTab")}</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <div className="mt-5 space-y-6">
             <Heading
-              title="Profile Settings"
-              description="Manage your profile settings"
+              title={tS("profileSettingsTitle")}
+              description={tS("manageProfileSettings")}
             />
             <ChangeAvatarForm />
             <ChangeInfoForm />
-            {/* <SocialLinksForm /> */}
           </div>
         </TabsContent>
-        {/* <TabsContent value="account">
+        <TabsContent value="security">
           <div className="mt-5 space-y-6">
             <Heading
-              title={t("account.header.heading")}
-              description={t("account.header.description")}
+              title={tS("securityTitle")}
+              description={tS("manageSecurity")}
             />
-            <ChangeEmailForm />
-            <ChangePasswordForm />
-            <Heading
-              title={t("account.header.securityHeading")}
-              description={t("account.header.securityDescription")}
-            />
-            <WrapperTOTP />
-            
-          </div>
-        </TabsContent> */}
-        {/*  <TabsContent value="appearance">
-          <div className="mt-5 space-y-6">
-            <Heading
-              title={t("appearance.header.heading")}
-              description={t("appearance.header.description")}
-            />
-            <ChangeThemeForm />
-            <ChangeLanguageForm />
+            <TotpSettings />
           </div>
         </TabsContent>
-        <TabsContent value="notifications">
+        <TabsContent value="appearance">
           <div className="mt-5 space-y-6">
             <Heading
-              title={t("notifications.header.heading")}
-              description={t("notifications.header.description")}
+              title={tA("title")}
+              description={tS("customizeAppearance")}
             />
-            <ChangeNotificationSettingsForm />
+            <AppearanceSettings />
           </div>
         </TabsContent>
         <TabsContent value="sessions">
           <div className="mt-5 space-y-6">
-            <Heading
-              title={t("sessions.header.heading")}
-              description={t("sessions.header.description")}
-            />
+            <Heading title={tSes("title")} description={tS("manageSessions")} />
             <SessionsList />
           </div>
-        </TabsContent> */}
+        </TabsContent>
       </Tabs>
     </div>
   );

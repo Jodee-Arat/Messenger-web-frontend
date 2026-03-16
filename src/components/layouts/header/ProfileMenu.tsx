@@ -1,13 +1,14 @@
 "use client";
 
-import { LayoutDashboard, Loader, LogOut, Settings2, User } from "lucide-react";
-import Image from "next/image";
+import { useLogoutUserMutation } from "@/shared/graphql/generated/output";
+import { useAuth } from "@/shared/hooks/useAuth";
+import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
+import { Loader, LogOut, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarImage } from "@/components/ui/common/Avatar";
 import { Button } from "@/components/ui/common/Button";
 import {
   DropdownMenu,
@@ -17,11 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/common/DropdownMenu";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
-
-import { useLogoutUserMutation } from "@/graphql/generated/output";
-
-import { useAuth } from "@/hooks/useAuth";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const ProfileMenu = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);

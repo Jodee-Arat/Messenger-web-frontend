@@ -1,8 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, SquarePen } from "lucide-react";
+import {
+  useCreateChatMutation,
+  useFindGroupByGroupIdQuery,
+} from "@/shared/graphql/generated/output";
+import {
+  createChatSchema,
+  createChatSchemaType,
+} from "@/shared/schemas/user/create-chat.schema";
+import { SquarePen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 
 import { Button } from "@/components/ui/common/Button";
 import { Checkbox } from "@/components/ui/common/Checkbox";
@@ -24,28 +35,23 @@ import {
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
 
-import {
-  useCreateChatMutation,
-  useFindAllUsersQuery,
-} from "@/graphql/generated/output";
-
-import {
-  createChatSchema,
-  createChatSchemaType,
-} from "@/schemas/user/create-chat.schema";
-
 interface CreateChatModalProp {
   groupId: string;
 }
 
 const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
+  const t = useTranslations("chats");
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const { user: currentUser } = useCurrentUser();
 
   const {
     data,
-    loading: isLoadingFindAllUsers,
+    loading: isLoadingMembers,
     refetch,
-  } = useFindAllUsersQuery({ skip: !isOpen });
+  } = useFindGroupByGroupIdQuery({
+    variables: { groupId },
+    skip: !isOpen,
+  });
 
   const form = useForm<createChatSchemaType>({
     resolver: zodResolver(createChatSchema),
@@ -57,16 +63,18 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
 
   const { isValid } = form.formState;
 
-  const users = data?.findAllUsers ?? [];
+  const users = (data?.findGroupByGroupId?.members ?? [])
+    .filter(m => m.user.id !== currentUser?.id)
+    .map(m => m.user);
 
   const [createChat, { loading: isLoadingCreate }] = useCreateChatMutation({
     onCompleted() {
-      toast.success("Chat created successfully!");
+      toast.success(t("chatCreated"));
       setIsOpen(false);
       form.reset();
     },
     onError(error) {
-      toast.error(`Error creating chat: ${error.message}`);
+      toast.error(`${t("createChatError")}${error.message}`);
     },
   });
 
@@ -77,6 +85,8 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
         data: {
           chatName: data.chatName,
           userIds: data.userIds,
+          isGroup: true,
+          isSecret: false,
         },
       },
     });
@@ -85,7 +95,7 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
+      onOpenChange={open => {
         setIsOpen(open);
         if (!open) {
           form.reset();
@@ -106,7 +116,7 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create chat</DialogTitle>
+          <DialogTitle>{t("createChat")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -115,10 +125,10 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
               name="chatName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chat name</FormLabel>
+                  <FormLabel>{t("chatName")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter chat name"
+                      placeholder={t("chatNamePlaceholder")}
                       disabled={isLoadingCreate}
                       {...field}
                     />
@@ -127,9 +137,9 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
                 </FormItem>
               )}
             />
-            {isLoadingFindAllUsers ? (
+            {isLoadingMembers ? (
               <div className="flex items-center justify-center">
-                <span>Loading users...</span>
+                <span>{t("loadingUsers")}</span>
               </div>
             ) : (
               <FormField
@@ -138,12 +148,14 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
                 render={() => (
                   <FormItem>
                     <div className="mb-4">
-                      <FormLabel className="text-base">Users</FormLabel>
+                      <FormLabel className="text-base">
+                        {t("usersLabel")}
+                      </FormLabel>
                       <FormDescription>
-                        Select users to add to the chat.
+                        {t("selectUsersForChat")}
                       </FormDescription>
                     </div>
-                    {users.map((item) => (
+                    {users.map(item => (
                       <FormField
                         key={item.id}
                         control={form.control}
@@ -157,7 +169,7 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
                               <FormControl>
                                 <Checkbox
                                   checked={field.value?.includes(item.id)}
-                                  onCheckedChange={(checked) => {
+                                  onCheckedChange={checked => {
                                     return checked
                                       ? field.onChange([
                                           ...field.value,
@@ -165,8 +177,8 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
                                         ])
                                       : field.onChange(
                                           field.value?.filter(
-                                            (value) => value !== item.id
-                                          )
+                                            value => value !== item.id,
+                                          ),
                                         );
                                   }}
                                 />
@@ -186,10 +198,10 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
             )}
 
             <Button
-              disabled={!isValid || isLoadingCreate || isLoadingFindAllUsers}
+              disabled={!isValid || isLoadingCreate || isLoadingMembers}
               type="submit"
             >
-              Submit
+              {t("submit")}
             </Button>
           </form>
         </Form>

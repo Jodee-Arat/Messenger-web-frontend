@@ -1,7 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useCreateUserWEmailMutation } from "@/shared/graphql/generated/output";
+import {
+  createAccountWEmailSchema,
+  createAccountWEmailSchemaType,
+} from "@/shared/schemas/auth/create-account-w-email.schema";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -9,29 +14,19 @@ import { Button } from "@/components/ui/common/Button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
-
-import { useCreateUserWEmailMutation } from "@/graphql/generated/output";
-
-import {
-  createAccountWEmailSchema,
-  createAccountWEmailSchemaType,
-} from "@/schemas/auth/create-account-w-email.schema";
+import { PasswordInput } from "@/components/ui/common/PasswordInput";
 
 import AuthWrapper from "../AuthWrapper";
 
 const CreateAccountForm = () => {
-  // const [isSuccess, setIsSuccess] = useState(false);
-
   const form = useForm<createAccountWEmailSchemaType>({
     resolver: zodResolver(createAccountWEmailSchema),
-    mode: "onSubmit",
+    mode: "onChange",
     defaultValues: {
       username: "",
       email: "",
@@ -39,16 +34,16 @@ const CreateAccountForm = () => {
     },
   });
 
-  const router = useRouter();
+  const t = useTranslations("auth");
 
   const [create, { loading: isLoadingCreateUserWEmail }] =
     useCreateUserWEmailMutation({
       onCompleted() {
-        toast.success("You have successfully created an account");
-        setTimeout(() => router.push("/"), 1000);
+        toast.success(t("accountCreated"));
+        window.location.href = "/account/login";
       },
       onError() {
-        toast.error("Something went wrong");
+        toast.error(t("somethingWentWrong"));
       },
     });
 
@@ -66,29 +61,21 @@ const CreateAccountForm = () => {
 
   return (
     <AuthWrapper
-      heading="Register on MesArat"
+      heading={t("signUp")}
       backButtonHref="/account/login"
-      backButtonLabel="Already have an account? Sign in"
+      backButtonLabel={t("alreadyHaveAccount")}
+      backButtonLinkText={t("login")}
     >
-      {/* {isSuccess ? (
-			<Alert>
-				<CircleCheck className="size-4"/>
-				<AlertTitle>Check your email</AlertTitle>
-				<AlertDescription>A verification email has been sent to your inbox. If you don't see the email, check your spam folder</AlertDescription>
-			</Alert>
-		)} */}
-
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-y-3">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <FormField
             control={form.control}
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Johndoe"
+                    placeholder={t("enterLogin")}
                     disabled={isLoadingCreateUserWEmail}
                     {...field}
                   />
@@ -102,10 +89,10 @@ const CreateAccountForm = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Gnomi123@gmail.com"
+                    placeholder={t("enterEmail")}
+                    type="email"
                     disabled={isLoadingCreateUserWEmail}
                     {...field}
                   />
@@ -114,34 +101,27 @@ const CreateAccountForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="********"
+                  <PasswordInput
+                    placeholder={t("enterPassword")}
                     disabled={isLoadingCreateUserWEmail}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Пароль должен содержать минимум 8 символов, включая заглавную
-                  и строчную буквы, цифру и специальный символ.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           <Button
-            className="mt-3 w-full"
+            className="mt-2 h-10 w-full rounded-md text-sm font-medium"
             disabled={isLoadingCreateUserWEmail || !isValid}
           >
-            {isLoadingCreateUserWEmail ? "Loading..." : "Register"}
+            {isLoadingCreateUserWEmail ? t("loading") : t("signUp")}
           </Button>
         </form>
       </Form>

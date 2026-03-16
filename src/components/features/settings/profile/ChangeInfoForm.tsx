@@ -1,8 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useChangeProfileInfoMutation } from "@/shared/graphql/generated/output";
+import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
+import {
+  ChangeInfoProfileSchema,
+  TypeChangeInfoProfileSchema,
+} from "@/shared/schemas/user/change-info-profile.schema";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import {
@@ -19,16 +26,8 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import { Textarea } from "@/components/ui/common/Textarea";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-import { useChangeProfileInfoMutation } from "@/graphql/generated/output";
-
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-import {
-  ChangeInfoProfileSchema,
-  TypeChangeInfoProfileSchema,
-} from "@/schemas/user/change-info-profile.schema";
-
 const ChangeInfoForm = () => {
+  const t = useTranslations("profileSettings");
   const { user, isLoadingProfile, refetch } = useCurrentUser();
 
   const form = useForm<TypeChangeInfoProfileSchema>({
@@ -43,10 +42,10 @@ const ChangeInfoForm = () => {
     useChangeProfileInfoMutation({
       onCompleted() {
         refetch();
-        toast.success("Profile updated   successfully");
+        toast.success(t("profileUpdated"));
       },
       onError() {
-        toast.error("Error updating profile");
+        toast.error(t("updateFailed"));
       },
     });
 
@@ -63,7 +62,7 @@ const ChangeInfoForm = () => {
   return isLoadingProfile ? (
     <ChangeInfoFormSkeleton />
   ) : (
-    <FormWrapper heading="Change Profile Information">
+    <FormWrapper heading={t("changeProfileInfo")}>
       <Form {...form}>
         <form className="grid gap-y-3" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
@@ -71,15 +70,15 @@ const ChangeInfoForm = () => {
             name="username"
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{t("username")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your username"
+                    placeholder={t("usernamePlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Enter a unique username</FormDescription>
+                <FormDescription>{t("enterUniqueUsername")}</FormDescription>
               </FormItem>
             )}
           />
@@ -90,15 +89,15 @@ const ChangeInfoForm = () => {
             control={form.control}
             render={({ field }) => (
               <FormItem className="px-5 pb-3">
-                <FormLabel>Bio</FormLabel>
+                <FormLabel>{t("bio")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Enter your bio"
+                    placeholder={t("bioPlaceholder")}
                     disabled={isLoadingInfoUpdate}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Enter a brief bio</FormDescription>
+                <FormDescription>{t("enterBriefBio")}</FormDescription>
               </FormItem>
             )}
           ></FormField>
@@ -106,7 +105,7 @@ const ChangeInfoForm = () => {
 
           <div className="flex justify-end p-5">
             <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
-              Submit
+              {t("submit")}
             </Button>
           </div>
         </form>

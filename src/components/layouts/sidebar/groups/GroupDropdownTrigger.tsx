@@ -1,11 +1,11 @@
+import { FindAllGroupsByUserQuery } from "@/shared/graphql/generated/output";
+
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/common/ContextMenu";
-
-import { FindAllGroupsByUserQuery } from "@/graphql/generated/output";
 
 import GroupsSidebarItem from "./GroupsSidebarItem";
 

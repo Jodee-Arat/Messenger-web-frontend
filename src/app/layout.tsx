@@ -1,11 +1,10 @@
+import { ApolloClientProvider } from "@/shared/providers/ApolloClientProvider";
+import { ThemeProvider } from "@/shared/providers/ThemeProvider";
+import { ToastProvider } from "@/shared/providers/ToastProvider";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-
-import { ApolloClientProvider } from "@/providers/ApolloClientProvider";
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import { ToastProvider } from "@/providers/ToastProvider";
 
 import "../styles/globals.css";
 

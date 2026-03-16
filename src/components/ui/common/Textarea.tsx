@@ -1,6 +1,5 @@
+import { cn } from "@/shared/utils/tw-merge";
 import { ComponentProps, forwardRef } from "react";
-
-import { cn } from "@/utils/tw-merge";
 
 const Textarea = forwardRef<HTMLTextAreaElement, ComponentProps<"textarea">>(
   ({ className, ...props }, ref) => {
