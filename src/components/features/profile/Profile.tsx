@@ -7,25 +7,40 @@ import {
   Loader,
   MessageCircle,
   Shield,
+  ShieldOff,
+  UserPlus,
   UserMinus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/common/Alert";
 import { Button } from "@/components/ui/common/Button";
 import { Card, CardContent } from "@/components/ui/common/Card";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 
 import {
-  useGetFriendsQuery,
+  useBlockUserMutation,
   useFindAllUsersQuery,
   useFindOrCreateDirectChatMutation,
+  useGetBlockedUsersQuery,
+  useGetOutgoingFriendRequestsQuery,
+  useGetFriendsQuery,
   useRemoveFriendMutation,
-  useBlockUserMutation,
+  useSendFriendRequestByUsernameMutation,
+  useUnblockUserMutation,
 } from "@/shared/graphql/generated/output";
+import {
+  getGraphQLErrorMessage,
+  isDirectContactBlockedError,
+} from "@/shared/utils/direct-contact-blocked";
 
 import ProfileHeader from "./ProfileHeader";
 
@@ -38,42 +53,101 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
   const router = useRouter();
   const t = useTranslations("profile");
   const tFriend = useTranslations("friendProfile");
+  const tCommon = useTranslations("common");
+  const tHome = useTranslations("home");
+
+  const [hasRuntimeBlockedDirectContact, setHasRuntimeBlockedDirectContact] =
+    useState(false);
 
   const isOwnProfile = user?.id === profileId;
 
-  // ── Friend data ──
-  const { data: friendsData, loading: isLoadingFriends } = useGetFriendsQuery({
+  const {
+    data: friendsData,
+    loading: isLoadingFriends,
+    error: friendsError,
+    refetch: refetchFriends,
+  } = useGetFriendsQuery({
     skip: isOwnProfile || !user,
+    fetchPolicy: "cache-and-network",
   });
 
-  const { data: allUsersData } = useFindAllUsersQuery({
+  const {
+    data: allUsersData,
+    loading: isLoadingAllUsers,
+    error: allUsersError,
+    refetch: refetchAllUsers,
+  } = useFindAllUsersQuery({
     skip: isOwnProfile || !user,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const {
+    data: blockedUsersData,
+    error: blockedUsersError,
+    refetch: refetchBlockedUsers,
+  } = useGetBlockedUsersQuery({
+    skip: isOwnProfile || !user,
+    fetchPolicy: "cache-and-network",
+  });
+  const {
+    data: outgoingRequestsData,
+    loading: isLoadingOutgoingRequests,
+    refetch: refetchOutgoingRequests,
+  } = useGetOutgoingFriendRequestsQuery({
+    skip: isOwnProfile || !user,
+    fetchPolicy: "cache-and-network",
   });
 
   const friendship = useMemo(() => {
     if (!friendsData?.getFriends || !user) return null;
-    return friendsData.getFriends.find(f => {
-      const friendUser = f.userId === user.id ? f.friend : f.user;
+
+    return friendsData.getFriends.find((friendshipItem) => {
+      const friendUser =
+        friendshipItem.userId === user.id
+          ? friendshipItem.friend
+          : friendshipItem.user;
+
       return friendUser?.id === profileId;
     });
-  }, [friendsData, user, profileId]);
+  }, [friendsData, profileId, user]);
+
+  const blockedFriendship = useMemo(() => {
+    return (
+      blockedUsersData?.getBlockedUsers.find(
+        (friendshipItem) => friendshipItem.friend?.id === profileId,
+      ) ?? null
+    );
+  }, [blockedUsersData, profileId]);
+
+  const hasOutgoingRequest = useMemo(
+    () =>
+      outgoingRequestsData?.getOutgoingFriendRequests.some(
+        (request) => request.friend?.id === profileId,
+      ) ?? false,
+    [outgoingRequestsData, profileId],
+  );
 
   const targetUser = useMemo(() => {
     if (!user) return null;
-    // Try from friendship first
+
     if (friendship) {
       return friendship.userId === user.id
         ? friendship.friend
         : friendship.user;
     }
-    // Fallback to all users
-    return allUsersData?.findAllUsers?.find(u => u.id === profileId) ?? null;
-  }, [friendship, allUsersData, user, profileId]);
+
+    return (
+      allUsersData?.findAllUsers?.find((target) => target.id === profileId) ??
+      null
+    );
+  }, [allUsersData, friendship, profileId, user]);
 
   const friendSinceFormatted = useMemo(() => {
     if (!friendship?.createdAt) return null;
-    const d = new Date(friendship.createdAt);
-    return d.toLocaleDateString("en-US", {
+
+    const date = new Date(friendship.createdAt);
+
+    return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -82,39 +156,78 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
 
   const friendDuration = useMemo(() => {
     if (!friendship?.createdAt) return null;
+
     const now = new Date();
     const since = new Date(friendship.createdAt);
     const days = Math.floor(
       (now.getTime() - since.getTime()) / (1000 * 60 * 60 * 24),
     );
+
     if (days < 1) return tFriend("today");
     if (days === 1) return tFriend("oneDay");
     if (days < 30) return tFriend("days", { count: days });
+
     const months = Math.floor(days / 30);
     if (months < 12) return tFriend("months", { count: months });
+
     const years = Math.floor(months / 12);
     return tFriend("years", { count: years });
-  }, [friendship]);
+  }, [friendship, tFriend]);
 
-  // ── Mutations ──
+  const isBlockedByCurrentUser = !!blockedFriendship;
+  const isDirectContactUnavailable =
+    isBlockedByCurrentUser || hasRuntimeBlockedDirectContact;
+
   const [findOrCreateDM, { loading: isCreatingChat }] =
     useFindOrCreateDirectChatMutation();
   const [removeFriend] = useRemoveFriendMutation({
     refetchQueries: ["GetFriends"],
+    awaitRefetchQueries: true,
   });
-  const [blockUser] = useBlockUserMutation();
+  const [sendFriendRequest, { loading: isSendingFriendRequest }] =
+    useSendFriendRequestByUsernameMutation();
+  const [blockUser] = useBlockUserMutation({
+    refetchQueries: ["GetFriends", "GetBlockedUsers", "FindAllChatsByUser"],
+    awaitRefetchQueries: true,
+  });
+  const [unblockUser, { loading: isUnblockingUser }] = useUnblockUserMutation({
+    refetchQueries: ["GetBlockedUsers", "FindAllChatsByUser"],
+    awaitRefetchQueries: true,
+  });
+
+  const handleRetry = async () => {
+    await Promise.allSettled([
+      refetchFriends(),
+      refetchAllUsers(),
+      refetchBlockedUsers(),
+      refetchOutgoingRequests(),
+    ]);
+  };
 
   const handleSendMessage = async () => {
+    if (isDirectContactUnavailable) {
+      toast.error(tCommon("directContactUnavailable"));
+      return;
+    }
+
     try {
       const { data } = await findOrCreateDM({
         variables: { friendUserId: profileId },
       });
+
       if (data?.findOrCreateDirectChat) {
         const chat = data.findOrCreateDirectChat;
         router.push(`/group/${chat.groupId}/${chat.id}`);
       }
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (error) {
+      if (isDirectContactBlockedError(error)) {
+        setHasRuntimeBlockedDirectContact(true);
+        await Promise.allSettled([refetchFriends(), refetchBlockedUsers()]);
+        toast.error(tCommon("directContactUnavailable"));
+        return;
+      }
+
+      toast.error(getGraphQLErrorMessage(error));
     }
   };
 
@@ -127,22 +240,64 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
 
   const handleRemoveFriend = async () => {
     if (!friendship) return;
+
     try {
       await removeFriend({ variables: { friendshipId: friendship.id } });
       toast.success(tFriend("friendRemoved"));
       router.push("/");
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (error) {
+      toast.error(getGraphQLErrorMessage(error));
+    }
+  };
+
+  const handleAddFriend = async () => {
+    if (
+      !targetUser?.username ||
+      hasOutgoingRequest ||
+      isDirectContactUnavailable
+    ) {
+      return;
+    }
+
+    try {
+      await sendFriendRequest({
+        variables: { username: targetUser.username },
+      });
+      await Promise.allSettled([refetchOutgoingRequests(), refetchFriends()]);
+      toast.success(tHome("friendRequestSent"));
+    } catch (error) {
+      toast.error(getGraphQLErrorMessage(error));
     }
   };
 
   const handleBlockUser = async () => {
     try {
       await blockUser({ variables: { targetUserId: profileId } });
+      setHasRuntimeBlockedDirectContact(true);
       toast.success(tFriend("userBlocked"));
-      router.push("/");
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (error) {
+      const errorMessage = getGraphQLErrorMessage(error);
+
+      if (errorMessage.toLowerCase().includes("already blocked")) {
+        setHasRuntimeBlockedDirectContact(true);
+        await Promise.allSettled([refetchFriends(), refetchBlockedUsers()]);
+        toast.error(tCommon("directContactUnavailable"));
+        return;
+      }
+
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!blockedFriendship) return;
+
+    try {
+      await unblockUser({ variables: { friendshipId: blockedFriendship.id } });
+      setHasRuntimeBlockedDirectContact(false);
+      toast.success(tFriend("userUnblocked"));
+    } catch (error) {
+      toast.error(getGraphQLErrorMessage(error));
     }
   };
 
@@ -154,7 +309,6 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
     );
   }
 
-  // ── Own Profile ──
   if (isOwnProfile) {
     return (
       <div className="grid w-full grid-cols-4 gap-2">
@@ -181,11 +335,27 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
     );
   }
 
-  // ── Friend / Other User Profile ──
-  if (isLoadingFriends) {
+  if (isLoadingFriends || isLoadingAllUsers) {
     return (
       <div className="flex items-center justify-center p-10">
         <Loader className="text-muted-foreground size-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (friendsError || allUsersError) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        <Alert variant="destructive">
+          <ShieldOff className="size-4" />
+          <AlertTitle>{tFriend("profileLoadError")}</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>{getGraphQLErrorMessage(friendsError ?? allUsersError)}</p>
+            <Button variant="outline" size="sm" onClick={handleRetry}>
+              {tCommon("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -203,7 +373,6 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {/* Avatar & Name */}
       <div className="flex flex-col items-center pt-8 pb-6">
         <div className="rounded-full border-4 border-primary p-1">
           <EntityAvatar
@@ -222,7 +391,39 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
         </button>
       </div>
 
-      {/* Friend since badge */}
+      {isDirectContactUnavailable && (
+        <Alert className="mb-5 border-border bg-muted/50">
+          <ShieldOff className="size-4" />
+          <AlertTitle>
+            {isBlockedByCurrentUser
+              ? tFriend("blockedByYouTitle")
+              : tFriend("directContactUnavailableTitle")}
+          </AlertTitle>
+          <AlertDescription>
+            {isBlockedByCurrentUser
+              ? tFriend("blockedByYouDescription")
+              : tCommon("directContactUnavailable")}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {blockedUsersError && (
+        <Alert variant="destructive" className="mb-5">
+          <ShieldOff className="size-4" />
+          <AlertTitle>{tFriend("blockedStatusLoadError")}</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>{getGraphQLErrorMessage(blockedUsersError)}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchBlockedUsers()}
+            >
+              {tCommon("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {friendship && friendSinceFormatted && (
         <Card className="mb-5">
           <CardContent className="flex items-center gap-4 p-4">
@@ -242,23 +443,35 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
         </Card>
       )}
 
-      {/* Actions */}
       <div className="space-y-2">
         <p className="text-muted-foreground mb-3 text-xs font-semibold uppercase tracking-wider">
           {tFriend("actions")}
         </p>
 
-        {/* Send message */}
+        {!friendship && !isDirectContactUnavailable && (
+          <Button
+            className="w-full justify-start gap-3"
+            onClick={handleAddFriend}
+            disabled={
+              isSendingFriendRequest ||
+              isLoadingOutgoingRequests ||
+              hasOutgoingRequest
+            }
+          >
+            <UserPlus className="size-4" />
+            {hasOutgoingRequest ? tHome("outgoingPending") : tHome("addFriend")}
+          </Button>
+        )}
+
         <Button
           className="w-full justify-start gap-3"
           onClick={handleSendMessage}
-          disabled={isCreatingChat}
+          disabled={isCreatingChat || isDirectContactUnavailable}
         >
           <MessageCircle className="size-4" />
           {tFriend("sendMessage")}
         </Button>
 
-        {/* Copy username */}
         <Button
           variant="outline"
           className="w-full justify-start gap-3"
@@ -268,7 +481,6 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
           {tFriend("copyUsername")}
         </Button>
 
-        {/* Remove friend */}
         {friendship && (
           <ConfirmModal
             heading={tFriend("removeFriend")}
@@ -287,19 +499,33 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
           </ConfirmModal>
         )}
 
-        {/* Block user */}
-        <ConfirmModal
-          heading={tFriend("blockUser")}
-          message={tFriend("blockUserConfirm", {
-            username: targetUser.username,
-          })}
-          onConfirm={handleBlockUser}
-        >
-          <Button variant="destructive" className="w-full justify-start gap-3">
-            <Shield className="size-4" />
-            {tFriend("blockUser")}
+        {isBlockedByCurrentUser ? (
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3"
+            onClick={handleUnblockUser}
+            disabled={isUnblockingUser}
+          >
+            <ShieldOff className="size-4" />
+            {tFriend("unblockUser")}
           </Button>
-        </ConfirmModal>
+        ) : (
+          <ConfirmModal
+            heading={tFriend("blockUser")}
+            message={tFriend("blockUserConfirm", {
+              username: targetUser.username,
+            })}
+            onConfirm={handleBlockUser}
+          >
+            <Button
+              variant="destructive"
+              className="w-full justify-start gap-3"
+            >
+              <Shield className="size-4" />
+              {tFriend("blockUser")}
+            </Button>
+          </ConfirmModal>
+        )}
       </div>
     </div>
   );

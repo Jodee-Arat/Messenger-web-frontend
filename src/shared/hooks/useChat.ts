@@ -10,7 +10,15 @@ import { SendFileType } from "@/shared/types/send-file.type";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export const useChat = (chatId: string) => {
+import {
+  getGraphQLErrorMessage,
+  isDirectContactBlockedError,
+} from "@/shared/utils/direct-contact-blocked";
+
+export const useChat = (
+  chatId: string,
+  onDirectContactBlocked?: () => void,
+) => {
   const [messageId, setMessageId] = useState<string | null>(null);
 
   const [forwardedMessages, setForwardedMessages] = useState<
@@ -23,40 +31,50 @@ export const useChat = (chatId: string) => {
 
   const [filesEdited, setFilesEdited] = useState<SendFileType[]>([]);
 
-  const { data: chatData, loading: isLoadingFindChat } =
-    useFindChatByChatIdQuery({
-      variables: {
-        chatId,
-      },
-      fetchPolicy: "network-only",
-    });
+  const {
+    data: chatData,
+    loading: isLoadingFindChat,
+    error: chatError,
+    refetch: refetchChat,
+  } = useFindChatByChatIdQuery({
+    variables: {
+      chatId,
+    },
+    fetchPolicy: "network-only",
+  });
   const chat = chatData?.findChatByChatId;
+
+  useEffect(() => {
+    if (chatError && isDirectContactBlockedError(chatError)) {
+      onDirectContactBlocked?.();
+    }
+  }, [chatError, onDirectContactBlocked]);
 
   useEffect(() => {
     if (!chat) return;
 
-    if (chat.pinnedMessage) {
-      setPinnedMessage(chat.pinnedMessage);
-    }
+    setPinnedMessage(chat.pinnedMessage ?? null);
 
     const draft = chat.draftMessages?.[0];
     if (!draft) return;
+
     setDraftText(draft.text ?? "");
     setEditId(draft?.editId ?? null);
+
     if (draft?.repliedToLinks) {
       const forwarded = draft.repliedToLinks
         .map((reply) => reply?.repliedTo)
-        .filter((msg): msg is MessageType => !!msg);
+        .filter((message): message is MessageType => !!message);
       setForwardedMessages(forwarded);
     }
 
     if (draft?.files) {
-      const files = draft.files.map((file) => ({
+      const draftFiles = draft.files.map((file) => ({
         name: file.fileName,
         size: file.fileSize.toString(),
         id: file.id,
       }));
-      setFiles(files);
+      setFiles(draftFiles);
     }
   }, [chat]);
 
@@ -68,8 +86,13 @@ export const useChat = (chatId: string) => {
         { ...prevFilesId[prevFilesId.length - 1], id: data.sendFile.fileId },
       ]);
     },
-    onError(err) {
-      toast.error(err.message);
+    onError(error) {
+      if (isDirectContactBlockedError(error)) {
+        onDirectContactBlocked?.();
+        return;
+      }
+
+      toast.error(getGraphQLErrorMessage(error));
     },
   });
 
@@ -83,8 +106,13 @@ export const useChat = (chatId: string) => {
   };
 
   const [removeFile] = useRemoveFileMutation({
-    onError(err) {
-      toast.error("Failed to remove file: " + err.message);
+    onError(error) {
+      if (isDirectContactBlockedError(error)) {
+        onDirectContactBlocked?.();
+        return;
+      }
+
+      toast.error("Failed to remove file: " + getGraphQLErrorMessage(error));
     },
   });
 
@@ -94,14 +122,17 @@ export const useChat = (chatId: string) => {
   const handleDelete = (id: string) => {
     setMessageId(null);
     let isFileEdited = false;
+
     setFiles((prev) =>
       prev.filter((file) => {
         if (file.id === id) {
           isFileEdited = true;
         }
+
         return file.id !== id;
-      })
+      }),
     );
+
     if (isFileEdited) {
       return;
     }
@@ -115,7 +146,7 @@ export const useChat = (chatId: string) => {
 
   const startEdit = (
     message: MessageType,
-    forwardedMessages?: ForwardedMessageType[]
+    forwardedMessages?: ForwardedMessageType[],
   ) => {
     setEditId(message.id);
     setDraftText(message.text ?? "");
@@ -124,7 +155,7 @@ export const useChat = (chatId: string) => {
         name: file.fileName,
         size: file.fileSize.toString(),
         id: file.id,
-      }))
+      })),
     );
     setForwardedMessages(forwardedMessages ?? []);
   };
@@ -202,5 +233,7 @@ export const useChat = (chatId: string) => {
     pinnedMessage,
     setPinnedMessage,
     handleFileSend,
+    chatError,
+    refetchChat,
   };
 };

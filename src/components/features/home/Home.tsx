@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Check,
   Clock,
   Loader2,
   MessageSquare,
+  Search,
   Send,
   UserMinus,
-  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -18,12 +18,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/common/Button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/common/Card";
+import { Card, CardContent } from "@/components/ui/common/Card";
 import {
   Dialog,
   DialogContent,
@@ -42,31 +37,87 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import { useFriends } from "@/shared/hooks/useFriends";
-import { useFindOrCreateDirectChatMutation } from "@/shared/graphql/generated/output";
+import {
+  useFindAllUsersQuery,
+  useFindOrCreateDirectChatMutation,
+  useGetBlockedUsersQuery,
+} from "@/shared/graphql/generated/output";
+import {
+  getGraphQLErrorMessage,
+  isDirectContactBlockedError,
+} from "@/shared/utils/direct-contact-blocked";
 
 const Home = () => {
   const router = useRouter();
-  const [friendUsername, setFriendUsername] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [findPeopleQuery, setFindPeopleQuery] = useState("");
+  const [runtimeBlockedUserIds, setRuntimeBlockedUserIds] = useState<string[]>(
+    [],
+  );
   const t = useTranslations("home");
+  const tCommon = useTranslations("common");
+  const tSettings = useTranslations("settings");
 
   const {
     friends,
     incoming,
     outgoing,
     isLoadingFriends,
-    isSending,
-    handleSendRequest,
     handleAccept,
     handleDecline,
     handleCancel,
     handleRemoveFriend,
     getFriendUser,
+    refetchFriends,
   } = useFriends();
 
   const [findOrCreateDM] = useFindOrCreateDirectChatMutation();
+  const {
+    data: usersData,
+    loading: isLoadingUsers,
+    error: usersError,
+  } = useFindAllUsersQuery({
+    skip: !addDialogOpen,
+    fetchPolicy: "cache-and-network",
+  });
+  const { data: blockedUsersData, refetch: refetchBlockedUsers } =
+    useGetBlockedUsersQuery({
+      fetchPolicy: "cache-and-network",
+    });
+
+  const filteredUsers = useMemo(() => {
+    const normalizedQuery = findPeopleQuery.trim().toLowerCase();
+    if (!normalizedQuery) return [];
+
+    return (usersData?.findAllUsers ?? [])
+      .filter(user => user.username.toLowerCase().includes(normalizedQuery))
+      .sort((left, right) => {
+        const leftExact = left.username.toLowerCase() === normalizedQuery;
+        const rightExact = right.username.toLowerCase() === normalizedQuery;
+
+        if (leftExact !== rightExact) {
+          return leftExact ? -1 : 1;
+        }
+
+        return left.username.localeCompare(right.username);
+      });
+  }, [findPeopleQuery, usersData]);
+
+  const blockedUserIds = useMemo(() => {
+    const blockedByCurrentUser =
+      blockedUsersData?.getBlockedUsers.flatMap(friendship =>
+        friendship.friend?.id ? [friendship.friend.id] : [],
+      ) ?? [];
+
+    return new Set([...blockedByCurrentUser, ...runtimeBlockedUserIds]);
+  }, [blockedUsersData, runtimeBlockedUserIds]);
 
   const handleMessage = async (friendUserId: string) => {
+    if (blockedUserIds.has(friendUserId)) {
+      toast.error(tCommon("directContactUnavailable"));
+      return;
+    }
+
     try {
       const { data } = await findOrCreateDM({
         variables: { friendUserId: friendUserId },
@@ -75,15 +126,31 @@ const Home = () => {
         const chat = data.findOrCreateDirectChat;
         router.push(`/group/${chat.groupId}/${chat.id}`);
       }
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (error) {
+      if (isDirectContactBlockedError(error)) {
+        setRuntimeBlockedUserIds(prev =>
+          prev.includes(friendUserId) ? prev : [...prev, friendUserId],
+        );
+        await Promise.allSettled([refetchFriends(), refetchBlockedUsers()]);
+        toast.error(tCommon("directContactUnavailable"));
+        return;
+      }
+
+      toast.error(getGraphQLErrorMessage(error));
     }
   };
 
-  const handleAddFriend = async () => {
-    await handleSendRequest(friendUsername);
-    setFriendUsername("");
+  const handleSelectUser = (user: (typeof filteredUsers)[number]) => {
     setAddDialogOpen(false);
+    setFindPeopleQuery("");
+    router.push(`/${user.id}`);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setAddDialogOpen(open);
+    if (!open) {
+      setFindPeopleQuery("");
+    }
   };
 
   return (
@@ -97,34 +164,62 @@ const Home = () => {
               {t("messages")}
             </Link>
           </Button>
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <Dialog open={addDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
               <Button>
-                <UserPlus className="mr-2 size-4" />
-                {t("addFriend")}
+                <Search className="mr-2 size-4" />
+                {t("findPeople")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle>{t("addFriendTitle")}</DialogTitle>
+                <DialogTitle>{t("findPeople")}</DialogTitle>
               </DialogHeader>
-              <div className="flex gap-2">
+              <div className="space-y-4">
                 <Input
                   placeholder={t("enterUsername")}
-                  value={friendUsername}
-                  onChange={e => setFriendUsername(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleAddFriend()}
+                  value={findPeopleQuery}
+                  onChange={e => setFindPeopleQuery(e.target.value)}
                 />
-                <Button
-                  onClick={handleAddFriend}
-                  disabled={!friendUsername.trim() || isSending}
-                >
-                  {isSending ? (
-                    <Loader2 className="size-4 animate-spin" />
+                <div className="max-h-80 space-y-2 overflow-y-auto">
+                  {isLoadingUsers ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="text-muted-foreground size-5 animate-spin" />
+                    </div>
+                  ) : usersError ? (
+                    <p className="text-destructive text-sm">
+                      {getGraphQLErrorMessage(usersError)}
+                    </p>
+                  ) : filteredUsers.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">
+                      {findPeopleQuery.trim()
+                        ? tSettings("noUsersFound")
+                        : t("enterUsername")}
+                    </p>
                   ) : (
-                    <Send className="size-4" />
+                    filteredUsers.map(user => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => handleSelectUser(user)}
+                        className="flex w-full items-center gap-3 rounded-lg border border-border/60 px-3 py-2 text-left transition-colors hover:bg-muted/50"
+                      >
+                        <EntityAvatar
+                          name={user.username}
+                          avatarUrl={user.avatarUrl}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold">
+                            {user.username}
+                          </p>
+                          <p className="text-muted-foreground truncate text-xs">
+                            {user.bio || `@${user.username}`}
+                          </p>
+                        </div>
+                      </button>
+                    ))
                   )}
-                </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -183,6 +278,9 @@ const Home = () => {
             friends.map(f => {
               const u = getFriendUser(f);
               if (!u) return null;
+
+              const isDirectContactUnavailable = blockedUserIds.has(u.id);
+
               return (
                 <Card key={f.id} className="group">
                   <CardContent className="flex items-center gap-3 p-3">
@@ -196,8 +294,9 @@ const Home = () => {
                           {u.username}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          {t("friendsSince")}{" "}
-                          {new Date(f.createdAt).toLocaleDateString()}
+                          {isDirectContactUnavailable
+                            ? t("blocked")
+                            : `${t("friendsSince")} ${new Date(f.createdAt).toLocaleDateString()}`}
                         </p>
                       </div>
                     </Link>
@@ -206,7 +305,12 @@ const Home = () => {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleMessage(u.id)}
-                        title={t("sendMessage")}
+                        disabled={isDirectContactUnavailable}
+                        title={
+                          isDirectContactUnavailable
+                            ? tCommon("directContactUnavailable")
+                            : t("sendMessage")
+                        }
                       >
                         <MessageSquare className="size-4" />
                       </Button>
@@ -214,7 +318,9 @@ const Home = () => {
                         size="icon"
                         variant="ghost"
                         className="text-destructive"
-                        onClick={() => handleRemoveFriend(f.id)}
+                        onClick={() =>
+                          handleRemoveFriend(f.id, t("friendRemoved"))
+                        }
                         title={t("removeFriend")}
                       >
                         <UserMinus className="size-4" />

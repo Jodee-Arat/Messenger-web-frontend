@@ -1,6 +1,8 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 import {
   Tabs,
@@ -14,6 +16,7 @@ import ChangeAvatarForm from "./ChangeAvatarForm";
 import ChangeInfoForm from "./ChangeInfoForm";
 import TotpSettings from "./TotpSettings";
 import AppearanceSettings from "./AppearanceSettings";
+import BlockedUsersSettings from "./BlockedUsersSettings";
 import SessionsList from "./SessionsList";
 
 const UserSettings = () => {
@@ -21,6 +24,15 @@ const UserSettings = () => {
   const tP = useTranslations("profileSettings");
   const tA = useTranslations("appearance");
   const tSes = useTranslations("sessions");
+  const searchParams = useSearchParams();
+
+  const requestedTab =
+    searchParams.get("tab") === "blocked" ? "blocked" : "profile";
+  const [activeTab, setActiveTab] = useState(requestedTab);
+
+  useEffect(() => {
+    setActiveTab(requestedTab);
+  }, [requestedTab]);
 
   return (
     <div className="lg:px-10">
@@ -29,12 +41,17 @@ const UserSettings = () => {
         description={tS("manageAccount")}
         size="lg"
       />
-      <Tabs defaultValue="profile" className="mt-3 w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="mt-3 w-full"
+      >
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 md:grid-cols-5">
           <TabsTrigger value="profile">{tP("profileTab")}</TabsTrigger>
           <TabsTrigger value="security">{tP("securityTab")}</TabsTrigger>
           <TabsTrigger value="appearance">{tP("appearanceTab")}</TabsTrigger>
           <TabsTrigger value="sessions">{tP("sessionsTab")}</TabsTrigger>
+          <TabsTrigger value="blocked">{tP("blockedTab")}</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <div className="mt-5 space-y-6">
@@ -69,6 +86,9 @@ const UserSettings = () => {
             <Heading title={tSes("title")} description={tS("manageSessions")} />
             <SessionsList />
           </div>
+        </TabsContent>
+        <TabsContent value="blocked">
+          <BlockedUsersSettings />
         </TabsContent>
       </Tabs>
     </div>

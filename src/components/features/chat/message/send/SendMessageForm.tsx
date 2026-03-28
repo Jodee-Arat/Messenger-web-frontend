@@ -17,6 +17,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
+import {
+  getGraphQLErrorMessage,
+  isDirectContactBlockedError,
+} from "@/shared/utils/direct-contact-blocked";
+
 import { Button } from "@/components/ui/common/Button";
 import {
   Form,
@@ -47,6 +52,7 @@ interface SendMessageFormProp {
   setFilesEdited: (files: SendFileType[]) => void;
   canSend?: boolean;
   onTyping?: () => void;
+  onDirectContactBlocked?: () => void;
 }
 
 const SendMessageForm: FC<SendMessageFormProp> = ({
@@ -66,6 +72,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
   setFilesEdited,
   canSend = true,
   onTyping,
+  onDirectContactBlocked,
 }) => {
   const forwardedMessagesRef = useRef(forwardedMessages);
   const filesRef = useRef(files);
@@ -94,7 +101,12 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         handleClearForm();
       },
       onError(error) {
-        toast.error(error.message);
+        if (isDirectContactBlockedError(error)) {
+          onDirectContactBlocked?.();
+          return;
+        }
+
+        toast.error(getGraphQLErrorMessage(error));
       },
     });
   const [sendDraft, { loading: isLoadingSendDraft }] =
@@ -109,7 +121,12 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         handleClearForm();
       },
       onError(error) {
-        toast.error(error.message);
+        if (isDirectContactBlockedError(error)) {
+          onDirectContactBlocked?.();
+          return;
+        }
+
+        toast.error(getGraphQLErrorMessage(error));
       },
     });
 
@@ -125,7 +142,12 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         handleClearForm();
       },
       onError(error) {
-        toast.error(error.message);
+        if (isDirectContactBlockedError(error)) {
+          onDirectContactBlocked?.();
+          return;
+        }
+
+        toast.error(getGraphQLErrorMessage(error));
       },
     });
 
@@ -152,10 +174,10 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
     const trimmedText = data.text ? data.text.trim() : "";
 
     let forwardedMessageIds: string[] = forwardedMessages
-      ? forwardedMessages.map(message => message.id)
+      ? forwardedMessages.map((message) => message.id)
       : [];
 
-    const filesId: string[] = files.map(file => file.id);
+    const filesId: string[] = files.map((file) => file.id);
 
     if (isDraft) {
       if (
@@ -266,7 +288,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(data =>
+          onSubmit={form.handleSubmit((data) =>
             onSubmit(
               data,
               files,
@@ -299,15 +321,15 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
                       placeholder={t("writeMessage")}
                       rows={1}
                       disabled={isLoadingSendMessage}
-                      onInput={e => {
+                      onInput={(e) => {
                         e.currentTarget.style.height = "auto";
                         e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
                         onTyping?.();
                       }}
-                      onKeyDown={e => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          form.handleSubmit(data =>
+                          form.handleSubmit((data) =>
                             onSubmit(
                               data,
                               files,
@@ -339,7 +361,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
                 isLoadingSendFiles ||
                 isLoadingRemoveDraft
               }
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
 
                 removeDraftMessage({

@@ -38,7 +38,11 @@ export function useFriends() {
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
 
   // ── Queries ──
-  const { data: friendsData, loading: isLoadingFriends } = useGetFriendsQuery({
+  const {
+    data: friendsData,
+    loading: isLoadingFriends,
+    refetch: refetchFriends,
+  } = useGetFriendsQuery({
     fetchPolicy: "cache-and-network",
   });
   const { data: incomingData, loading: isLoadingIncoming } =
@@ -197,10 +201,10 @@ export function useFriends() {
   );
 
   const handleRemoveFriend = useCallback(
-    async (id: string) => {
+    async (id: string, successMessage?: string) => {
       try {
         await removeFriendMut({ variables: { friendshipId: id } });
-        toast.success("Friend removed");
+        toast.success(successMessage ?? "Friend removed");
       } catch (e: any) {
         toast.error(e.message);
       }
@@ -219,6 +223,7 @@ export function useFriends() {
     isLoadingIncoming,
     isLoadingOutgoing,
     isSending,
+    refetchFriends,
     handleSendRequest,
     handleAccept,
     handleDecline,
