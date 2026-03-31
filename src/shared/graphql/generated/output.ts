@@ -76,6 +76,7 @@ export type ChatMemberModel = {
   id: Scalars['ID']['output'];
   isCreator?: Maybe<Scalars['Boolean']['output']>;
   joinedAt: Scalars['DateTime']['output'];
+  pinnedMessageId?: Maybe<Scalars['String']['output']>;
   roles?: Maybe<Array<ChatRoleModel>>;
   updatedAt: Scalars['DateTime']['output'];
   user: UserModel;
@@ -344,6 +345,8 @@ export type MemberRoleModel = {
 export type Mutation = {
   __typename?: 'Mutation';
   acceptFriendRequest: Scalars['Boolean']['output'];
+  ackSecretMessages: Scalars['Boolean']['output'];
+  ackSharedSecretKeys: Scalars['Boolean']['output'];
   assignGroupRoleToMember: Scalars['Boolean']['output'];
   assignRoleToUser: Scalars['Boolean']['output'];
   blockUser: Scalars['Boolean']['output'];
@@ -364,7 +367,9 @@ export type Mutation = {
   deleteGroup: Scalars['Boolean']['output'];
   deleteGroupRole: Scalars['Boolean']['output'];
   disableTotp: Scalars['Boolean']['output'];
+  discardSecretAttachment: Scalars['Boolean']['output'];
   downloadFile: FileDownloadData;
+  downloadSecretAttachment: SecretAttachmentDownloadModel;
   enableTotp: Scalars['Boolean']['output'];
   findOrCreateDirectChat: ChatModel;
   forwardChatMessage: Scalars['Boolean']['output'];
@@ -402,6 +407,7 @@ export type Mutation = {
   unPinMessage: Scalars['Boolean']['output'];
   unblockUser: Scalars['Boolean']['output'];
   updatePinnedChatsOrder: Scalars['Boolean']['output'];
+  uploadSecretAttachment: SecretAttachmentModel;
   upsertChatRole: Scalars['Boolean']['output'];
   upsertGroupRole: Scalars['Boolean']['output'];
   verifyChatTotp: Scalars['Boolean']['output'];
@@ -410,6 +416,18 @@ export type Mutation = {
 
 export type MutationAcceptFriendRequestArgs = {
   friendshipId: Scalars['String']['input'];
+};
+
+
+export type MutationAckSecretMessagesArgs = {
+  chatId: Scalars['String']['input'];
+  messageIds: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationAckSharedSecretKeysArgs = {
+  chatId: Scalars['String']['input'];
+  sharedKeyIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -514,9 +532,26 @@ export type MutationDeleteGroupRoleArgs = {
 };
 
 
+export type MutationDisableTotpArgs = {
+  token: Scalars['String']['input'];
+};
+
+
+export type MutationDiscardSecretAttachmentArgs = {
+  attachmentId: Scalars['String']['input'];
+  chatId: Scalars['String']['input'];
+};
+
+
 export type MutationDownloadFileArgs = {
   chatId: Scalars['String']['input'];
   fileId: Scalars['String']['input'];
+};
+
+
+export type MutationDownloadSecretAttachmentArgs = {
+  attachmentId: Scalars['String']['input'];
+  chatId: Scalars['String']['input'];
 };
 
 
@@ -708,6 +743,11 @@ export type MutationUpdatePinnedChatsOrderArgs = {
 };
 
 
+export type MutationUploadSecretAttachmentArgs = {
+  data: UploadSecretAttachmentInput;
+};
+
+
 export type MutationUpsertChatRoleArgs = {
   chatId: Scalars['String']['input'];
   data: UpsertChatRoleInput;
@@ -769,7 +809,9 @@ export type Query = {
   getOutgoingFriendRequests: Array<FriendshipModel>;
   getPreKeys: Array<PreKeyModel>;
   getSecretMessage: QueueSecretMessageModel;
+  getSecretMessages: Array<QueueSecretMessageModel>;
   getSharedSecretKey: Array<QueueSharedSecretKeyModel>;
+  hasSharedSecretKey: Scalars['Boolean']['output'];
 };
 
 
@@ -802,6 +844,11 @@ export type QueryFindAllGroupsByUserArgs = {
 export type QueryFindAllMessagesByChatArgs = {
   chatId: Scalars['String']['input'];
   filters: FiltersInput;
+};
+
+
+export type QueryFindAllUsersArgs = {
+  filters?: InputMaybe<FiltersInput>;
 };
 
 
@@ -845,7 +892,17 @@ export type QueryGetSecretMessageArgs = {
 };
 
 
+export type QueryGetSecretMessagesArgs = {
+  chatId: Scalars['String']['input'];
+};
+
+
 export type QueryGetSharedSecretKeyArgs = {
+  chatId: Scalars['String']['input'];
+};
+
+
+export type QueryHasSharedSecretKeyArgs = {
   chatId: Scalars['String']['input'];
 };
 
@@ -861,6 +918,7 @@ export type QueueSecretMessageModel = {
   ikPub?: Maybe<Scalars['String']['output']>;
   isKey: Scalars['Boolean']['output'];
   iv: Scalars['String']['output'];
+  secretAttachmentIds: Array<Scalars['String']['output']>;
   sig: Scalars['String']['output'];
   toUserIds: Array<Scalars['String']['output']>;
   ukm?: Maybe<Scalars['String']['output']>;
@@ -891,6 +949,25 @@ export type RemoveMessagesInput = {
   messageIds: Array<Scalars['String']['input']>;
 };
 
+export type SecretAttachmentDownloadModel = {
+  __typename?: 'SecretAttachmentDownloadModel';
+  attachmentId: Scalars['String']['output'];
+  chatId: Scalars['String']['output'];
+  ciphertextBase64: Scalars['String']['output'];
+  ciphertextSize: Scalars['String']['output'];
+};
+
+export type SecretAttachmentModel = {
+  __typename?: 'SecretAttachmentModel';
+  chatId: Scalars['String']['output'];
+  ciphertextSize: Scalars['String']['output'];
+  committedAt?: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  expiresAt?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['ID']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type SecretKeyRotationModel = {
   __typename?: 'SecretKeyRotationModel';
   chatId: Scalars['String']['output'];
@@ -910,6 +987,7 @@ export type SendSecretMessageInput = {
   groupId: Scalars['String']['input'];
   isKey?: InputMaybe<Scalars['Boolean']['input']>;
   iv: Scalars['String']['input'];
+  secretAttachmentIds?: InputMaybe<Array<Scalars['String']['input']>>;
   sig: Scalars['String']['input'];
   toUserIds: Array<Scalars['String']['input']>;
   ukm?: InputMaybe<Scalars['String']['input']>;
@@ -1109,6 +1187,11 @@ export type TypingIndicatorModel = {
   username: Scalars['String']['output'];
 };
 
+export type UploadSecretAttachmentInput = {
+  chatId: Scalars['String']['input'];
+  ciphertextBase64: Scalars['String']['input'];
+};
+
 export type UpsertChatRoleInput = {
   color: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -1131,8 +1214,6 @@ export type UserModel = {
   id: Scalars['ID']['output'];
   isDeactivated: Scalars['Boolean']['output'];
   isTotpEnabled: Scalars['Boolean']['output'];
-  password: Scalars['String']['output'];
-  totpSecret?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['DateTime']['output'];
   username: Scalars['String']['output'];
 };
@@ -1155,7 +1236,9 @@ export type CreateUserWEmailMutationVariables = Exact<{
 
 export type CreateUserWEmailMutation = { __typename?: 'Mutation', createUserWEmail: boolean };
 
-export type DisableTotpMutationVariables = Exact<{ [key: string]: never; }>;
+export type DisableTotpMutationVariables = Exact<{
+  token: Scalars['String']['input'];
+}>;
 
 
 export type DisableTotpMutation = { __typename?: 'Mutation', disableTotp: boolean };
@@ -1586,14 +1669,14 @@ export type FindAllMessagesByChatQueryVariables = Exact<{
 }>;
 
 
-export type FindAllMessagesByChatQuery = { __typename?: 'Query', findAllMessagesByChat: Array<{ __typename?: 'ChatMessageModel', id: string, isEdited: boolean, text?: string | null, createdAt: any, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, id: string, username: string } }> };
+export type FindAllMessagesByChatQuery = { __typename?: 'Query', findAllMessagesByChat: Array<{ __typename?: 'ChatMessageModel', id: string, isEdited: boolean, isStarted: boolean, text?: string | null, createdAt: any, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, id: string, username: string } }> };
 
 export type FindChatByChatIdQueryVariables = Exact<{
   chatId: Scalars['String']['input'];
 }>;
 
 
-export type FindChatByChatIdQuery = { __typename?: 'Query', findChatByChatId: { __typename?: 'ChatModel', chatName?: string | null, avatarUrl?: string | null, updatedAt: any, isSecret: boolean, isGroup: boolean, description?: string | null, pinnedMessage?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, createdAt: any, isEdited: boolean, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, chat: { __typename?: 'ChatModel', id: string }, user: { __typename?: 'UserModel', id: string, username: string }, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', username: string, id: string } } | null } | null> | null } | null, draftMessages?: Array<{ __typename?: 'ChatDraftMessageModel', editId?: string | null, id: string, text: string, files: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }>, repliedToLinks: Array<{ __typename?: 'chatDraftMessageReplyModel', id: string, repliedTo: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', username: string, id: string } } }> }> | null, members: Array<{ __typename?: 'ChatMemberModel', id: string, isCreator?: boolean | null, user: { __typename?: 'UserModel', id: string, username: string, avatarUrl?: string | null }, roles?: Array<{ __typename?: 'ChatRoleModel', id: string, name: string, color: string, permissions: Array<ChatPermissionEnum> }> | null }> } };
+export type FindChatByChatIdQuery = { __typename?: 'Query', findChatByChatId: { __typename?: 'ChatModel', chatName?: string | null, avatarUrl?: string | null, updatedAt: any, isSecret: boolean, isGroup: boolean, description?: string | null, pinnedMessage?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, createdAt: any, isEdited: boolean, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', id: string, username: string }, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', username: string, id: string } } | null } | null> | null } | null, draftMessages?: Array<{ __typename?: 'ChatDraftMessageModel', editId?: string | null, id: string, text: string, files: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }>, repliedToLinks: Array<{ __typename?: 'chatDraftMessageReplyModel', id: string, repliedTo: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', username: string, id: string } } }> }> | null, members: Array<{ __typename?: 'ChatMemberModel', id: string, isCreator?: boolean | null, user: { __typename?: 'UserModel', id: string, username: string, avatarUrl?: string | null }, roles?: Array<{ __typename?: 'ChatRoleModel', id: string, name: string, color: string, permissions: Array<ChatPermissionEnum> }> | null }> } };
 
 export type GetChatRolesQueryVariables = Exact<{
   chatId: Scalars['String']['input'];
@@ -1665,7 +1748,7 @@ export type FindAllUsersQuery = { __typename?: 'Query', findAllUsers: Array<{ __
 export type FindProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type FindProfileQuery = { __typename?: 'Query', findProfile: { __typename?: 'UserModel', id: string, avatarUrl?: string | null, username: string, bio?: string | null, password: string, isTotpEnabled: boolean, email: string } };
+export type FindProfileQuery = { __typename?: 'Query', findProfile: { __typename?: 'UserModel', id: string, avatarUrl?: string | null, username: string, bio?: string | null, isTotpEnabled: boolean, email: string } };
 
 export type ChatAddedSubscriptionVariables = Exact<{
   userId: Scalars['String']['input'];
@@ -1703,7 +1786,7 @@ export type ChatMessageAddedSubscriptionVariables = Exact<{
 }>;
 
 
-export type ChatMessageAddedSubscription = { __typename?: 'Subscription', chatMessageAdded: { __typename?: 'ChatMessageModel', id: string, text?: string | null, isEdited: boolean, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } };
+export type ChatMessageAddedSubscription = { __typename?: 'Subscription', chatMessageAdded: { __typename?: 'ChatMessageModel', id: string, text?: string | null, isEdited: boolean, isStarted: boolean, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } };
 
 export type ChatMessageRemovedSubscriptionVariables = Exact<{
   chatId: Scalars['String']['input'];
@@ -1852,8 +1935,8 @@ export type CreateUserWEmailMutationHookResult = ReturnType<typeof useCreateUser
 export type CreateUserWEmailMutationResult = Apollo.MutationResult<CreateUserWEmailMutation>;
 export type CreateUserWEmailMutationOptions = Apollo.BaseMutationOptions<CreateUserWEmailMutation, CreateUserWEmailMutationVariables>;
 export const DisableTotpDocument = gql`
-    mutation DisableTotp {
-  disableTotp
+    mutation DisableTotp($token: String!) {
+  disableTotp(token: $token)
 }
     `;
 export type DisableTotpMutationFn = Apollo.MutationFunction<DisableTotpMutation, DisableTotpMutationVariables>;
@@ -1871,6 +1954,7 @@ export type DisableTotpMutationFn = Apollo.MutationFunction<DisableTotpMutation,
  * @example
  * const [disableTotpMutation, { data, loading, error }] = useDisableTotpMutation({
  *   variables: {
+ *      token: // value for 'token'
  *   },
  * });
  */
@@ -3848,6 +3932,7 @@ export const FindAllMessagesByChatDocument = gql`
   findAllMessagesByChat(chatId: $chatId, filters: $filters) {
     id
     isEdited
+    isStarted
     text
     createdAt
     files {
@@ -3937,9 +4022,6 @@ export const FindChatByChatIdDocument = gql`
         fileName
         fileFormat
         fileSize
-        id
-      }
-      chat {
         id
       }
       user {
@@ -4570,7 +4652,6 @@ export const FindProfileDocument = gql`
     avatarUrl
     username
     bio
-    password
     isTotpEnabled
     email
   }
@@ -4779,6 +4860,7 @@ export const ChatMessageAddedDocument = gql`
     id
     text
     isEdited
+    isStarted
     files {
       fileName
       fileFormat

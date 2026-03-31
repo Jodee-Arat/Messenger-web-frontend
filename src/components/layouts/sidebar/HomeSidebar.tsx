@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
+import BrandMark from "@/components/ui/elements/BrandMark";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import UserPanel from "./UserPanel";
@@ -30,7 +31,12 @@ const HomeSidebar = () => {
     return (
       <aside className="flex w-60 flex-col border-r border-border bg-card">
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
-          <h2 className="text-base font-semibold">MesArat</h2>
+          <div className="flex items-center gap-3">
+            <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
+              МесАгат
+            </h2>
+          </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
           <Loader className="text-muted-foreground size-5 animate-spin" />
@@ -43,7 +49,12 @@ const HomeSidebar = () => {
     return (
       <aside className="flex w-60 flex-col border-r border-border bg-card">
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
-          <h2 className="text-base font-semibold">MesArat</h2>
+          <div className="flex items-center gap-3">
+            <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
+              МесАгат
+            </h2>
+          </div>
         </div>
         <div className="flex flex-1 flex-col items-center justify-end gap-3 px-4 pb-6">
           <div className="flex flex-col items-center gap-2">
@@ -75,7 +86,12 @@ const HomeSidebar = () => {
     <aside className="flex w-60 flex-col border-r border-border bg-card">
       {/* Header */}
       <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
-        <h2 className="text-base font-semibold">MesArat</h2>
+        <div className="flex items-center gap-3">
+          <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
+          <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
+            МесАгат
+          </h2>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -120,9 +136,9 @@ const HomeSidebar = () => {
             {tDm("noDMs")}
           </p>
         ) : (
-          allDMs.map(chat => {
+          allDMs.map((chat) => {
             const otherUser = chat.members?.find(
-              m => m.user.id !== userId,
+              (m) => m.user.id !== userId,
             )?.user;
             const displayName = chat.chatName || otherUser?.username || "Chat";
             const chatPath = `/group/${chat.groupId}/${chat.id}`;

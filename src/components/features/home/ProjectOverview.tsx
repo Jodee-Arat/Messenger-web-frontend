@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/common/Card";
+import BrandMark from "@/components/ui/elements/BrandMark";
 
 const features = [
   { icon: Lock, translationKey: "e2ee" },
@@ -37,10 +38,22 @@ export default function ProjectOverview() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       {/* Hero */}
-      <div className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">
-          MesArat
-        </h1>
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <BrandMark
+            priority
+            className="size-20 rounded-[1.75rem] bg-primary/15 ring-primary/20 shadow-lg shadow-primary/10"
+            imageClassName="p-[10%]"
+          />
+          <div className="space-y-1">
+            <p className="text-primary text-xs font-semibold uppercase tracking-[0.28em]">
+              Secure Messenger
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">
+              МесАгат
+            </h1>
+          </div>
+        </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           {t("subtitle")}
         </p>
@@ -80,7 +93,7 @@ export default function ProjectOverview() {
                   {t(`tech.${category}`)}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
-                  {items.map(item => (
+                  {items.map((item) => (
                     <span
                       key={item}
                       className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"

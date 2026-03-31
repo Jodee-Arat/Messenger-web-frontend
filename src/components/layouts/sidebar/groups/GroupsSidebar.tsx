@@ -9,12 +9,13 @@ import {
 } from "@/shared/graphql/generated/output";
 import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 import { cn } from "@/shared/utils/tw-merge";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+
+import BrandMark from "@/components/ui/elements/BrandMark";
 
 import CreateGroupModal from "./CreateGroupModal";
 import GroupDropdownTrigger from "./GroupDropdownTrigger";
@@ -74,7 +75,7 @@ const GroupsSidebar = () => {
   useEffect(() => {
     if (!newGroupData || !newGroupData.groupAdded) return;
 
-    setAllGroups(prevGroups => [newGroupData.groupAdded, ...prevGroups]);
+    setAllGroups((prevGroups) => [newGroupData.groupAdded, ...prevGroups]);
   }, [newGroupData]);
 
   useEffect(() => {
@@ -82,8 +83,10 @@ const GroupsSidebar = () => {
       return;
     }
 
-    setAllGroups(prevGroups =>
-      prevGroups.filter(group => group.id !== deleteGroupData.groupDeleted.id),
+    setAllGroups((prevGroups) =>
+      prevGroups.filter(
+        (group) => group.id !== deleteGroupData.groupDeleted.id,
+      ),
     );
   }, [deleteGroupData]);
 
@@ -99,12 +102,9 @@ const GroupsSidebar = () => {
             : "bg-card text-foreground hover:bg-primary hover:text-primary-foreground",
         )}
       >
-        <Image
-          src="/images/logo256x256.ico"
-          alt="MesArat"
-          className="size-7"
-          width={28}
-          height={28}
+        <BrandMark
+          className="size-7 rounded-none bg-transparent ring-0 shadow-none"
+          imageClassName="p-0"
         />
       </Link>
 

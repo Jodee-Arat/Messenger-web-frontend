@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/common/Card";
 import { Input } from "@/components/ui/common/Input";
-import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 import {
   useGenerateTotpSecretMutation,
   useEnableTotpMutation,
@@ -34,6 +33,7 @@ export default function TotpSettings() {
   const [totpSecret, setTotpSecret] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [token, setToken] = useState("");
+  const [disableToken, setDisableToken] = useState("");
   const [setupMode, setSetupMode] = useState(false);
 
   const isTotpEnabled = user?.isTotpEnabled ?? false;
@@ -72,10 +72,16 @@ export default function TotpSettings() {
   }
 
   async function handleDisable() {
+    if (disableToken.length !== 6) {
+      toast.error(t("enterSixDigitCodeError"));
+      return;
+    }
+
     try {
-      const { data } = await disableTotp();
+      const { data } = await disableTotp({ variables: { token: disableToken } });
       if (data?.disableTotp) {
         toast.success(t("totpDisabled"));
+        setDisableToken("");
         refetch();
       }
     } catch {
@@ -103,20 +109,37 @@ export default function TotpSettings() {
             <span className="font-medium text-green-500">{t("enabled")}</span>.{" "}
             {t("accountProtected")}
           </p>
-          <ConfirmModal
-            heading={t("disable")}
-            message={t("disableConfirm")}
-            onConfirm={handleDisable}
-          >
-            <Button variant="destructive" disabled={disabling}>
-              {disabling ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              ) : (
-                <ShieldOff className="mr-2 size-4" />
-              )}
-              {t("disable")}
-            </Button>
-          </ConfirmModal>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{t("enterSixDigitCode")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("disableConfirm")}
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                value={disableToken}
+                onChange={e =>
+                  setDisableToken(
+                    e.target.value.replace(/\D/g, "").slice(0, 6)
+                  )
+                }
+                placeholder="000000"
+                maxLength={6}
+                className="font-mono text-center text-lg tracking-widest"
+              />
+              <Button
+                variant="destructive"
+                onClick={handleDisable}
+                disabled={disabling || disableToken.length !== 6}
+              >
+                {disabling ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <ShieldOff className="mr-2 size-4" />
+                )}
+                {t("disable")}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );

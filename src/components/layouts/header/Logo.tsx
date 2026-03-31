@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+
+import BrandMark from "@/components/ui/elements/BrandMark";
 
 const Logo = () => {
   return (
@@ -9,17 +10,11 @@ const Logo = () => {
       href="/"
       className="flex items-center gap-x-3 transition-opacity hover:opacity-75"
     >
-      <Image
-        src="/images/logo256x256.ico"
-        alt="MesArat"
-        className="size-10"
-        width={40}
-        height={40}
-      />
+      <BrandMark priority />
 
       <div className="hidden leading-tight lg:block">
-        <h2 className="text-accent-foreground text-lg font-semibold tracking-wider">
-          MesArat
+        <h2 className="text-foreground text-lg font-semibold uppercase tracking-[0.18em]">
+          МесАгат
         </h2>
       </div>
     </Link>

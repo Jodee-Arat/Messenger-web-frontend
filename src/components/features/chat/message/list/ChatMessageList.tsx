@@ -186,7 +186,19 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
           {messagesInfo.length === 0 ? (
             <div>{t("empty")}</div>
           ) : (
-            messagesInfo.map((messageInfo, index) => (
+            messagesInfo.map((messageInfo, index) =>
+              messageInfo.isStarted ? (
+                <div
+                  key={messageInfo.id}
+                  className="flex items-center gap-3 px-6 py-2"
+                >
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">
+                    {messageInfo.text}
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              ) : (
               <ChatMessageDropdownTrigger
                 startEdit={startEdit}
                 handleAddForwardedMessage={handleAddForwardedMessage}
@@ -203,6 +215,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
                 canDelete={canDelete}
                 canPin={canPin}
               />
+              )
             ))
           )}
         </div>

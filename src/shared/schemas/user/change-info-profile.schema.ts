@@ -5,7 +5,10 @@ export const ChangeInfoProfileSchema = z.object({
     .string()
     .min(6)
     .max(30)
-    .regex(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$/),
+    .regex(/^[a-zA-Zа-яА-ЯёЁ0-9_]+(?:-[a-zA-Zа-яА-ЯёЁ0-9_]+)*$/, {
+      message:
+        "Username can only contain Russian/English letters, digits, _ and -",
+    }),
   bio: z.string().max(300),
 });
 
