@@ -3,10 +3,10 @@
 import { useChat } from "@/shared/hooks/useChat";
 import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 import { useTypingIndicator } from "@/shared/hooks/useTypingIndicator";
-import { LogOut, Settings2, ShieldOff, UserPlus, Users } from "lucide-react";
+import { LogOut, ShieldOff, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/common/Alert";
 import { Button } from "@/components/ui/common/Button";
 import { Card, CardContent } from "@/components/ui/common/Card";
+import BackButton from "@/components/ui/elements/BackButton";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,8 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import {
   ChatPermissionEnum,
-  useFindAllUsersQuery,
+  useChatDeletedSubscription,
+  useFindGroupByGroupIdQuery,
   useGetMemberChatRoleQuery,
   useInviteMemberToChatMutation,
   useLeaveChatMutation,
@@ -50,6 +52,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
   const { user, isLoadingProfile } = useCurrentUser();
   const pathname = usePathname();
   const router = useRouter();
+  const handledAccessLossRef = useRef(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [hasRuntimeBlockedDirectContact, setHasRuntimeBlockedDirectContact] =
     useState(false);
@@ -93,16 +96,59 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
 
   useEffect(() => {
     setHasRuntimeBlockedDirectContact(false);
+    handledAccessLossRef.current = false;
   }, [chatId]);
 
   const isGroup = !!(chat as any)?.isGroup;
   const members = (chat as any)?.members ?? [];
   const isDirectContactBlocked =
     hasRuntimeBlockedDirectContact || isDirectContactBlockedError(chatError);
+  const directCounterpart = useMemo(() => {
+    if (isGroup || !user) {
+      return null;
+    }
 
-  const { data: roleData } = useGetMemberChatRoleQuery({
+    return (
+      members.find((member: any) => member.user?.id !== user.id)?.user ?? null
+    );
+  }, [isGroup, members, user]);
+  const chatDisplayName =
+    directCounterpart?.username || chat?.chatName || t("title");
+  const chatDisplayAvatar = directCounterpart?.avatarUrl || chat?.avatarUrl;
+  const chatSubtitle =
+    typingUsernames.length > 0
+      ? `${typingUsernames.join(", ")} ${t("typing")}`
+      : isGroup
+        ? members.length > 0
+          ? `${members.length} ${t("members")}`
+          : null
+        : null;
+  const currentGroupId = pathname.split("/")[2];
+  const subscriptionGroupId = currentGroupId === "null" ? "" : currentGroupId;
+  const backHref = isGroup ? `/group/${currentGroupId}` : "/dm";
+  const handleChatAccessLoss = useCallback(() => {
+    if (handledAccessLossRef.current) return;
+
+    handledAccessLossRef.current = true;
+    router.replace(isGroup ? `/group/${currentGroupId}` : "/dm");
+  }, [currentGroupId, isGroup, router]);
+
+  const { data: roleData, loading: isLoadingMemberRole } =
+    useGetMemberChatRoleQuery({
     variables: { chatId },
     skip: !isGroup,
+  });
+
+  useChatDeletedSubscription({
+    variables: {
+      groupId: subscriptionGroupId,
+      userId: user?.id ?? "",
+    },
+    skip: !user?.id,
+    onData: ({ data }) => {
+      if (data.data?.chatDeleted.id !== chatId) return;
+      handleChatAccessLoss();
+    },
   });
 
   const messagePermissions = useMemo(() => {
@@ -110,8 +156,16 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
       return { canSend: true, canEdit: true, canDelete: true, canPin: true };
     }
 
+    if (isLoadingMemberRole) {
+      return { canSend: false, canEdit: false, canDelete: false, canPin: false };
+    }
+
     const role = roleData?.getMemberChatRole;
-    if (!role || role.isCreator) {
+    if (!role) {
+      return { canSend: false, canEdit: false, canDelete: false, canPin: false };
+    }
+
+    if (role.isCreator) {
       return { canSend: true, canEdit: true, canDelete: true, canPin: true };
     }
 
@@ -123,7 +177,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
       canDelete: permissions.includes(ChatPermissionEnum.DeleteMessages),
       canPin: permissions.includes(ChatPermissionEnum.PinMessages),
     };
-  }, [isGroup, roleData]);
+  }, [isGroup, isLoadingMemberRole, roleData]);
 
   const isCreator = !!roleData?.getMemberChatRole?.isCreator;
   const canInviteMembers =
@@ -145,14 +199,18 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
   });
 
   const [inviteMember] = useInviteMemberToChatMutation();
-  const { data: usersData } = useFindAllUsersQuery({ skip: !inviteOpen });
+  const { data: groupData } = useFindGroupByGroupIdQuery({
+    variables: { groupId: currentGroupId ?? "" },
+    skip: !inviteOpen || !isGroup || !currentGroupId,
+    fetchPolicy: "network-only",
+  });
 
   const existingIds = new Set(
     members.map((member: any) => member.user?.id ?? member.userId),
   );
-  const invitableUsers = (usersData?.findAllUsers ?? []).filter(
-    (candidate) => !existingIds.has(candidate.id),
-  );
+  const invitableUsers = (groupData?.findGroupByGroupId?.members ?? [])
+    .map((member) => member.user)
+    .filter((candidate) => !existingIds.has(candidate.id));
 
   const handleInvite = async (targetUserId: string) => {
     try {
@@ -230,64 +288,93 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
     return <div>{t("loadingChat")}</div>;
   }
 
-  return (
-    <div className="flex h-full w-full flex-col">
-      <div className="flex flex-row items-center justify-between border-b border-border bg-card px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <EntityAvatar name={chat.chatName ?? ""} avatarUrl={null} />
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-lg font-semibold">{chat.chatName}</h2>
+  const chatHeaderContent = (
+    <>
+      <EntityAvatar
+        name={chatDisplayName}
+        avatarUrl={chatDisplayAvatar}
+        size="lg"
+      />
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate text-base font-semibold sm:text-lg">
+          {chatDisplayName}
+        </h2>
+        {chatSubtitle && (
+          <div className="truncate text-xs text-muted-foreground">
             {typingUsernames.length > 0 ? (
-              <p className="text-xs text-primary animate-pulse">
-                {typingUsernames.join(", ") + " печатает..."}
-              </p>
+              <span className="animate-pulse text-primary">{chatSubtitle}</span>
+            ) : isGroup ? (
+              <span className="flex items-center gap-1">
+                <Users className="size-3" />
+                {chatSubtitle}
+              </span>
             ) : (
-              isGroup &&
-              members.length > 0 && (
-                <p className="text-muted-foreground flex items-center gap-1 text-xs">
-                  <Users className="size-3" />
-                  {members.length} {t("members")}
-                </p>
-              )
+              chatSubtitle
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-1">
-          {canInviteMembers && (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setInviteOpen(true)}
-              title={tSettings("inviteMember")}
-            >
-              <UserPlus className="size-4" />
-            </Button>
-          )}
-          {isGroup && !isCreator && (
-            <ConfirmModal
-              heading={t("leaveChat")}
-              message={t("leaveChatConfirm")}
-              onConfirm={() => leaveChat({ variables: { chatId } })}
-            >
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex h-full w-full flex-col bg-background/10">
+      <div className="border-b border-border/60 bg-card/90 px-4 py-3 backdrop-blur">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <BackButton
+              href={backHref}
+              className="size-10 shrink-0 rounded-full px-0"
+              label=""
+            />
+
+            {isGroup ? (
+              <Link
+                href={`${pathname}/settings`}
+                className="group flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-2 py-2 transition-colors hover:bg-background/35"
+              >
+                {chatHeaderContent}
+              </Link>
+            ) : (
+              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-2 py-2">
+                {chatHeaderContent}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {canInviteMembers && (
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-destructive"
-                title={t("leaveChat")}
+                className="rounded-full"
+                onClick={() => setInviteOpen(true)}
+                title={tSettings("inviteMember")}
               >
-                <LogOut className="size-4" />
+                <UserPlus className="size-4" />
               </Button>
-            </ConfirmModal>
-          )}
-          <Button size="icon" variant="default">
-            <Link href={`${pathname}/settings`}>
-              <Settings2 className="size-4" />
-            </Link>
-          </Button>
+            )}
+            {isGroup && !isCreator && (
+              <ConfirmModal
+                heading={t("leaveChat")}
+                message={t("leaveChatConfirm")}
+                onConfirm={() => leaveChat({ variables: { chatId } })}
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full text-destructive"
+                  title={t("leaveChat")}
+                >
+                  <LogOut className="size-4" />
+                </Button>
+              </ConfirmModal>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-3 pt-2">
         <DragAndDropWrapper drop={drop} className="flex h-full flex-col">
           <ChatMessageList
             pinnedMessage={pinnedMessage}
@@ -299,35 +386,41 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
             canEdit={messagePermissions.canEdit}
             canDelete={messagePermissions.canDelete}
             canPin={messagePermissions.canPin}
-          />
-          <SendMessageForm
-            handleFileSend={handleFileSend}
-            handleClearForm={handleClearForm}
-            setForwardedMessages={setForwardedMessages}
-            draftText={draftText}
-            forwardedMessages={forwardedMessages}
-            onDeleteFile={handleDelete}
-            files={files}
-            isLoadingSendFiles={isLoadingSendFile}
-            chatId={chatId}
-            clearMessageId={handleClearMessageId}
-            editId={editId}
-            setEditId={setEditId}
-            filesEdited={filesEdited}
-            setFilesEdited={setFilesEdited}
             canSend={messagePermissions.canSend}
-            onTyping={sendTyping}
-            onDirectContactBlocked={handleDirectContactBlocked}
+            showSenderName={isGroup}
           />
+          {messagePermissions.canSend && (
+            <div className="mx-auto w-full max-w-4xl">
+              <SendMessageForm
+                handleFileSend={handleFileSend}
+                handleClearForm={handleClearForm}
+                setForwardedMessages={setForwardedMessages}
+                draftText={draftText}
+                forwardedMessages={forwardedMessages}
+                onDeleteFile={handleDelete}
+                files={files}
+                isLoadingSendFiles={isLoadingSendFile}
+                chatId={chatId}
+                clearMessageId={handleClearMessageId}
+                editId={editId}
+                setEditId={setEditId}
+                filesEdited={filesEdited}
+                setFilesEdited={setFilesEdited}
+                canSend={messagePermissions.canSend}
+                onTyping={sendTyping}
+                onDirectContactBlocked={handleDirectContactBlocked}
+              />
+            </div>
+          )}
         </DragAndDropWrapper>
       </div>
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+          <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>{tSettings("inviteMember")}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-64 space-y-1 overflow-y-auto">
+          <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
             {invitableUsers.length === 0 ? (
               <p className="text-muted-foreground py-4 text-center text-sm">
                 {tSettings("noUsersToInvite")}
@@ -336,7 +429,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
               invitableUsers.map((candidate) => (
                 <div
                   key={candidate.id}
-                  className="hover:bg-primary/10 flex items-center gap-3 rounded-md p-2"
+                  className="hover:bg-primary/10 flex items-center gap-3 rounded-xl p-2"
                 >
                   <EntityAvatar
                     name={candidate.username}

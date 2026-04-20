@@ -17,7 +17,7 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 
 import {
-  useFindAllUsersQuery,
+  useFindGroupByGroupIdQuery,
   type GetChatRolesQuery,
   type FindChatByChatIdQuery,
 } from "@/shared/graphql/generated/output";
@@ -27,6 +27,7 @@ type Member = FindChatByChatIdQuery["findChatByChatId"]["members"][0];
 
 interface ChatMembersSectionProps {
   chatId: string;
+  groupId: string;
   members: Member[];
   roles: ChatRoleData[];
   userRoles: Record<string, string>;
@@ -44,6 +45,7 @@ interface ChatMembersSectionProps {
 
 const ChatMembersSection: FC<ChatMembersSectionProps> = ({
   chatId,
+  groupId,
   members,
   roles,
   userRoles,
@@ -61,11 +63,15 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
   const [inviteOpen, setInviteOpen] = useState(false);
   const [assignUserId, setAssignUserId] = useState<string | null>(null);
 
-  const { data: usersData } = useFindAllUsersQuery({ skip: !inviteOpen });
+  const { data: groupData } = useFindGroupByGroupIdQuery({
+    variables: { groupId },
+    skip: !inviteOpen || !groupId,
+    fetchPolicy: "network-only",
+  });
   const existingIds = new Set(members.map(m => m.user.id));
-  const invitableUsers = (usersData?.findAllUsers ?? []).filter(
-    u => !existingIds.has(u.id),
-  );
+  const invitableUsers = (groupData?.findGroupByGroupId?.members ?? [])
+    .map(member => member.user)
+    .filter(u => !existingIds.has(u.id));
 
   // Group members by role
   const grouped = useMemo(() => {
@@ -172,11 +178,11 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
                 {t("invite")}
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+              <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
                 <DialogTitle>{t("inviteMember")}</DialogTitle>
               </DialogHeader>
-              <div className="max-h-64 space-y-1 overflow-y-auto">
+              <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
                 {invitableUsers.length === 0 ? (
                   <p className="text-muted-foreground py-4 text-center text-sm">
                     {t("noUsersToInvite")}
@@ -247,8 +253,8 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
         open={!!assignUserId}
         onOpenChange={open => !open && setAssignUserId(null)}
       >
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+          <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>
               {t("assignRoleTo", {
                 username: members.find(m => m.user.id === assignUserId)?.user
@@ -256,7 +262,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
               })}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-1">
+          <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
             {/* No role option */}
             <button
               onClick={() => {

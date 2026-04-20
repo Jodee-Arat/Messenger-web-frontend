@@ -15,6 +15,12 @@ import {
   isDirectContactBlockedError,
 } from "@/shared/utils/direct-contact-blocked";
 
+const CHAT_DRAFT_REFETCH_QUERIES = [
+  "FindAllChatsByUser",
+  "FindAllChatsByGroup",
+  "FindChatByChatId",
+];
+
 export const useChat = (
   chatId: string,
   onDirectContactBlocked?: () => void,
@@ -56,7 +62,14 @@ export const useChat = (
     setPinnedMessage(chat.pinnedMessage ?? null);
 
     const draft = chat.draftMessages?.[0];
-    if (!draft) return;
+    if (!draft) {
+      setDraftText("");
+      setEditId(null);
+      setForwardedMessages([]);
+      setFiles([]);
+      setFilesEdited([]);
+      return;
+    }
 
     setDraftText(draft.text ?? "");
     setEditId(draft?.editId ?? null);
@@ -79,6 +92,7 @@ export const useChat = (
   }, [chat]);
 
   const [send, { loading: isLoadingSendFile }] = useSendFileMutation({
+    refetchQueries: CHAT_DRAFT_REFETCH_QUERIES,
     onCompleted(data) {
       setMessageId(data.sendFile.chatDraftMessageId);
       setFiles((prevFilesId) => [
@@ -106,6 +120,7 @@ export const useChat = (
   };
 
   const [removeFile] = useRemoveFileMutation({
+    refetchQueries: CHAT_DRAFT_REFETCH_QUERIES,
     onError(error) {
       if (isDirectContactBlockedError(error)) {
         onDirectContactBlocked?.();
@@ -137,9 +152,9 @@ export const useChat = (
       return;
     }
 
-    removeFile({
+    void removeFile({
       variables: { fileId: id, chatId },
-    });
+    }).catch(() => {});
   };
 
   const handleClearMessageId = () => setMessageId(null);
@@ -176,13 +191,13 @@ export const useChat = (
       { name: file.name, size: file.size.toString(), id: "" },
     ]);
 
-    send({
+    void send({
       variables: {
         chatId,
         file,
         messageId: messageId ?? "null",
       },
-    });
+    }).catch(() => {});
   };
 
   const drop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -199,13 +214,13 @@ export const useChat = (
         { name: file.name, size: file.size.toString(), id: "" },
       ]);
 
-      send({
+      void send({
         variables: {
           chatId,
           file,
           messageId: messageId ?? "null",
         },
-      });
+      }).catch(() => {});
     } else {
       toast.error("You can only upload up to 5 files at a time.");
     }

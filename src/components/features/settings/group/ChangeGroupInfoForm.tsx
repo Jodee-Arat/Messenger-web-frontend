@@ -26,15 +26,27 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import { Textarea } from "@/components/ui/common/Textarea";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
+interface ChangeGroupInfoFormProps {
+  groupId: string;
+  canChangeGroupInfo?: boolean;
+  canChangeGroupName?: boolean;
+}
+
+const ChangeGroupInfoForm = ({
+  groupId,
+  canChangeGroupInfo = false,
+  canChangeGroupName = false,
+}: ChangeGroupInfoFormProps) => {
   const t = useTranslations("settings");
   const { group, isLoadingGroup, refetch } = useCurrentGroup(groupId);
+  const initialGroupName = group?.groupName ?? "";
+  const initialDescription = group?.description ?? "";
 
   const form = useForm<TypeChangeInfoGroupSchema>({
     resolver: zodResolver(ChangeInfoGroupSchema),
     values: {
-      groupName: group?.groupName ?? "",
-      description: group?.description ?? "",
+      groupName: initialGroupName,
+      description: initialDescription,
     },
   });
 
@@ -52,6 +64,11 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
   );
 
   const { isValid, isDirty } = form.formState;
+  const currentGroupName = form.watch("groupName");
+  const currentDescription = form.watch("description");
+  const hasEditableChanges =
+    (canChangeGroupName && currentGroupName !== initialGroupName) ||
+    (canChangeGroupInfo && currentDescription !== initialDescription);
 
   const onSubmit = (data: TypeChangeInfoGroupSchema) => {
     update({
@@ -68,46 +85,61 @@ const ChangeGroupInfoForm = ({ groupId }: { groupId: string }) => {
     <FormWrapper heading={t("changeGroupInfo")}>
       <Form {...form}>
         <form className="grid gap-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-          <FormField
-            control={form.control}
-            name="groupName"
-            render={({ field }) => (
-              <FormItem className="px-5 pb-3">
-                <FormLabel>{t("groupNameLabel")}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t("groupNamePlaceholder")}
-                    disabled={isLoadingInfoUpdate}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t("groupNameDesc")}</FormDescription>
-              </FormItem>
-            )}
-          />
-          <Separator />
+          {canChangeGroupName && (
+            <>
+              <FormField
+                control={form.control}
+                name="groupName"
+                render={({ field }) => (
+                  <FormItem className="px-5 pb-3">
+                    <FormLabel>{t("groupNameLabel")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t("groupNamePlaceholder")}
+                        disabled={isLoadingInfoUpdate}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{t("groupNameDesc")}</FormDescription>
+                  </FormItem>
+                )}
+              />
+              {canChangeGroupInfo && <Separator />}
+            </>
+          )}
 
-          <FormField
-            name="description"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="px-5 pb-3">
-                <FormLabel>{t("groupDescLabel")}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder={t("groupDescPlaceholder")}
-                    disabled={isLoadingInfoUpdate}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t("groupDescDesc")}</FormDescription>
-              </FormItem>
-            )}
-          ></FormField>
-          <Separator />
+          {canChangeGroupInfo && (
+            <>
+              <FormField
+                name="description"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem className="px-5 pb-3">
+                    <FormLabel>{t("groupDescLabel")}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t("groupDescPlaceholder")}
+                        disabled={isLoadingInfoUpdate}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{t("groupDescDesc")}</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <Separator />
+            </>
+          )}
 
           <div className="flex justify-end p-5">
-            <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
+            <Button
+              disabled={
+                !isValid ||
+                !isDirty ||
+                !hasEditableChanges ||
+                isLoadingInfoUpdate
+              }
+            >
               {t("submit")}
             </Button>
           </div>

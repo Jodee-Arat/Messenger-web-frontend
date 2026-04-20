@@ -26,15 +26,27 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import { Textarea } from "@/components/ui/common/Textarea";
 import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
-const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
+interface ChangeChatInfoFormProps {
+  chatId: string;
+  canChangeChatInfo?: boolean;
+  canChangeChatName?: boolean;
+}
+
+const ChangeChatInfoForm = ({
+  chatId,
+  canChangeChatInfo = false,
+  canChangeChatName = false,
+}: ChangeChatInfoFormProps) => {
   const t = useTranslations("settings");
   const { chat, isLoadingChat, refetch } = useCurrentChat(chatId);
+  const initialChatName = chat?.chatName ?? "";
+  const initialDescription = chat?.description ?? "";
 
   const form = useForm<TypeChangeInfoChatSchema>({
     resolver: zodResolver(ChangeInfoChatSchema),
     values: {
-      chatName: chat?.chatName ?? "",
-      description: chat?.description ?? "",
+      chatName: initialChatName,
+      description: initialDescription,
     },
   });
 
@@ -49,6 +61,11 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
   });
 
   const { isValid, isDirty } = form.formState;
+  const currentChatName = form.watch("chatName");
+  const currentDescription = form.watch("description");
+  const hasEditableChanges =
+    (canChangeChatName && currentChatName !== initialChatName) ||
+    (canChangeChatInfo && currentDescription !== initialDescription);
 
   const onSubmit = (data: TypeChangeInfoChatSchema) => {
     update({
@@ -65,46 +82,61 @@ const ChangeChatInfoForm = ({ chatId }: { chatId: string }) => {
     <FormWrapper heading={t("changeChatInfo")}>
       <Form {...form}>
         <form className="grid gap-y-3" onSubmit={form.handleSubmit(onSubmit)}>
-          <FormField
-            control={form.control}
-            name="chatName"
-            render={({ field }) => (
-              <FormItem className="px-5 pb-3">
-                <FormLabel>{t("chatNameLabel")}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t("chatNamePlaceholder")}
-                    disabled={isLoadingInfoUpdate}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t("chatNameDesc")}</FormDescription>
-              </FormItem>
-            )}
-          />
-          <Separator />
+          {canChangeChatName && (
+            <>
+              <FormField
+                control={form.control}
+                name="chatName"
+                render={({ field }) => (
+                  <FormItem className="px-5 pb-3 pt-5">
+                    <FormLabel>{t("chatNameLabel")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t("chatNamePlaceholder")}
+                        disabled={isLoadingInfoUpdate}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{t("chatNameDesc")}</FormDescription>
+                  </FormItem>
+                )}
+              />
+              {canChangeChatInfo && <Separator />}
+            </>
+          )}
 
-          <FormField
-            name="description"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="px-5 pb-3">
-                <FormLabel>{t("chatDescLabel")}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder={t("chatDescPlaceholder")}
-                    disabled={isLoadingInfoUpdate}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>{t("chatDescDesc")}</FormDescription>
-              </FormItem>
-            )}
-          ></FormField>
-          <Separator />
+          {canChangeChatInfo && (
+            <>
+              <FormField
+                name="description"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem className="px-5 pb-3 pt-5">
+                    <FormLabel>{t("chatDescLabel")}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t("chatDescPlaceholder")}
+                        disabled={isLoadingInfoUpdate}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{t("chatDescDesc")}</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <Separator />
+            </>
+          )}
 
           <div className="flex justify-end p-5">
-            <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
+            <Button
+              disabled={
+                !isValid ||
+                !isDirty ||
+                !hasEditableChanges ||
+                isLoadingInfoUpdate
+              }
+            >
               {t("submit")}
             </Button>
           </div>

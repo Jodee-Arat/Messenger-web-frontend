@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  FindAllGroupsByUserDocument,
   useChangeGroupAvatarMutation,
   useRemoveGroupAvatarMutation,
 } from "@/shared/graphql/generated/output";
@@ -39,6 +40,15 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
 
   const [update, { loading: isLoadingUpdateAvatar }] =
     useChangeGroupAvatarMutation({
+      refetchQueries: [
+        {
+          query: FindAllGroupsByUserDocument,
+          variables: {
+            filters: {},
+          },
+        },
+      ],
+      awaitRefetchQueries: true,
       onCompleted(data) {
         if (data?.changeGroupAvatar) {
           refetch();
@@ -52,6 +62,15 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
 
   const [remove, { loading: isLoadingRemoveAvatar }] =
     useRemoveGroupAvatarMutation({
+      refetchQueries: [
+        {
+          query: FindAllGroupsByUserDocument,
+          variables: {
+            filters: {},
+          },
+        },
+      ],
+      awaitRefetchQueries: true,
       onCompleted() {
         refetch();
         toast.success(tP("avatarRemoved"));
@@ -94,7 +113,7 @@ const ChangeGroupAvatarForm = ({ groupId }: { groupId: string }) => {
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={e => handleImageChange(e)}
+                      onChange={(e) => handleImageChange(e)}
                     />
                     <Button
                       className="mt-5 lg:mt-0"

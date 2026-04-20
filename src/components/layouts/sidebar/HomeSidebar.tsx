@@ -1,8 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useAuth } from "@/shared/hooks/useAuth";
 import { useDirectChats } from "@/shared/hooks/useDirectChats";
+import { useFriends } from "@/shared/hooks/useFriends";
 import { useUser } from "@/shared/hooks/useUser";
+import {
+  getDirectChatDisplayAvatar,
+  getDirectChatDisplayName,
+} from "@/shared/utils/direct-chat";
 import { cn } from "@/shared/utils/tw-merge";
 import { Loader, LogIn, MessageSquare, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
@@ -15,16 +22,146 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import UserPanel from "./UserPanel";
 
-const HomeSidebar = () => {
-  const pathname = usePathname();
-  const { isAuthenticated, hasHydrated } = useAuth();
+const DirectMessagesSidebarContent = ({ pathname }: { pathname: string }) => {
   const { userId } = useUser();
-  const { pinnedChats, unpinnedChats } = useDirectChats();
-  const t = useTranslations("home");
-  const tAuth = useTranslations("auth");
+  const { pinnedChats, unpinnedChats, isLoading } = useDirectChats();
   const tDm = useTranslations("dm");
 
   const allDMs = [...pinnedChats, ...unpinnedChats];
+
+  return (
+    <>
+      <div className="flex items-center justify-between px-4 pt-4 pb-1">
+        <span className="text-muted-foreground text-xs font-semibold uppercase">
+          {tDm("title")}
+        </span>
+      </div>
+
+      <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+        {isLoading ? (
+          <div className="flex items-center justify-center px-3 py-4">
+            <Loader className="text-muted-foreground size-4 animate-spin" />
+          </div>
+        ) : allDMs.length === 0 ? (
+          <p className="text-muted-foreground px-3 py-4 text-center text-xs">
+            {tDm("noDMs")}
+          </p>
+        ) : (
+          allDMs.map(chat => {
+            const displayName = getDirectChatDisplayName(chat, userId);
+            const displayAvatar = getDirectChatDisplayAvatar(chat, userId);
+            const chatPath = `/group/${chat.groupId}/${chat.id}`;
+            const isActive = pathname === chatPath;
+
+            return (
+              <Link
+                key={chat.id}
+                href={chatPath}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
+                )}
+              >
+                <EntityAvatar
+                  name={displayName}
+                  avatarUrl={displayAvatar}
+                  size="sm"
+                />
+                <span className="min-w-0 flex-1 truncate">{displayName}</span>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </>
+  );
+};
+
+const FriendsOverviewSidebarContent = ({ pathname }: { pathname: string }) => {
+  const { friends, isLoadingFriends, getFriendUser } = useFriends();
+  const t = useTranslations("home");
+
+  const friendsPreview = useMemo(
+    () =>
+      [...friends]
+        .sort(
+          (left, right) =>
+            new Date(right.createdAt).getTime() -
+            new Date(left.createdAt).getTime(),
+        )
+        .slice(0, 3),
+    [friends],
+  );
+
+  return (
+    <div className="flex flex-1 flex-col overflow-x-hidden px-3 pt-4 pb-3">
+      <div className="min-h-0 flex-1">
+        <section className="flex h-full min-h-full min-w-0 flex-col rounded-2xl border border-border/60 bg-background/20 p-2">
+          <div className="flex items-center justify-between px-1 pb-2">
+            <span className="text-muted-foreground text-xs font-semibold uppercase">
+              {t("friends")}
+            </span>
+          </div>
+          {isLoadingFriends ? (
+            <div className="flex flex-1 items-center justify-center rounded-xl bg-background/30 px-3 py-6">
+              <Loader className="text-muted-foreground size-4 animate-spin" />
+            </div>
+          ) : friendsPreview.length === 0 ? (
+            <p className="text-muted-foreground flex flex-1 items-center justify-center rounded-xl border border-dashed border-border/60 px-3 py-4 text-center text-xs">
+              {t("noFriends")}
+            </p>
+          ) : (
+            <div className="scrollbar-thin min-h-0 flex-1 space-y-1 overflow-y-auto">
+              {friendsPreview.map(friendship => {
+                const friend = getFriendUser(friendship);
+                if (!friend) return null;
+
+                const profilePath = `/${friend.id}`;
+                const isActive = pathname === profilePath;
+
+                return (
+                  <Link
+                    key={friendship.id}
+                    href={profilePath}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl border border-transparent px-2.5 py-2 text-sm transition-colors",
+                      isActive
+                        ? "border-primary/20 bg-primary/12 text-primary"
+                        : "text-muted-foreground hover:border-border/60 hover:bg-background/35 hover:text-foreground",
+                    )}
+                  >
+                    <EntityAvatar
+                      name={friend.username}
+                      avatarUrl={friend.avatarUrl}
+                      size="sm"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {friend.username}
+                      </p>
+                      <p className="text-muted-foreground min-h-4 truncate text-[11px]">
+                        {friend.bio?.trim() || ""}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
+
+const HomeSidebar = () => {
+  const pathname = usePathname();
+  const { isAuthenticated, hasHydrated } = useAuth();
+  const t = useTranslations("home");
+  const tAuth = useTranslations("auth");
+  const isFriendsPage = pathname === "/friends";
 
   // Пока zustand не загрузился из localStorage — показываем скелетон
   if (!hasHydrated) {
@@ -33,9 +170,7 @@ const HomeSidebar = () => {
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
-              МесАгат
-            </h2>
+            <h2 className="text-sm font-semibold">МесАгат</h2>
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -51,9 +186,7 @@ const HomeSidebar = () => {
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
-              МесАгат
-            </h2>
+            <h2 className="text-sm font-semibold">МесАгат</h2>
           </div>
         </div>
         <div className="flex flex-1 flex-col items-center justify-end gap-3 px-4 pb-6">
@@ -88,9 +221,7 @@ const HomeSidebar = () => {
       <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
         <div className="flex items-center gap-3">
           <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em]">
-            МесАгат
-          </h2>
+          <h2 className="text-sm font-semibold">МесАгат</h2>
         </div>
       </div>
 
@@ -122,50 +253,11 @@ const HomeSidebar = () => {
         </Link>
       </nav>
 
-      {/* DM list header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-1">
-        <span className="text-muted-foreground text-xs font-semibold uppercase">
-          {tDm("title")}
-        </span>
-      </div>
-
-      {/* DM list - scrollable */}
-      <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
-        {allDMs.length === 0 ? (
-          <p className="text-muted-foreground px-3 py-4 text-center text-xs">
-            {tDm("noDMs")}
-          </p>
-        ) : (
-          allDMs.map((chat) => {
-            const otherUser = chat.members?.find(
-              (m) => m.user.id !== userId,
-            )?.user;
-            const displayName = chat.chatName || otherUser?.username || "Chat";
-            const chatPath = `/group/${chat.groupId}/${chat.id}`;
-            const isActive = pathname === chatPath;
-
-            return (
-              <Link
-                key={chat.id}
-                href={chatPath}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                  isActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
-                )}
-              >
-                <EntityAvatar
-                  name={displayName}
-                  avatarUrl={otherUser?.avatarUrl}
-                  size="sm"
-                />
-                <span className="min-w-0 flex-1 truncate">{displayName}</span>
-              </Link>
-            );
-          })
-        )}
-      </div>
+      {isFriendsPage ? (
+        <DirectMessagesSidebarContent pathname={pathname} />
+      ) : (
+        <FriendsOverviewSidebarContent pathname={pathname} />
+      )}
 
       {/* User Panel */}
       <UserPanel />

@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/common/Card";
 import { Button } from "@/components/ui/common/Button";
+import BackButton from "@/components/ui/elements/BackButton";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import { useCurrentGroup } from "@/shared/hooks/useCurrentGroup";
 
@@ -34,41 +35,45 @@ export default function GroupPage() {
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6 p-6">
-      <EntityAvatar
-        size="xl"
-        name={group.groupName}
-        avatarUrl={group.avatarUrl ?? undefined}
-      />
+    <div className="flex h-full flex-col gap-6 p-6">
+      <BackButton className="w-fit" />
 
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">{group.groupName}</h1>
-        {group.description && (
-          <p className="text-muted-foreground mt-2 max-w-md">
-            {group.description}
-          </p>
-        )}
+      <div className="flex flex-1 flex-col items-center justify-center gap-6">
+        <EntityAvatar
+          size="xl"
+          name={group.groupName}
+          avatarUrl={group.avatarUrl ?? undefined}
+        />
+
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">{group.groupName}</h1>
+          {group.description && (
+            <p className="text-muted-foreground mt-2 max-w-md">
+              {group.description}
+            </p>
+          )}
+        </div>
+
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col gap-3 p-4">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <Users className="size-5" />
+              <span>
+                {t("membersCount", { count: group.members?.length ?? 0 })}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="text-muted-foreground text-sm">{t("selectChatHint")}</p>
+
+        <Link href={`/group/${groupId}/settings`}>
+          <Button variant="outline" className="gap-2">
+            <Settings className="size-4" />
+            {t("groupSettings")}
+          </Button>
+        </Link>
       </div>
-
-      <Card className="w-full max-w-md">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <Users className="size-5" />
-            <span>{t("membersCount", { count: group.members?.length ?? 0 })}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <p className="text-muted-foreground text-sm">
-        {t("selectChatHint")}
-      </p>
-
-      <Link href={`/group/${groupId}/settings`}>
-        <Button variant="outline" className="gap-2">
-          <Settings className="size-4" />
-          {t("groupSettings")}
-        </Button>
-      </Link>
     </div>
   );
 }

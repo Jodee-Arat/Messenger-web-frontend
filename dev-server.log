@@ -1,0 +1,37 @@
+
+> @messenger/web@0.1.0 dev
+> graphql-codegen --config graphql.config.ts && next dev --turbopack
+
+[STARTED] Parse Configuration
+[SUCCESS] Parse Configuration
+[STARTED] Generate outputs
+[STARTED] Generate to ./src/shared/graphql/generated/output.ts
+[STARTED] Load GraphQL schemas
+[SUCCESS] Load GraphQL schemas
+[STARTED] Load GraphQL documents
+[SUCCESS] Load GraphQL documents
+[STARTED] Generate
+[SUCCESS] Generate
+[SUCCESS] Generate to ./src/shared/graphql/generated/output.ts
+[SUCCESS] Generate outputs
+Running lifecycle hook "afterStart" scripts...
+[CLI] Loading Schemas
+[CLI] Loading Documents
+[CLI] Generating output
+ ⚠ Port 3000 is in use, using available port 3001 instead.
+   ▲ Next.js 15.3.2 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://26.188.45.86:3001
+   - Environments: .env
+
+ ✓ Starting...
+Creating turbopack project { dir: 'd:\\ararat\\vs\\messenger\\apps\\web', testMode: true }
+(node:18116) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 987ms
+ ✓ Ready in 5s
+ ○ Compiling / ...
+ ✓ Compiled / in 26.7s
+ GET / 200 in 487ms
+[?25h

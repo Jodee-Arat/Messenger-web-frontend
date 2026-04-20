@@ -16,16 +16,20 @@ const FileList: FC<FileListProp> = ({
   onDeleteFile,
   isLoadingSend,
 }) => {
+  const visibleFiles = filesEdited.length > 0 ? filesEdited : files;
+
   return (
-    <div className="flex gap-x-4 overflow-x-auto">
-      {files.map((file, index) => (
+    <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+      {visibleFiles.map((file, index) => (
         <FileItem
-          key={index}
+          key={`${file.id ?? file.name}-${index}`}
           file={file}
           onDeleteFile={() => {
-            onDeleteFile(file.id!);
+            if (file.id) {
+              onDeleteFile(file.id);
+            }
           }}
-          isLoadingSend={isLoadingSend && files.length - 1 === index}
+          isLoadingSend={isLoadingSend && visibleFiles.length - 1 === index}
         />
       ))}
     </div>

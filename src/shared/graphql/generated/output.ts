@@ -1700,7 +1700,7 @@ export type GetBlockedUsersQuery = { __typename?: 'Query', getBlockedUsers: Arra
 export type GetFriendsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFriendsQuery = { __typename?: 'Query', getFriends: Array<{ __typename?: 'FriendshipModel', id: string, userId: string, friendId: string, status: FriendshipStatusEnum, createdAt: any, user?: { __typename?: 'UserModel', id: string, username: string, avatarUrl?: string | null } | null, friend?: { __typename?: 'UserModel', id: string, username: string, avatarUrl?: string | null } | null }> };
+export type GetFriendsQuery = { __typename?: 'Query', getFriends: Array<{ __typename?: 'FriendshipModel', id: string, userId: string, friendId: string, status: FriendshipStatusEnum, createdAt: any, user?: { __typename?: 'UserModel', id: string, username: string, bio?: string | null, avatarUrl?: string | null } | null, friend?: { __typename?: 'UserModel', id: string, username: string, bio?: string | null, avatarUrl?: string | null } | null }> };
 
 export type GetIncomingFriendRequestsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1711,6 +1711,13 @@ export type GetOutgoingFriendRequestsQueryVariables = Exact<{ [key: string]: nev
 
 
 export type GetOutgoingFriendRequestsQuery = { __typename?: 'Query', getOutgoingFriendRequests: Array<{ __typename?: 'FriendshipModel', id: string, userId: string, friendId: string, status: FriendshipStatusEnum, createdAt: any, friend?: { __typename?: 'UserModel', id: string, username: string, avatarUrl?: string | null } | null }> };
+
+export type CheckGroupAccessQueryVariables = Exact<{
+  groupId: Scalars['String']['input'];
+}>;
+
+
+export type CheckGroupAccessQuery = { __typename?: 'Query', checkGroupAccess: boolean };
 
 export type FindAllGroupsByUserQueryVariables = Exact<{
   filters: FiltersInput;
@@ -1740,7 +1747,9 @@ export type GetMemberRoleQueryVariables = Exact<{
 
 export type GetMemberRoleQuery = { __typename?: 'Query', getMemberRole: { __typename?: 'MemberRoleModel', id: string, name: string, permissions: Array<GroupPermissionEnum>, isCreator: boolean } };
 
-export type FindAllUsersQueryVariables = Exact<{ [key: string]: never; }>;
+export type FindAllUsersQueryVariables = Exact<{
+  filters?: InputMaybe<FiltersInput>;
+}>;
 
 
 export type FindAllUsersQuery = { __typename?: 'Query', findAllUsers: Array<{ __typename?: 'UserModel', username: string, avatarUrl?: string | null, bio?: string | null, id: string }> };
@@ -1786,7 +1795,7 @@ export type ChatMessageAddedSubscriptionVariables = Exact<{
 }>;
 
 
-export type ChatMessageAddedSubscription = { __typename?: 'Subscription', chatMessageAdded: { __typename?: 'ChatMessageModel', id: string, text?: string | null, isEdited: boolean, isStarted: boolean, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } };
+export type ChatMessageAddedSubscription = { __typename?: 'Subscription', chatMessageAdded: { __typename?: 'ChatMessageModel', id: string, text?: string | null, isEdited: boolean, isStarted: boolean, createdAt: any, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, repliedToLinks?: Array<{ __typename?: 'ChatMessageReplyModel', id: string, repliedTo?: { __typename?: 'ChatMessageModel', id: string, text?: string | null, files?: Array<{ __typename?: 'FileMessageModel', fileName: string, fileFormat: string, fileSize: string, id: string }> | null, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } | null } | null> | null, chat: { __typename?: 'ChatModel', chatName?: string | null }, user: { __typename?: 'UserModel', avatarUrl?: string | null, username: string, id: string } } };
 
 export type ChatMessageRemovedSubscriptionVariables = Exact<{
   chatId: Scalars['String']['input'];
@@ -4276,11 +4285,13 @@ export const GetFriendsDocument = gql`
     user {
       id
       username
+      bio
       avatarUrl
     }
     friend {
       id
       username
+      bio
       avatarUrl
     }
     createdAt
@@ -4415,6 +4426,44 @@ export type GetOutgoingFriendRequestsQueryHookResult = ReturnType<typeof useGetO
 export type GetOutgoingFriendRequestsLazyQueryHookResult = ReturnType<typeof useGetOutgoingFriendRequestsLazyQuery>;
 export type GetOutgoingFriendRequestsSuspenseQueryHookResult = ReturnType<typeof useGetOutgoingFriendRequestsSuspenseQuery>;
 export type GetOutgoingFriendRequestsQueryResult = Apollo.QueryResult<GetOutgoingFriendRequestsQuery, GetOutgoingFriendRequestsQueryVariables>;
+export const CheckGroupAccessDocument = gql`
+    query CheckGroupAccess($groupId: String!) {
+  checkGroupAccess(groupId: $groupId)
+}
+    `;
+
+/**
+ * __useCheckGroupAccessQuery__
+ *
+ * To run a query within a React component, call `useCheckGroupAccessQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCheckGroupAccessQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCheckGroupAccessQuery({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *   },
+ * });
+ */
+export function useCheckGroupAccessQuery(baseOptions: Apollo.QueryHookOptions<CheckGroupAccessQuery, CheckGroupAccessQueryVariables> & ({ variables: CheckGroupAccessQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>(CheckGroupAccessDocument, options);
+      }
+export function useCheckGroupAccessLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>(CheckGroupAccessDocument, options);
+        }
+export function useCheckGroupAccessSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>(CheckGroupAccessDocument, options);
+        }
+export type CheckGroupAccessQueryHookResult = ReturnType<typeof useCheckGroupAccessQuery>;
+export type CheckGroupAccessLazyQueryHookResult = ReturnType<typeof useCheckGroupAccessLazyQuery>;
+export type CheckGroupAccessSuspenseQueryHookResult = ReturnType<typeof useCheckGroupAccessSuspenseQuery>;
+export type CheckGroupAccessQueryResult = Apollo.QueryResult<CheckGroupAccessQuery, CheckGroupAccessQueryVariables>;
 export const FindAllGroupsByUserDocument = gql`
     query FindAllGroupsByUser($filters: FiltersInput!) {
   findAllGroupsByUser(filters: $filters) {
@@ -4604,8 +4653,8 @@ export type GetMemberRoleLazyQueryHookResult = ReturnType<typeof useGetMemberRol
 export type GetMemberRoleSuspenseQueryHookResult = ReturnType<typeof useGetMemberRoleSuspenseQuery>;
 export type GetMemberRoleQueryResult = Apollo.QueryResult<GetMemberRoleQuery, GetMemberRoleQueryVariables>;
 export const FindAllUsersDocument = gql`
-    query FindAllUsers {
-  findAllUsers {
+    query FindAllUsers($filters: FiltersInput) {
+  findAllUsers(filters: $filters) {
     username
     avatarUrl
     bio
@@ -4626,6 +4675,7 @@ export const FindAllUsersDocument = gql`
  * @example
  * const { data, loading, error } = useFindAllUsersQuery({
  *   variables: {
+ *      filters: // value for 'filters'
  *   },
  * });
  */
@@ -4861,6 +4911,7 @@ export const ChatMessageAddedDocument = gql`
     text
     isEdited
     isStarted
+    createdAt
     files {
       fileName
       fileFormat

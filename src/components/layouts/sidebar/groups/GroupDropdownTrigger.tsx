@@ -1,4 +1,10 @@
-import { FindAllGroupsByUserQuery } from "@/shared/graphql/generated/output";
+import { useTranslations } from "next-intl";
+
+import {
+  FindAllGroupsByUserQuery,
+  GroupPermissionEnum,
+  useGetMemberRoleQuery,
+} from "@/shared/graphql/generated/output";
 
 import {
   ContextMenu,
@@ -18,6 +24,20 @@ const GroupDropdownTrigger = ({
   group,
   deleteGroup,
 }: GroupDropdownTriggerProps) => {
+  const t = useTranslations("groups");
+  const { data: roleData } = useGetMemberRoleQuery({
+    variables: { groupId: group.id },
+  });
+
+  const currentRole = roleData?.getMemberRole;
+  const canDeleteGroup =
+    !!currentRole?.isCreator ||
+    (currentRole?.permissions ?? []).includes(GroupPermissionEnum.DeleteGroup);
+
+  if (!canDeleteGroup) {
+    return <GroupsSidebarItem group={group} />;
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -28,7 +48,7 @@ const GroupDropdownTrigger = ({
           className="text-destructive"
           onClick={() => deleteGroup(group.id)}
         >
-          Delete group
+          {t("deleteGroup")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

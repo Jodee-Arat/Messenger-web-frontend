@@ -1,15 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  type FindAllChatsByUserQuery,
   useFindAllChatsByUserQuery,
   useForwardChatMessageMutation,
 } from "@/shared/graphql/generated/output";
+import { useUser } from "@/shared/hooks/useUser";
 import {
   ForwardMessageSchemaType,
   forwardMessageSchema,
 } from "@/shared/schemas/chat/forward-message.schema";
-import Image from "next/image";
+import {
+  getDirectChatDisplayAvatar,
+  getDirectChatDisplayName,
+} from "@/shared/utils/direct-chat";
+import { cn } from "@/shared/utils/tw-merge";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import { FC, ReactElement, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -34,23 +40,42 @@ import {
   FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
+import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 interface ForwardMessageModalProp {
   handleAddForwarded: (messageIds: string[]) => void;
   messageIds?: string[];
   handleClearMessagesId: () => void;
   chatId: string;
+  trigger?: ReactElement;
 }
+
+type ChatItem = FindAllChatsByUserQuery["findAllChatsByUser"][0];
+
+const getChatPreview = (chat: ChatItem, currentUserId?: string | null) => {
+  if (chat.isGroup) {
+    return {
+      title: chat.chatName || "Chat",
+      avatarUrl: chat.avatarUrl || null,
+    };
+  }
+
+  return {
+    title: getDirectChatDisplayName(chat, currentUserId),
+    avatarUrl: getDirectChatDisplayAvatar(chat, currentUserId),
+  };
+};
 
 const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   messageIds,
   handleClearMessagesId,
   handleAddForwarded,
   chatId,
+  trigger,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const t = useTranslations("messages");
-
+  const { userId } = useUser();
   const router = useRouter();
 
   const {
@@ -66,6 +91,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
 
   const form = useForm<ForwardMessageSchemaType>({
     resolver: zodResolver(forwardMessageSchema),
+    mode: "onChange",
     defaultValues: {
       text: "",
       targetChatsId: [],
@@ -80,8 +106,12 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
     useForwardChatMessageMutation({
       onCompleted() {
         setIsOpen(false);
-        if (form.getValues("targetChatsId").length === 1) {
-          router.push(`/chat/${form.getValues("targetChatsId")[0]}`);
+        const selectedChatId = form.getValues("targetChatsId")[0];
+        if (form.getValues("targetChatsId").length === 1 && selectedChatId) {
+          const selectedChat = chats.find((chat) => chat.id === selectedChatId);
+          if (selectedChat) {
+            router.push(`/group/${selectedChat.groupId}/${selectedChat.id}`);
+          }
         }
         toast.success(t("messageForwarded"));
         form.reset();
@@ -130,7 +160,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={open => {
+      onOpenChange={(open) => {
         setIsOpen(open);
         if (!open) {
           form.reset();
@@ -140,165 +170,190 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="" variant="default">
-          {t("forward")}
-        </Button>
+        {trigger ?? (
+          <Button variant="default" className="rounded-full">
+            {t("forward")}
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex h-[min(42rem,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex-col gap-0 overflow-hidden border-border/60 bg-background/95 p-0 shadow-2xl backdrop-blur sm:max-w-md">
+        <DialogHeader className="border-b border-border/60 bg-card/40 px-6 pb-4 pt-6 pr-12">
           <DialogTitle>{t("forwardMessages")}</DialogTitle>
           <DialogDescription>{""}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="text"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("messageLabel")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t("enterMessagePlaceholder")}
-                      disabled={isLoadingForwardingMessage}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("writeMessageToForward")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {isLoadingFindAllChatsByUser ? (
-              <div className="flex items-center justify-center">
-                <span>{t("loadingChats")}</span>
-              </div>
-            ) : (
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
+            <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-4">
               <FormField
                 control={form.control}
-                name="targetChatsId"
-                render={() => (
+                name="text"
+                render={({ field }) => (
                   <FormItem>
-                    <div className="mb-4">
-                      <FormLabel className="text-base">
-                        {t("chatsLabel")}
-                      </FormLabel>
-                      <FormDescription>
-                        {t("selectChatsToForward")}
-                      </FormDescription>
-                    </div>
-                    <div className="space-y-5">
-                      {chats.map(item => (
-                        <FormField
-                          key={item.id}
-                          control={form.control}
-                          name="targetChatsId"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item.id}
-                                className="flex flex-row items-center space-x-3"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={checked => {
-                                      return checked
-                                        ? field.onChange([
-                                            ...field.value,
-                                            item.id,
-                                          ])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              value => value !== item.id,
-                                            ),
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="flex items-center space-x-4 text-sm font-normal">
-                                  <Image
-                                    src={"/images/avatar/rostik.jpg"}
-                                    alt="frontend"
-                                    width={40}
-                                    height={40}
-                                    className="size-15 rounded-full object-cover object-top"
-                                  />
-                                  <div className="flex flex-col space-y-1 text-start">
-                                    <p className="text-[16px]">
-                                      {item.chatName}
-                                    </p>
-                                    <div>
-                                      {item.draftMessages &&
-                                      item.draftMessages.length > 0 &&
-                                      item.draftMessages[0]?.text ? (
-                                        <p className="text-xs text-red-500">
-                                          {item.draftMessages[0]?.text}
-                                        </p>
-                                      ) : item.draftMessages &&
-                                        item.draftMessages.length > 0 &&
-                                        item.draftMessages[0].files?.length &&
-                                        item.draftMessages[0].files.length >
-                                          0 ? (
-                                        <p className="text-xs text-blue-400">
-                                          {item.draftMessages[0].files.length}{" "}
-                                          {t("files")}
-                                        </p>
-                                      ) : item.lastMessage &&
-                                        item.lastMessage?.text ? (
-                                        <div className="flex items-center space-x-2">
-                                          <h5 className="text-primary-foreground/80">
-                                            {item.lastMessage.user.username}
-                                          </h5>
-                                          <p className="text-muted-foreground text-xs">
-                                            {item.lastMessage?.text}
-                                          </p>
-                                        </div>
-                                      ) : item.lastMessage &&
-                                        item.lastMessage.files?.length &&
-                                        item.lastMessage.files.length > 0 ? (
-                                        <div className="flex items-center space-x-2">
-                                          <h5 className="text-primary-foreground/80">
-                                            {item.lastMessage.user.username}
-                                          </h5>
-                                          <p className="text-xs text-blue-400">
-                                            {item.lastMessage.files.length}{" "}
-                                            {t("files")}
-                                          </p>
-                                        </div>
-                                      ) : (
-                                        <p className="text-muted-foreground text-xs">
-                                          {t("empty")}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
-                    </div>
-
+                    <FormLabel>{t("messageLabel")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t("enterMessagePlaceholder")}
+                        disabled={isLoadingForwardingMessage}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t("writeMessageToForward")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
+              {isLoadingFindAllChatsByUser ? (
+                <div className="flex min-h-0 flex-1 items-center justify-center">
+                  <span>{t("loadingChats")}</span>
+                </div>
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="targetChatsId"
+                  render={() => (
+                    <FormItem className="flex min-h-0 flex-1 flex-col">
+                      <div className="mb-4">
+                        <FormLabel className="text-base">
+                          {t("chatsLabel")}
+                        </FormLabel>
+                        <FormDescription>
+                          {t("selectChatsToForward")}
+                        </FormDescription>
+                      </div>
+                      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+                        {chats.map((item) => {
+                          const preview = getChatPreview(item, userId);
 
-            <Button
-              disabled={
-                !isValid ||
-                isLoadingFindAllChatsByUser ||
-                isLoadingForwardingMessage
-              }
-              type="submit"
-            >
-              {t("forward")}
-            </Button>
+                          return (
+                            <FormField
+                              key={item.id}
+                              control={form.control}
+                              name="targetChatsId"
+                              render={({ field }) => {
+                                const isChecked =
+                                  field.value?.includes(item.id) ?? false;
+
+                                return (
+                                  <FormItem
+                                    key={item.id}
+                                    className={cn(
+                                      "flex flex-row items-center gap-3 rounded-2xl border px-3 py-3 transition-colors",
+                                      isChecked
+                                        ? "border-primary/35 bg-primary/8 shadow-sm"
+                                        : "border-border/60 bg-card/35 hover:border-border hover:bg-accent/25",
+                                    )}
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={isChecked}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                item.id,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== item.id,
+                                                ),
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="flex min-w-0 flex-1 cursor-pointer items-center gap-4 text-sm font-normal">
+                                      <EntityAvatar
+                                        size="lg"
+                                        name={preview.title}
+                                        avatarUrl={preview.avatarUrl}
+                                      />
+                                      <div className="min-w-0 flex flex-col space-y-1 text-start">
+                                        <p className="truncate text-[15px] font-semibold text-foreground">
+                                          {preview.title}
+                                        </p>
+                                        <div className="min-w-0">
+                                          {item.draftMessages &&
+                                          item.draftMessages.length > 0 &&
+                                          item.draftMessages[0]?.text ? (
+                                            <p className="truncate text-xs font-medium text-destructive">
+                                              {item.draftMessages[0]?.text}
+                                            </p>
+                                          ) : item.draftMessages &&
+                                            item.draftMessages.length > 0 &&
+                                            item.draftMessages[0].files
+                                              ?.length &&
+                                            item.draftMessages[0].files.length >
+                                              0 ? (
+                                            <p className="truncate text-xs font-medium text-primary">
+                                              {
+                                                item.draftMessages[0].files
+                                                  .length
+                                              }{" "}
+                                              {t("files")}
+                                            </p>
+                                          ) : item.lastMessage &&
+                                            item.lastMessage?.text ? (
+                                            <div className="flex min-w-0 items-center gap-2">
+                                              <h5 className="truncate text-xs font-medium text-foreground/70">
+                                                {item.lastMessage.user.username}
+                                              </h5>
+                                              <p className="text-muted-foreground truncate text-xs">
+                                                {item.lastMessage?.text}
+                                              </p>
+                                            </div>
+                                          ) : item.lastMessage &&
+                                            item.lastMessage.files?.length &&
+                                            item.lastMessage.files.length >
+                                              0 ? (
+                                            <div className="flex min-w-0 items-center gap-2">
+                                              <h5 className="truncate text-xs font-medium text-foreground/70">
+                                                {item.lastMessage.user.username}
+                                              </h5>
+                                              <p className="truncate text-xs font-medium text-primary">
+                                                {item.lastMessage.files.length}{" "}
+                                                {t("files")}
+                                              </p>
+                                            </div>
+                                          ) : (
+                                            <p className="text-muted-foreground truncate text-xs">
+                                              {t("empty")}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </FormLabel>
+                                  </FormItem>
+                                );
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            <div className="border-t border-border/60 bg-card/40 px-6 py-4">
+              <Button
+                className="w-full"
+                disabled={
+                  !isValid ||
+                  isLoadingFindAllChatsByUser ||
+                  isLoadingForwardingMessage
+                }
+                type="submit"
+              >
+                {t("forward")}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { LogOut, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import {
   Tabs,
@@ -13,6 +13,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/common/Tabs";
 import { Button } from "@/components/ui/common/Button";
+import BackButton from "@/components/ui/elements/BackButton";
 import Heading from "@/components/ui/elements/Heading";
 import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 
@@ -95,6 +96,10 @@ const GroupSettings = () => {
 
   const canChangeGroupInfo =
     isCreator || perms.includes(GroupPermissionEnum.ChangeGroupInfo);
+  const canChangeGroupName =
+    isCreator || perms.includes(GroupPermissionEnum.ChangeGroupName);
+  const canChangeGroupAvatar =
+    isCreator || perms.includes(GroupPermissionEnum.ChangeGroupAvatar);
   const canManageRoles =
     isCreator || perms.includes(GroupPermissionEnum.ManageRoles);
   const canCreateRoles =
@@ -109,6 +114,13 @@ const GroupSettings = () => {
     isCreator || perms.includes(GroupPermissionEnum.RemoveMembers);
   const canDeleteGroup =
     isCreator || perms.includes(GroupPermissionEnum.DeleteGroup);
+  const canAccessRoles =
+    canManageRoles || canCreateRoles || canDeleteRoles || canChangeRoleInfo;
+  const hasGroupInfoActions =
+    canChangeGroupAvatar ||
+    canChangeGroupInfo ||
+    canChangeGroupName ||
+    canDeleteGroup;
 
   // ── Subscriptions ──
   useGroupUpsertedRoleSubscription({
@@ -270,6 +282,7 @@ const GroupSettings = () => {
     return (
       <div className="flex h-full flex-1 justify-center overflow-y-auto">
         <div className="w-full max-w-3xl px-6 py-8 lg:px-12">
+          <BackButton href={`/group/${groupId}`} className="mb-4 w-fit" />
           <Heading
             title={t("groupSettingsTitle")}
             description={t("loadingSettings")}
@@ -283,6 +296,7 @@ const GroupSettings = () => {
   return (
     <div className="flex h-full flex-1 justify-center overflow-y-auto">
       <div className="w-full max-w-3xl px-6 py-8 lg:px-12">
+        <BackButton href={`/group/${groupId}`} className="mb-4 w-fit" />
         <Heading
           title={t("groupSettingsTitle")}
           description={t("manageGroupSettings")}
@@ -292,22 +306,25 @@ const GroupSettings = () => {
           <TabsList>
             <TabsTrigger value="group">{t("info")}</TabsTrigger>
             <TabsTrigger value="members">{t("membersTab")}</TabsTrigger>
-            {canManageRoles && (
+            {canAccessRoles && (
               <TabsTrigger value="roles">{t("rolesTab")}</TabsTrigger>
             )}
           </TabsList>
 
           <TabsContent value="group">
             <div className="mt-6 space-y-8">
-              {canChangeGroupInfo && (
-                <>
-                  <ChangeGroupAvatarForm groupId={groupId} />
-                  <ChangeGroupInfoForm groupId={groupId} />
-                </>
+              {canChangeGroupAvatar && <ChangeGroupAvatarForm groupId={groupId} />}
+
+              {(canChangeGroupInfo || canChangeGroupName) && (
+                <ChangeGroupInfoForm
+                  groupId={groupId}
+                  canChangeGroupInfo={canChangeGroupInfo}
+                  canChangeGroupName={canChangeGroupName}
+                />
               )}
 
-              <div className="space-y-3 flex justify-center border-t pt-6">
-                {canDeleteGroup && (
+              {canDeleteGroup && (
+                <div className="flex justify-center border-t pt-6">
                   <ConfirmModal
                     heading={tG("deleteGroup")}
                     message={t("deleteGroupConfirm")}
@@ -318,13 +335,14 @@ const GroupSettings = () => {
                       {tG("deleteGroup")}
                     </Button>
                   </ConfirmModal>
-                )}
-                {!isCreator && (
-                  <p className="text-muted-foreground text-xs">
-                    {t("onlyCreatorCanDelete")}
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
+
+              {!hasGroupInfoActions && (
+                <div className="rounded-2xl border border-dashed border-border/60 px-5 py-6 text-center text-sm text-muted-foreground">
+                  {t("manageGroupSettings")}
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -347,12 +365,11 @@ const GroupSettings = () => {
             />
           </TabsContent>
 
-          {canManageRoles && (
+          {canAccessRoles && (
             <TabsContent value="roles">
               <GroupRolesSection
                 roles={roles}
                 canCreateRoles={canCreateRoles}
-                canManageRoles={canManageRoles}
                 canDeleteRoles={canDeleteRoles}
                 canChangeRoleInfo={canChangeRoleInfo}
                 onCreateRole={handleCreateRole}

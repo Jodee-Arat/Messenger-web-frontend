@@ -1,13 +1,8 @@
 import { z } from "zod";
+import { usernameSchema } from "@/shared/schemas/user/username.schema";
 
 export const createAccountWEmailSchema = z.object({
-  username: z
-    .string()
-    .min(5, { message: "Username must be at least 5 characters long" })
-    .regex(/^[a-zA-Zа-яА-ЯёЁ0-9_]+(?:-[a-zA-Zа-яА-ЯёЁ0-9_]+)*$/, {
-      message:
-        "Username can only contain Russian/English letters, digits, _ and -",
-    }),
+  username: usernameSchema,
   email: z
     .string()
     .email({ message: "Invalid email address" })

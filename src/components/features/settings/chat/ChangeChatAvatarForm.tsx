@@ -81,15 +81,15 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
           control={form.control}
           name="file"
           render={({ field }) => (
-            <div className="px-5 pb-5">
-              <div className="w-full items-center space-x-6 lg:flex">
+            <div className="px-5 pb-5 pt-5">
+              <div className="flex flex-col gap-5 rounded-[22px] border border-border/60 bg-background/40 p-4 sm:p-5">
                 <EntityAvatar
                   size="xl"
                   avatarUrl={chat?.avatarUrl || null}
                   name={chat?.chatName}
                 />
-                <div className="space-y-3">
-                  <div className="flex items-center gap-x-3">
+                <div className="min-w-0 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <input
                       className="hidden"
                       type="file"
@@ -97,7 +97,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                       onChange={e => handleImageChange(e)}
                     />
                     <Button
-                      className="mt-5 lg:mt-0"
+                      type="button"
                       variant="secondary"
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
@@ -113,7 +113,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                         onConfirm={() => remove({ variables: { chatId } })}
                       >
                         <Button
-                          className=""
+                          type="button"
                           variant="ghost"
                           disabled={
                             isLoadingRemoveAvatar || isLoadingUpdateAvatar
@@ -125,7 +125,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                       </ConfirmModal>
                     )}
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="break-words text-sm leading-relaxed text-muted-foreground">
                     {chat?.avatarUrl
                       ? t("chatAvatarDesc")
                       : t("uploadChatAvatar")}

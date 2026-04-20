@@ -1,0 +1,3 @@
+query CheckGroupAccess($groupId: String!) {
+  checkGroupAccess(groupId: $groupId)
+}

@@ -12,6 +12,7 @@ interface HintProps {
   asChild?: boolean;
   side?: "top" | "right" | "bottom" | "left";
   align?: "start" | "center" | "end";
+  sideOffset?: number;
 }
 
 const Hint = ({
@@ -19,18 +20,20 @@ const Hint = ({
   align,
   asChild,
   side,
+  sideOffset,
   children,
 }: PropsWithChildren<HintProps>) => {
   return (
     <TooltipProvider>
-      <Tooltip delayDuration={0}>
+      <Tooltip delayDuration={120}>
         <TooltipTrigger asChild={asChild}>{children}</TooltipTrigger>
         <TooltipContent
-          className="bg-background-replace text-foreground-replace"
+          className="pointer-events-none z-[60] max-w-60 whitespace-nowrap rounded-lg border border-border/60 bg-background px-3 py-2 text-xs font-medium text-foreground shadow-lg"
           side={side}
           align={align}
+          sideOffset={sideOffset}
         >
-          <p className="font-semibold">{label}</p>
+          {label}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

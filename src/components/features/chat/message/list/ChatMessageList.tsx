@@ -28,6 +28,8 @@ interface ChatMessageListProp {
   canEdit?: boolean;
   canDelete?: boolean;
   canPin?: boolean;
+  canSend?: boolean;
+  showSenderName?: boolean;
 }
 
 const ChatMessageList: FC<ChatMessageListProp> = ({
@@ -40,6 +42,8 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
   canEdit = true,
   canDelete = true,
   canPin = true,
+  canSend = true,
+  showSenderName = true,
 }) => {
   const t = useTranslations("messages");
   const [messageIds, setMessageIds] = useState<string[]>([]);
@@ -112,6 +116,11 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
     setMessageIds([]);
   };
 
+  const selectedMessage =
+    messageIds.length === 1
+      ? messagesInfo.find(message => message.id === messageIds[0]) ?? null
+      : null;
+
   useEffect(() => {
     if (!allMessagesData || !allMessagesData.findAllMessagesByChat) return;
 
@@ -125,15 +134,25 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
     const newMessage = newMessageData.chatMessageAdded;
 
-    if (newMessage.isEdited) {
-      setMessagesInfo(prevMessages =>
-        prevMessages.map(message =>
-          message.id === newMessage.id ? newMessage : message,
-        ),
-      );
-      return;
-    }
-    setMessagesInfo(prevMessages => [...prevMessages, newMessage]);
+    setMessagesInfo(prevMessages => {
+      if (newMessage.isEdited) {
+        return prevMessages.map(message =>
+          message.id === newMessage.id
+            ? ({
+                ...message,
+                ...newMessage,
+                createdAt: message.createdAt,
+              } as MessageType)
+            : message,
+        );
+      }
+
+      if (prevMessages.some(message => message.id === newMessage.id)) {
+        return prevMessages;
+      }
+
+      return [...prevMessages, newMessage as MessageType];
+    });
   }, [newMessageData]);
 
   useEffect(() => {
@@ -153,7 +172,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
         return {
           ...message,
           repliedToLinks: cleanedLinks.length > 0 ? cleanedLinks : null,
-        };
+        } as MessageType;
       });
 
     setMessagesInfo(updatedMessages);
@@ -172,19 +191,31 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
       <ChatToolbar
         chatId={chatId}
         messageIds={messageIds}
+        selectedMessage={selectedMessage}
         handleRemoveMessages={handleRemoveMessages}
         handleClearMessagesId={handleClearMessagesId}
         handleAddForwarded={handleAddForwarded}
+        canSend={canSend}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        canPin={canPin}
+        userId={userId}
+        pinnedMessageId={pinnedMessage?.id ?? null}
+        setPinnedMessage={setPinnedMessage}
+        startEdit={startEdit}
       />
       <PinnedMessage
         chatId={chatId}
         pinnedMessage={pinnedMessage}
         setPinnedMessage={setPinnedMessage}
+        canPin={canPin}
       />
-      <div className="flex flex-1 flex-col-reverse overflow-y-auto">
-        <div className="mb-2 flex flex-col gap-y-1">
+      <div className="flex flex-1 flex-col-reverse overflow-y-auto px-1">
+        <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-y-1.5">
           {messagesInfo.length === 0 ? (
-            <div>{t("empty")}</div>
+            <div className="rounded-2xl border border-dashed border-border/60 bg-card/30 px-4 py-6 text-center text-sm text-muted-foreground">
+              {t("empty")}
+            </div>
           ) : (
             messagesInfo.map((messageInfo, index) =>
               messageInfo.isStarted ? (
@@ -199,24 +230,26 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
                   <div className="h-px flex-1 bg-border" />
                 </div>
               ) : (
-              <ChatMessageDropdownTrigger
-                startEdit={startEdit}
-                handleAddForwardedMessage={handleAddForwardedMessage}
-                handleClearMessagesId={handleClearMessagesId}
-                handleChooseMessage={handleChooseMessage}
-                messageInfo={messageInfo}
-                userId={userId}
-                key={messageInfo.id}
-                messageId={messagesInfo[index].id}
-                messageIds={messageIds}
-                chatId={chatId}
-                setPinnedMessage={setPinnedMessage}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canPin={canPin}
-              />
+                <ChatMessageDropdownTrigger
+                  startEdit={startEdit}
+                  handleAddForwardedMessage={handleAddForwardedMessage}
+                  handleClearMessagesId={handleClearMessagesId}
+                  handleChooseMessage={handleChooseMessage}
+                  messageInfo={messageInfo}
+                  userId={userId}
+                  key={messageInfo.id}
+                  messageId={messagesInfo[index].id}
+                  messageIds={messageIds}
+                  chatId={chatId}
+                  setPinnedMessage={setPinnedMessage}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                  canPin={canPin}
+                  canSend={canSend}
+                  showSenderName={showSenderName}
+                />
               )
-            ))
+            )
           )}
         </div>
       </div>

@@ -11,12 +11,14 @@ interface PinnedMessageProp {
   pinnedMessage: MessageType | null;
   setPinnedMessage: (message: MessageType | null) => void;
   chatId: string;
+  canPin?: boolean;
 }
 
 const PinnedMessage: FC<PinnedMessageProp> = ({
   pinnedMessage,
   setPinnedMessage,
   chatId,
+  canPin = true,
 }) => {
   const t = useTranslations("messages");
 
@@ -32,22 +34,22 @@ const PinnedMessage: FC<PinnedMessageProp> = ({
   return (
     <>
       {pinnedMessage && (
-        <div className="">
-          <div className="flex items-center justify-between space-x-2 p-1">
+        <div className="mx-auto mb-2 w-full max-w-4xl rounded-[22px] border border-border/60 bg-card/70 px-3 py-2 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
             {pinnedMessage && pinnedMessage?.text ? (
-              <div className="flex flex-col space-x-2">
-                <h5 className="text-primary-foreground">
+              <div className="min-w-0">
+                <h5 className="truncate text-sm font-semibold">
                   {pinnedMessage.user.username}
                 </h5>
-                <p className="text-muted-foreground text-xs">
+                <p className="truncate text-xs text-muted-foreground">
                   {pinnedMessage?.text}
                 </p>
               </div>
             ) : pinnedMessage &&
               pinnedMessage.files?.length &&
               pinnedMessage.files.length > 0 ? (
-              <div className="flex flex-col space-x-2">
-                <h5 className="text-primary-foreground">
+              <div className="min-w-0">
+                <h5 className="truncate text-sm font-semibold">
                   {pinnedMessage.user.username}
                 </h5>
                 <p className="text-xs text-blue-400">
@@ -57,17 +59,21 @@ const PinnedMessage: FC<PinnedMessageProp> = ({
             ) : (
               <p className="text-muted-foreground text-xs">{t("empty")}</p>
             )}
-            <Button
-              onClick={() => {
-                unpinMessage({
-                  variables: { chatId },
-                });
-              }}
-              disabled={isUnpinning}
-              variant="ghost"
-            >
-              <X className="size-4" />
-            </Button>
+            {canPin && (
+              <Button
+                onClick={() => {
+                  unpinMessage({
+                    variables: { chatId },
+                  });
+                }}
+                disabled={isUnpinning}
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+              >
+                <X className="size-4" />
+              </Button>
+            )}
           </div>
         </div>
       )}

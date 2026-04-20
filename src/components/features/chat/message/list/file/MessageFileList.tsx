@@ -7,27 +7,36 @@ interface MessageFileListProp {
   files: MessageFileType[];
   chatId: string;
   isSelected: boolean;
+  isOwnMessage?: boolean;
 }
 
 const MessageFileList: FC<MessageFileListProp> = ({
   files,
   chatId,
   isSelected,
+  isOwnMessage = false,
 }) => {
+  if (!files || files.length === 0) return null;
+
   return (
-    <div onClick={(e) => (!isSelected ? e.stopPropagation() : "")}>
-      {files && (
-        <div className="flex flex-wrap space-x-4 space-y-1">
-          {files.map((file, index) => (
-            <MessageFileItem
-              isSelected={isSelected}
-              file={file}
-              key={index}
-              chatId={chatId}
-            />
-          ))}
-        </div>
-      )}
+    <div
+      onClick={event => {
+        if (!isSelected) {
+          event.stopPropagation();
+        }
+      }}
+    >
+      <div className="mt-2 flex flex-wrap gap-2">
+        {files.map(file => (
+          <MessageFileItem
+            isSelected={isSelected}
+            file={file}
+            key={file.id}
+            chatId={chatId}
+            isOwnMessage={isOwnMessage}
+          />
+        ))}
+      </div>
     </div>
   );
 };

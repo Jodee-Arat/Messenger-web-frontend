@@ -35,6 +35,8 @@ interface ChatMessageDropdownProp {
   canEdit?: boolean;
   canDelete?: boolean;
   canPin?: boolean;
+  canSend?: boolean;
+  showSenderName?: boolean;
 }
 
 const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
@@ -51,8 +53,12 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
   canEdit = true,
   canDelete = true,
   canPin = true,
+  canSend = true,
+  showSenderName = true,
 }) => {
   const t = useTranslations("messages");
+  const canEditThisMessage = canEdit && messageInfo.user.id === userId;
+  const canSelectMessage = canSend || canDelete || canEditThisMessage || canPin;
 
   const [removeMessage] = useRemoveMessagesMutation({
     onCompleted() {
@@ -98,29 +104,34 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
           messageId={messageId}
           messageIds={messageIds}
           messageInfo={messageInfo}
+          showSenderName={showSenderName}
           userId={userId}
         />
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() => handleChooseMessage(messageId)}
-        >
-          {t("select")}
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={() => handleAddMessage()}
-        >
-          {t("reply")}
-        </ContextMenuItem>
+        {canSelectMessage && (
+          <ContextMenuItem
+            className="cursor-pointer"
+            onClick={() => handleChooseMessage(messageId)}
+          >
+            {t("select")}
+          </ContextMenuItem>
+        )}
+        {canSend && (
+          <ContextMenuItem
+            className="cursor-pointer"
+            onClick={() => handleAddMessage()}
+          >
+            {t("reply")}
+          </ContextMenuItem>
+        )}
         <ContextMenuItem
           className="cursor-pointer"
           onClick={() => copyToClipboard(messageInfo.text ?? "")}
         >
           {t("copy")}
         </ContextMenuItem>
-        {canEdit && (
+        {canEditThisMessage && (
           <ContextMenuItem
             className="cursor-pointer"
             onClick={() =>

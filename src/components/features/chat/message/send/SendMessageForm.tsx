@@ -11,8 +11,8 @@ import {
 import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
 import { SendFileType } from "@/shared/types/send-file.type";
 import { haveItemsChangedById } from "@/shared/utils/have-items-changedById";
-import { Paperclip, SendHorizonal, X } from "lucide-react";
-import { FC, useEffect, useRef } from "react";
+import { Check, Paperclip, SendHorizonal, X } from "lucide-react";
+import { ChangeEvent, FC, useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -34,6 +34,14 @@ import { Textarea } from "@/components/ui/common/Textarea";
 
 import ForwardedMessagesBar from "./ForwardedMessagesBar";
 import FileList from "./file/FileList";
+
+const CHAT_DRAFT_REFETCH_QUERIES = [
+  "FindAllChatsByUser",
+  "FindAllChatsByGroup",
+  "FindChatByChatId",
+];
+const MIN_TEXTAREA_HEIGHT = 40;
+const MAX_TEXTAREA_HEIGHT = 128;
 
 interface SendMessageFormProp {
   handleFileSend: (file: File) => void;
@@ -79,8 +87,50 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
   const draftTextRef = useRef(draftText);
   const editIdRef = useRef(editId);
   const filesEditedRef = useRef(filesEdited);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const shouldRefocusAfterSendRef = useRef(false);
+  const shouldPersistDraftOnUnmountRef = useRef(true);
 
   const t = useTranslations("messages");
+
+  const syncTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = "0px";
+    textarea.style.height = `${Math.min(
+      Math.max(textarea.scrollHeight, MIN_TEXTAREA_HEIGHT),
+      MAX_TEXTAREA_HEIGHT,
+    )}px`;
+  }, []);
+
+  const resetTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  }, []);
+
+  const focusInput = useCallback(() => {
+    const focus = () => {
+      const textarea = textareaRef.current;
+      if (!textarea) {
+        return;
+      }
+
+      textarea.focus({ preventScroll: true });
+      const cursorPosition = textarea.value.length;
+      textarea.setSelectionRange(cursorPosition, cursorPosition);
+    };
+
+    requestAnimationFrame(() => {
+      setTimeout(focus, 0);
+    });
+  }, []);
 
   const form = useForm<SendMessageSchemaType>({
     resolver: zodResolver(sendMessageSchema),
@@ -91,6 +141,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
 
   const [sendMessage, { loading: isLoadingSendMessage }] =
     useSendChatMessageMutation({
+      refetchQueries: CHAT_DRAFT_REFETCH_QUERIES,
       onCompleted() {
         forwardedMessagesRef.current = [];
         filesRef.current = [];
@@ -99,8 +150,12 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         filesEditedRef.current = [];
         form.reset();
         handleClearForm();
+        requestAnimationFrame(resetTextareaHeight);
+        shouldRefocusAfterSendRef.current = true;
       },
       onError(error) {
+        shouldPersistDraftOnUnmountRef.current = true;
+        shouldRefocusAfterSendRef.current = false;
         if (isDirectContactBlockedError(error)) {
           onDirectContactBlocked?.();
           return;
@@ -109,29 +164,31 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         toast.error(getGraphQLErrorMessage(error));
       },
     });
-  const [sendDraft, { loading: isLoadingSendDraft }] =
-    useSendChatDraftMessageMutation({
-      onCompleted() {
-        forwardedMessagesRef.current = [];
-        filesRef.current = [];
-        draftTextRef.current = "";
-        editIdRef.current = null;
-        filesEditedRef.current = [];
-        form.reset();
-        handleClearForm();
-      },
-      onError(error) {
-        if (isDirectContactBlockedError(error)) {
-          onDirectContactBlocked?.();
-          return;
-        }
+  const [sendDraft] = useSendChatDraftMessageMutation({
+    refetchQueries: CHAT_DRAFT_REFETCH_QUERIES,
+    onCompleted() {
+      forwardedMessagesRef.current = [];
+      filesRef.current = [];
+      draftTextRef.current = "";
+      editIdRef.current = null;
+      filesEditedRef.current = [];
+      form.reset();
+      handleClearForm();
+      requestAnimationFrame(resetTextareaHeight);
+    },
+    onError(error) {
+      if (isDirectContactBlockedError(error)) {
+        onDirectContactBlocked?.();
+        return;
+      }
 
-        toast.error(getGraphQLErrorMessage(error));
-      },
-    });
+      toast.error(getGraphQLErrorMessage(error));
+    },
+  });
 
   const [removeDraftMessage, { loading: isLoadingRemoveDraft }] =
     useRemoveDraftMutation({
+      refetchQueries: CHAT_DRAFT_REFETCH_QUERIES,
       onCompleted() {
         forwardedMessagesRef.current = [];
         filesRef.current = [];
@@ -140,6 +197,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         filesEditedRef.current = [];
         form.reset();
         handleClearForm();
+        requestAnimationFrame(resetTextareaHeight);
       },
       onError(error) {
         if (isDirectContactBlockedError(error)) {
@@ -151,33 +209,46 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
       },
     });
 
-  const canSendMessage =
-    canSend && ((form.watch("text")?.trim() ?? "") !== "" || files.length > 0);
+  const textValue = form.watch("text")?.trim() ?? "";
+  const hasFiles = files.length > 0 || filesEdited.length > 0;
+  const canSendMessage = canSend && (textValue !== "" || files.length > 0);
+  const isBusy =
+    isLoadingSendMessage || isLoadingSendFiles || isLoadingRemoveDraft;
 
   const handleFileInputChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
+    event: ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = e.target.files?.[0];
+    const file = event.target.files?.[0];
     if (file) {
       await handleFileSend(file);
     }
+    event.target.value = "";
+  };
+
+  const handleCancelEdit = () => {
+    setEditId(null);
+    setFilesEdited([]);
+    clearMessageId();
+    void removeDraftMessage({
+      variables: {
+        chatId,
+      },
+    }).catch(() => {});
   };
 
   const onSubmit = async (
     data: SendMessageSchemaType,
-    files: SendFileType[],
-    forwardedMessages?: ForwardedMessageType[],
-    editId?: string | null,
-    filesEdited: SendFileType[] = [],
+    attachedFiles: SendFileType[],
+    activeForwardedMessages?: ForwardedMessageType[],
+    activeEditId?: string | null,
+    activeFilesEdited: SendFileType[] = [],
     isDraft = false,
   ) => {
     const trimmedText = data.text ? data.text.trim() : "";
-
-    let forwardedMessageIds: string[] = forwardedMessages
-      ? forwardedMessages.map((message) => message.id)
+    const forwardedMessageIds = activeForwardedMessages
+      ? activeForwardedMessages.map((message) => message.id)
       : [];
-
-    const filesId: string[] = files.map((file) => file.id);
+    const filesId = attachedFiles.map((file) => file.id);
 
     if (isDraft) {
       if (
@@ -185,18 +256,18 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         filesId.length === 0 &&
         forwardedMessageIds.length === 0
       ) {
-        removeDraftMessage({
+        await removeDraftMessage({
           variables: {
-            chatId: chatId,
+            chatId,
           },
-        });
+        }).catch(() => {});
         return;
       }
 
-      sendDraft({
+      await sendDraft({
         variables: {
           data: {
-            editId: editId ?? undefined,
+            editId: activeEditId ?? undefined,
             text: trimmedText !== "" ? trimmedText : null,
             forwardedMessageIds:
               forwardedMessageIds.length > 0 ? forwardedMessageIds : undefined,
@@ -205,29 +276,31 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
           },
           chatId,
         },
-      });
-    } else {
-      if (trimmedText !== "" || files.length > 0) {
-        sendMessage({
-          variables: {
-            data: {
-              editId: editId ?? undefined,
-              text: trimmedText !== "" ? trimmedText : null,
-              forwardedMessageIds:
-                forwardedMessageIds.length > 0
-                  ? forwardedMessageIds
-                  : undefined,
-              fileIds: filesId,
-              targetChatsId: [chatId],
-            },
-            chatId,
-          },
-        });
-      }
+      }).catch(() => {});
 
-      setForwardedMessages([]);
-      clearMessageId();
+      return;
     }
+
+    if (trimmedText !== "" || attachedFiles.length > 0) {
+      shouldPersistDraftOnUnmountRef.current = false;
+      shouldRefocusAfterSendRef.current = true;
+      await sendMessage({
+        variables: {
+          data: {
+            editId: activeEditId ?? undefined,
+            text: trimmedText !== "" ? trimmedText : null,
+            forwardedMessageIds:
+              forwardedMessageIds.length > 0 ? forwardedMessageIds : undefined,
+            fileIds: filesId,
+            targetChatsId: [chatId],
+          },
+          chatId,
+        },
+      }).catch(() => {});
+    }
+
+    setForwardedMessages([]);
+    clearMessageId();
   };
 
   useEffect(() => {
@@ -239,10 +312,25 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
     form.reset({
       text: draftText,
     });
-  }, [forwardedMessages, files, draftText, editId, filesEdited]);
+    requestAnimationFrame(syncTextareaHeight);
+  }, [draftText, editId, files, filesEdited, forwardedMessages, form]);
+
+  useEffect(() => {
+    if (
+      files.length > 0 ||
+      filesEdited.length > 0 ||
+      (forwardedMessages?.length ?? 0) > 0
+    ) {
+      shouldPersistDraftOnUnmountRef.current = true;
+    }
+  }, [files, filesEdited, forwardedMessages]);
 
   useEffect(() => {
     return () => {
+      if (!shouldPersistDraftOnUnmountRef.current) {
+        return;
+      }
+
       const values = form.getValues();
       const isForwardedMessagesChanged = haveItemsChangedById(
         forwardedMessagesRef.current ?? [],
@@ -250,7 +338,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
       );
       const isFilesChanged = haveItemsChangedById(
         filesRef.current ?? [],
-        files ?? [],
+        files,
       );
       const isTextChanged = values.text !== draftTextRef.current;
 
@@ -258,7 +346,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         return;
       }
 
-      onSubmit(
+      void onSubmit(
         values,
         filesRef.current,
         forwardedMessagesRef.current,
@@ -267,11 +355,35 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
         true,
       );
     };
-  }, []);
+  }, [files, form, forwardedMessages]);
+
+  useEffect(() => {
+    shouldPersistDraftOnUnmountRef.current = true;
+    shouldRefocusAfterSendRef.current = false;
+    focusInput();
+  }, [chatId, focusInput]);
+
+  useEffect(() => {
+    if (!isLoadingSendMessage && shouldRefocusAfterSendRef.current) {
+      shouldRefocusAfterSendRef.current = false;
+      focusInput();
+    }
+  }, [focusInput, isLoadingSendMessage]);
+
+  const handleMessageSubmit = form.handleSubmit(async (data) => {
+    await onSubmit(
+      data,
+      files,
+      forwardedMessages,
+      editIdRef.current,
+      filesEditedRef.current,
+      false,
+    );
+  });
 
   return (
-    <>
-      {(files.length > 0 || filesEdited.length > 0) && (
+    <div className="mt-3">
+      {hasFiles && (
         <FileList
           filesEdited={filesEdited}
           files={files}
@@ -279,6 +391,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
           onDeleteFile={onDeleteFile}
         />
       )}
+
       {forwardedMessages && forwardedMessages.length > 0 && (
         <ForwardedMessagesBar
           setForwardedMessages={setForwardedMessages}
@@ -288,108 +401,94 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit((data) =>
-            onSubmit(
-              data,
-              files,
-              forwardedMessages,
-              editIdRef.current,
-              filesEditedRef.current,
-              false,
-            ),
-          )}
-          className="mt-3 flex items-center gap-x-2"
+          onSubmit={(event) => {
+            void handleMessageSubmit(event).catch(() => {});
+          }}
+          className="rounded-[30px] border border-border/60 bg-card/90 p-2 shadow-sm backdrop-blur"
         >
-          <Button variant="ghost" className="relative overflow-hidden">
-            <Input
-              onChange={handleFileInputChange}
-              type="file"
-              title=""
-              className="hover:none absolute left-0 top-0 h-full w-full opacity-0"
-            />
-            <Paperclip className="size-4" />
-          </Button>
+          <div className="flex items-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              className="relative size-10 shrink-0 rounded-full"
+            >
+              <Input
+                onChange={handleFileInputChange}
+                type="file"
+                title=""
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+              <Paperclip className="size-4" />
+            </Button>
 
-          <FormField
-            control={form.control}
-            name="text"
-            render={({ field }) => (
-              <FormItem className="w-[100%]">
-                <FormControl>
-                  <div className="relative">
+            <FormField
+              control={form.control}
+              name="text"
+              render={({ field }) => (
+                <FormItem className="min-w-0 flex-1">
+                  <FormControl>
                     <Textarea
+                      {...field}
+                      autoFocus
                       placeholder={t("writeMessage")}
                       rows={1}
-                      disabled={isLoadingSendMessage}
-                      onInput={(e) => {
-                        e.currentTarget.style.height = "auto";
-                        e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                      ref={(node) => {
+                        textareaRef.current = node;
+                        field.ref(node);
+                      }}
+                      onChange={(event) => {
+                        shouldPersistDraftOnUnmountRef.current = true;
+                        field.onChange(event);
+                      }}
+                      onInput={() => {
+                        syncTextareaHeight();
                         onTyping?.();
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          form.handleSubmit((data) =>
-                            onSubmit(
-                              data,
-                              files,
-                              forwardedMessages,
-                              editIdRef.current,
-                              filesEditedRef.current,
-                              false,
-                            ),
-                          )();
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.shiftKey) {
+                          event.preventDefault();
+                          void handleMessageSubmit().catch(() => {});
                         }
                       }}
-                      className="border-border resize-none overflow-y-hidden border pr-8"
-                      {...field}
+                      className="min-h-10 max-h-32 resize-none border-0 bg-transparent px-3 py-2 text-sm leading-6 shadow-none focus-visible:ring-0"
                     />
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-          {editId && (
+            {editId && (
+              <Button
+                size="icon"
+                variant="ghost"
+                type="button"
+                className="size-10 shrink-0 rounded-full"
+                disabled={isBusy}
+                onClick={handleCancelEdit}
+              >
+                <X className="size-4" />
+              </Button>
+            )}
+
             <Button
               size="icon"
-              variant="secondary"
-              type="button"
-              disabled={
-                !canSendMessage ||
-                isLoadingSendMessage ||
-                isLoadingSendFiles ||
-                isLoadingRemoveDraft
-              }
-              onClick={(event) => {
-                event.preventDefault();
-
-                removeDraftMessage({
-                  variables: {
-                    chatId: chatId,
-                  },
-                });
-              }}
+              type="submit"
+              className="size-10 shrink-0 rounded-full"
+              disabled={!canSendMessage || isBusy}
+              onMouseDown={(event) => event.preventDefault()}
+              onPointerDown={(event) => event.preventDefault()}
             >
-              <X className="size-4" />
+              {editId ? (
+                <Check className="size-4" />
+              ) : (
+                <SendHorizonal className="size-4" />
+              )}
             </Button>
-          )}
-
-          <Button
-            size="icon"
-            type="submit"
-            disabled={
-              !canSendMessage ||
-              isLoadingSendMessage ||
-              isLoadingSendFiles ||
-              isLoadingRemoveDraft
-            }
-          >
-            <SendHorizonal className="size-4" />
-          </Button>
+          </div>
         </form>
       </Form>
-    </>
+    </div>
   );
 };
 

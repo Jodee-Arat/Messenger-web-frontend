@@ -1,4 +1,3 @@
-import { FindAllChatsByUserQuery } from "@/shared/graphql/generated/output";
 import { useTranslations } from "next-intl";
 
 import {
@@ -8,10 +7,10 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/common/ContextMenu";
 
-import ChatsSidebarItem from "./ChatsSidebarItem";
+import ChatsSidebarItem, { SidebarChat } from "./ChatsSidebarItem";
 
 interface ChatDropdownTriggerProps {
-  chat: FindAllChatsByUserQuery["findAllChatsByUser"][0];
+  chat: SidebarChat;
   deleteChat: (chatId: string) => void;
   canDelete?: boolean;
 }

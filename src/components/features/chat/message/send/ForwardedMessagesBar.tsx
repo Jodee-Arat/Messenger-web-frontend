@@ -1,11 +1,10 @@
 import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
 import { cn } from "@/shared/utils/tw-merge";
-import { X } from "lucide-react";
+import { CornerUpRight, X } from "lucide-react";
 import { FC } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
-import { Separator } from "@/components/ui/common/Separator";
 
 interface ForwardedMessagesBarProp {
   forwardedMessages: ForwardedMessageType[];
@@ -17,63 +16,54 @@ const ForwardedMessagesBar: FC<ForwardedMessagesBarProp> = ({
   forwardedMessages,
 }) => {
   const t = useTranslations("messages");
-  const usernames = new Set<string>();
-  forwardedMessages.forEach(message => usernames.add(message.user.username));
+  const usernames = Array.from(
+    new Set(forwardedMessages.map(message => message.user.username)),
+  );
+  const isMultiple = forwardedMessages.length > 1;
+
   return (
-    <div className="flex justify-between">
-      <div className="flex cursor-pointer items-center space-x-2">
-        {forwardedMessages.length > 1 ? (
-          <>
-            <Separator orientation="vertical" className="p-[1.5px]" />
-            <div>
-              <h3 className="">
-                {Array.from(usernames.values()).map((username, index) => (
-                  <span
-                    key={username}
-                    className={cn("text-sm", index > 0 && "ml-1")}
-                  >
-                    {username}
-                    {index < usernames.size - 1 ? "," : ""}
-                  </span>
-                ))}
-              </h3>
-              <span className="text-xs">
-                {forwardedMessages.length} {t("messagesCount")}
-              </span>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col space-y-0.5">
-            <span>{forwardedMessages[0].user.username}</span>
+    <div className="mb-2 flex items-start justify-between gap-3 rounded-[24px] border border-border/60 bg-card/80 px-3 py-2 shadow-sm">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="bg-primary/10 text-primary mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full">
+          <CornerUpRight className="size-4" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            {t("forward")}
+          </p>
+          {isMultiple ? (
             <>
-              <span className="w-80 truncate text-xs">
-                {forwardedMessages[0].text ?? ""}
-              </span>
-              <span className="text-xs">
-                {forwardedMessages[0].files &&
-                  forwardedMessages[0].files.length > 0 && (
-                    <>
-                      <span>{forwardedMessages[0].files.length}</span>
-                      {forwardedMessages[0].files.length > 1 ? (
-                        <span className="ml-1">{t("files")}</span>
-                      ) : (
-                        <span className="ml-1">{t("files")}</span>
-                      )}
-                    </>
-                  )}
-              </span>
+              <p className="truncate text-sm font-medium text-foreground">
+                {usernames.join(", ")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {forwardedMessages.length} {t("messagesCount")}
+              </p>
             </>
-          </div>
-        )}
+          ) : (
+            <>
+              <p className="truncate text-sm font-medium text-foreground">
+                {forwardedMessages[0]?.user.username}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {forwardedMessages[0]?.text?.trim() ||
+                  (forwardedMessages[0]?.files?.length
+                    ? `${forwardedMessages[0].files.length} ${t("files")}`
+                    : t("empty"))}
+              </p>
+            </>
+          )}
+        </div>
       </div>
+
       <Button
+        type="button"
         onClick={() => setForwardedMessages([])}
-        className="p-0"
+        className="size-8 shrink-0 rounded-full"
         variant="ghost"
         size="icon"
-        asChild
       >
-        <X className="size-7.5 p-0.5 px-1" />
+        <X className="size-4" />
       </Button>
     </div>
   );

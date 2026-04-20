@@ -75,7 +75,21 @@ const GroupsSidebar = () => {
   useEffect(() => {
     if (!newGroupData || !newGroupData.groupAdded) return;
 
-    setAllGroups((prevGroups) => [newGroupData.groupAdded, ...prevGroups]);
+    setAllGroups((prevGroups) => {
+      const existingIndex = prevGroups.findIndex(
+        (group) => group.id === newGroupData.groupAdded.id,
+      );
+
+      if (existingIndex === -1) {
+        return [newGroupData.groupAdded, ...prevGroups];
+      }
+
+      return prevGroups.map((group) =>
+        group.id === newGroupData.groupAdded.id
+          ? newGroupData.groupAdded
+          : group,
+      );
+    });
   }, [newGroupData]);
 
   useEffect(() => {
@@ -113,10 +127,10 @@ const GroupsSidebar = () => {
 
       {/* Group list */}
       {user?.id ? (
-        <div className="scrollbar-thin scrollbar-transparent flex flex-1 flex-col items-center space-y-2 overflow-y-auto overflow-x-hidden">
-          {allGroups.map((group, index) => (
+        <div className="scrollbar-thin scrollbar-transparent flex flex-1 flex-col items-center space-y-2 overflow-y-auto overflow-x-hidden [&>*]:shrink-0">
+          {allGroups.map((group) => (
             <GroupDropdownTrigger
-              key={index}
+              key={group.id}
               group={group}
               deleteGroup={handleDeleteGroup}
             />

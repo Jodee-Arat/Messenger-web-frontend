@@ -19,7 +19,25 @@ interface MessageFormProp {
   text?: string | null;
   files?: MessageFileType[] | null | undefined;
   isSelected: boolean;
+  createdAt?: string | Date | null | undefined;
+  showSenderName?: boolean;
 }
+
+const formatTime = (date?: string | Date | null | undefined) => {
+  if (!date) return "";
+  try {
+    const parsedDate =
+      typeof date === "string" && /^\d+$/.test(date)
+        ? parseInt(date, 10)
+        : date;
+    return new Intl.DateTimeFormat("ru-RU", {
+      hour: "numeric",
+      minute: "numeric",
+    }).format(new Date(parsedDate as any));
+  } catch (e) {
+    return "";
+  }
+};
 
 const MessageForm: FC<MessageFormProp> = ({
   chatId,
@@ -29,45 +47,83 @@ const MessageForm: FC<MessageFormProp> = ({
   isSelected,
   text,
   isEdited,
+  createdAt,
+  showSenderName = true,
 }) => {
   const t = useTranslations("messages");
+  const isOwnMessage = user.id === userId;
+  const bubbleClass = isOwnMessage
+    ? "rounded-[22px] rounded-br-md bg-primary px-3 py-2 text-primary-foreground"
+    : "rounded-[22px] rounded-bl-md border border-border/60 bg-card/85 px-3 py-2 text-foreground shadow-sm";
+  const timeToneClass = isOwnMessage
+    ? "text-primary-foreground/70"
+    : "text-muted-foreground/70";
 
   return (
-    <div>
+    <div className="w-full">
       <div
         className={cn(
-          "flex items-start gap-3",
-          user.id === userId ? "flex-row-reverse" : "flex-row",
+          "flex items-end gap-2",
+          isOwnMessage ? "flex-row-reverse" : "flex-row",
         )}
       >
-        <div className="mt-1">
-          <EntityAvatar
-            name={user.username}
-            avatarUrl={user.avatarUrl}
-            size="default"
-          />
-        </div>
+        {!isOwnMessage && (
+          <div className="mb-0.5 shrink-0">
+            <EntityAvatar
+              name={user.username}
+              avatarUrl={user.avatarUrl}
+              size="sm"
+            />
+          </div>
+        )}
 
-        <div className="flex min-w-0 max-w-[400px] flex-1 flex-col">
-          <h3
+        <div
+          className={cn("min-w-0", isOwnMessage ? "items-end" : "items-start")}
+        >
+          <div
             className={cn(
-              user.id === userId ? "text-right" : "text-left",
-              "font-semibold",
+              "min-w-0 max-w-[min(100%,42rem)] overflow-hidden",
+              bubbleClass,
             )}
           >
-            {user.username}
-          </h3>
-          {isEdited && (
-            <span className="text-xs text-gray-500">{t("edited")}</span>
-          )}
-          {text && text !== "null" && (
-            <p className="break-words text-left text-sm">{text}</p>
-          )}
-          <MessageFileList
-            isSelected={isSelected}
-            files={files!}
-            chatId={chatId}
-          />
+            {showSenderName && !isOwnMessage && (
+              <p className="mb-1.5 text-xs font-semibold leading-none text-primary">
+                {user.username}
+              </p>
+            )}
+            {text && text !== "null" && (
+              <p
+                className={cn(
+                  "whitespace-pre-wrap break-words text-sm leading-6 [overflow-wrap:anywhere]",
+                  !showSenderName && !isOwnMessage && "mt-0.5",
+                )}
+              >
+                {text}
+              </p>
+            )}
+            <MessageFileList
+              isSelected={isSelected}
+              files={files ?? []}
+              chatId={chatId}
+              isOwnMessage={isOwnMessage}
+            />
+            {(isEdited || createdAt) && (
+              <div
+                className={cn(
+                  "mt-1.5 flex items-center justify-end gap-1.5 text-[10px]",
+                  timeToneClass,
+                )}
+              >
+                {isEdited && (
+                  <>
+                    <span className="font-medium">{t("edited")}</span>
+                    {createdAt && <span className="opacity-60">·</span>}
+                  </>
+                )}
+                {createdAt && <span>{formatTime(createdAt)}</span>}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

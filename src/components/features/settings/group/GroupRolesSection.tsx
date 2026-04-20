@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronRight, Crown, Plus, Shield, Trash2 } from "lucide-react";
+import { Check, ChevronRight, Crown, Plus, Shield, Trash2 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/common/Card";
 import { Button } from "@/components/ui/common/Button";
@@ -111,7 +111,6 @@ const ALL_PERMISSIONS: {
 interface GroupRolesSectionProps {
   roles: GroupRoleData[];
   canCreateRoles: boolean;
-  canManageRoles: boolean;
   canDeleteRoles: boolean;
   canChangeRoleInfo: boolean;
   onCreateRole: (
@@ -130,7 +129,6 @@ interface GroupRolesSectionProps {
 const GroupRolesSection: FC<GroupRolesSectionProps> = ({
   roles,
   canCreateRoles,
-  canManageRoles,
   canDeleteRoles,
   canChangeRoleInfo,
   onCreateRole,
@@ -215,7 +213,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
       ))}
 
       {/* Create role button */}
-      {(canManageRoles || canCreateRoles) && (
+      {canCreateRoles && (
         <button
           onClick={() => {
             resetCreateForm();
@@ -230,11 +228,11 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
 
       {/* Create Role Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
+          <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>{t("createRole")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="max-h-[calc(100vh-16rem)] space-y-4 overflow-y-auto px-6 py-4">
             {/* Name */}
             <div>
               <label className="text-muted-foreground mb-1 block text-xs font-semibold uppercase">
@@ -252,22 +250,53 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
               <label className="text-muted-foreground mb-2 block text-xs font-semibold uppercase">
                 {t("roleColor")}
               </label>
-              <div className="flex flex-wrap gap-2">
-                {GROUP_ROLE_COLORS.map(color => (
-                  <button
-                    key={color}
-                    className="size-8 rounded-full transition-all"
-                    style={{
-                      backgroundColor: color,
-                      outline:
-                        newColor === color
-                          ? "2px solid var(--foreground)"
-                          : "none",
-                      outlineOffset: "2px",
-                    }}
-                    onClick={() => setNewColor(color)}
-                  />
-                ))}
+              <div className="flex items-center gap-3">
+                <div
+                  className="size-9 shrink-0 rounded-full border border-border/70 shadow-sm"
+                  style={{ backgroundColor: newColor }}
+                />
+                <span className="text-muted-foreground text-xs font-medium">
+                  {t("roleColor")}: {newColor}
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2.5">
+                {GROUP_ROLE_COLORS.map(color => {
+                  const isSelected = newColor === color;
+                  const isLightColor = color.toLowerCase() === "#ffffff";
+
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      aria-pressed={isSelected}
+                      title={color}
+                      className={`relative flex size-9 items-center justify-center rounded-full border transition-all ${
+                        isSelected
+                          ? "scale-110 border-foreground shadow-lg"
+                          : "border-transparent hover:scale-105 hover:border-border/80"
+                      }`}
+                      style={{
+                        backgroundColor: color,
+                        boxShadow: isSelected
+                          ? "0 0 0 3px rgba(255,255,255,0.16)"
+                          : undefined,
+                      }}
+                      onClick={() => setNewColor(color)}
+                    >
+                      {isSelected && (
+                        <span
+                          className={`flex size-5 items-center justify-center rounded-full ${
+                            isLightColor
+                              ? "bg-foreground/10 text-foreground"
+                              : "bg-black/20 text-white"
+                          }`}
+                        >
+                          <Check className="size-3.5" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -298,7 +327,9 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                 ))}
               </div>
             </div>
+          </div>
 
+          <div className="border-t border-border/60 bg-background px-6 py-4">
             <Button
               className="w-full gap-2"
               disabled={!newName.trim()}
@@ -316,10 +347,10 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
         open={!!selectedRole}
         onOpenChange={open => !open && setSelectedRole(null)}
       >
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
           {selectedRole && (
             <>
-              <DialogHeader>
+              <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
                 <DialogTitle className="flex items-center gap-2">
                   <div
                     className="size-4 rounded-full"
@@ -329,7 +360,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-4">
+              <div className="max-h-[calc(100vh-16rem)] space-y-4 overflow-y-auto px-6 py-4">
                 {/* Permissions */}
                 <div>
                   <label className="text-muted-foreground mb-2 block text-xs font-semibold uppercase">
@@ -347,7 +378,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                             {tP(perm.label)}
                           </span>
                         </div>
-                        {canManageRoles || canChangeRoleInfo ? (
+                        {canChangeRoleInfo ? (
                           <button
                             onClick={() =>
                               onTogglePermission(selectedRole, perm.key)
@@ -402,9 +433,10 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                     ))
                   )}
                 </div>
+              </div>
 
-                {/* Delete role */}
-                {(canManageRoles || canDeleteRoles) && (
+              {canDeleteRoles && (
+                <div className="border-t border-border/60 bg-background px-6 py-4">
                   <ConfirmModal
                     heading={t("deleteRole")}
                     message={t("deleteRoleConfirm", {
@@ -420,8 +452,8 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                       {t("deleteRole")}
                     </Button>
                   </ConfirmModal>
-                )}
-              </div>
+                </div>
+              )}
             </>
           )}
         </DialogContent>

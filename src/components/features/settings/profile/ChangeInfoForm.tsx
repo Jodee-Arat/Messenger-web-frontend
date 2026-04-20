@@ -19,6 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
 import { Separator } from "@/components/ui/common/Separator";
@@ -32,6 +33,8 @@ const ChangeInfoForm = () => {
 
   const form = useForm<TypeChangeInfoProfileSchema>({
     resolver: zodResolver(ChangeInfoProfileSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     values: {
       username: user?.username ?? "",
       bio: user?.bio ?? "",
@@ -54,7 +57,10 @@ const ChangeInfoForm = () => {
   const onSubmit = (data: TypeChangeInfoProfileSchema) => {
     update({
       variables: {
-        data,
+        data: {
+          username: data.username.trim(),
+          bio: data.bio.trim(),
+        },
       },
     });
   };
@@ -79,6 +85,7 @@ const ChangeInfoForm = () => {
                   />
                 </FormControl>
                 <FormDescription>{t("enterUniqueUsername")}</FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -98,6 +105,7 @@ const ChangeInfoForm = () => {
                   />
                 </FormControl>
                 <FormDescription>{t("enterBriefBio")}</FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           ></FormField>

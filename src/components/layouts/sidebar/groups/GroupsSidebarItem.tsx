@@ -21,7 +21,7 @@ const GroupsSidebarItem = ({ group }: GroupsSidebarItemProps) => {
     <Hint label={group.groupName} asChild side="right">
       <Link
         className={cn(
-          "flex size-12 items-center justify-center rounded-[24px] transition-all hover:rounded-[16px]",
+          "flex size-12 shrink-0 items-center justify-center rounded-[24px] transition-all hover:rounded-[16px]",
           isActive
             ? "bg-primary text-primary-foreground rounded-[16px]"
             : "bg-card text-foreground hover:bg-primary hover:text-primary-foreground",

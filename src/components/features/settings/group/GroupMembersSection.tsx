@@ -17,7 +17,7 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import ConfirmModal from "@/components/ui/elements/ConfirmModal";
 
 import {
-  useFindAllUsersQuery,
+  useGetFriendsQuery,
   type GetGroupRolesQuery,
   type FindGroupByGroupIdQuery,
 } from "@/shared/graphql/generated/output";
@@ -61,11 +61,23 @@ const GroupMembersSection: FC<GroupMembersSectionProps> = ({
   const [inviteOpen, setInviteOpen] = useState(false);
   const [assignUserId, setAssignUserId] = useState<string | null>(null);
 
-  const { data: usersData } = useFindAllUsersQuery({ skip: !inviteOpen });
-  const existingIds = new Set(members.map(m => m.user.id));
-  const invitableUsers = (usersData?.findAllUsers ?? []).filter(
-    u => !existingIds.has(u.id),
+  const { data: friendsData } = useGetFriendsQuery({
+    skip: !inviteOpen || !currentUserId,
+  });
+  const existingIds = useMemo(
+    () => new Set(members.map(m => m.user.id)),
+    [members],
   );
+  const invitableUsers = useMemo(() => {
+    if (!friendsData?.getFriends) return [];
+
+    return friendsData.getFriends
+      .map(friendship =>
+        friendship.userId === currentUserId ? friendship.friend : friendship.user,
+      )
+      .filter((user): user is NonNullable<typeof user> => !!user)
+      .filter(u => !existingIds.has(u.id));
+  }, [currentUserId, existingIds, friendsData?.getFriends]);
 
   // Group members by role
   const grouped = useMemo(() => {
@@ -172,11 +184,11 @@ const GroupMembersSection: FC<GroupMembersSectionProps> = ({
                 {t("invite")}
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
+            <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+              <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
                 <DialogTitle>{t("inviteMember")}</DialogTitle>
               </DialogHeader>
-              <div className="max-h-64 space-y-1 overflow-y-auto">
+              <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
                 {invitableUsers.length === 0 ? (
                   <p className="text-muted-foreground py-4 text-center text-sm">
                     {t("noUsersToInvite")}
@@ -247,8 +259,8 @@ const GroupMembersSection: FC<GroupMembersSectionProps> = ({
         open={!!assignUserId}
         onOpenChange={open => !open && setAssignUserId(null)}
       >
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+          <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>
               {t("assignRoleTo", {
                 username: members.find(m => m.user.id === assignUserId)?.user
@@ -256,7 +268,7 @@ const GroupMembersSection: FC<GroupMembersSectionProps> = ({
               })}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-1">
+          <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
             {/* No role option */}
             <button
               onClick={() => {

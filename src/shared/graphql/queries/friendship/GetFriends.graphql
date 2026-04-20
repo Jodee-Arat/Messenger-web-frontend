@@ -7,11 +7,13 @@ query GetFriends {
     user {
       id
       username
+      bio
       avatarUrl
     }
     friend {
       id
       username
+      bio
       avatarUrl
     }
     createdAt

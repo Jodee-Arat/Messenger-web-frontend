@@ -12,6 +12,7 @@ const avatarSizes = cva("", {
       default: "size-9",
       lg: "size-12",
       xl: "size-32",
+      "2xl": "size-40",
     },
   },
   defaultVariants: {
@@ -26,13 +27,18 @@ interface EntityAvatarProps extends VariantProps<typeof avatarSizes> {
 
 const EntityAvatar = memo(({ size, name, avatarUrl }: EntityAvatarProps) => {
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <Avatar className={cn(avatarSizes({ size }))}>
         <AvatarImage
           src={avatarUrl ? getMediaSource(avatarUrl) : undefined}
           className="object-cover"
         />
-        <AvatarFallback className={cn(size === "xl" && "text-4xl")}>
+        <AvatarFallback
+          className={cn(
+            size === "xl" && "text-4xl",
+            size === "2xl" && "text-5xl",
+          )}
+        >
           {name?.[0]}
         </AvatarFallback>
       </Avatar>

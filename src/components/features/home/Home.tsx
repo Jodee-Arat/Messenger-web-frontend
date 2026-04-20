@@ -37,6 +37,7 @@ import { Skeleton } from "@/components/ui/common/Skeleton";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import { useFriends } from "@/shared/hooks/useFriends";
+import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 import {
   useFindAllUsersQuery,
   useFindOrCreateDirectChatMutation,
@@ -46,6 +47,8 @@ import {
   getGraphQLErrorMessage,
   isDirectContactBlockedError,
 } from "@/shared/utils/direct-contact-blocked";
+import { markDirectChatStarted } from "@/shared/utils/direct-chat-visibility";
+import { useUser } from "@/shared/hooks/useUser";
 
 const Home = () => {
   const router = useRouter();
@@ -57,6 +60,56 @@ const Home = () => {
   const t = useTranslations("home");
   const tCommon = useTranslations("common");
   const tSettings = useTranslations("settings");
+  const { userId } = useUser();
+  const normalizedFindPeopleQuery = findPeopleQuery.trim();
+  const debouncedFindPeopleQuery = useDebouncedValue(normalizedFindPeopleQuery);
+  const isWaitingForFindPeopleSearch =
+    normalizedFindPeopleQuery.length > 0 &&
+    normalizedFindPeopleQuery !== debouncedFindPeopleQuery;
+
+  const {
+    data: usersData,
+    loading: isLoadingUsers,
+    error: usersError,
+  } = useFindAllUsersQuery({
+    variables: {
+      filters: {
+        searchTerm: debouncedFindPeopleQuery,
+        take: 20,
+      },
+    },
+    skip: !addDialogOpen || !debouncedFindPeopleQuery,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: true,
+  });
+  const { data: blockedUsersData, refetch: refetchBlockedUsers } =
+    useGetBlockedUsersQuery({
+      fetchPolicy: "cache-and-network",
+    });
+
+  const filteredUsers = useMemo(
+    () => usersData?.findAllUsers ?? [],
+    [usersData],
+  );
+  const visibleUsers = useMemo(() => {
+    if (
+      normalizedFindPeopleQuery.length === 0 ||
+      normalizedFindPeopleQuery !== debouncedFindPeopleQuery
+    ) {
+      return [];
+    }
+
+    return filteredUsers;
+  }, [debouncedFindPeopleQuery, filteredUsers, normalizedFindPeopleQuery]);
+
+  const blockedUserIds = useMemo(() => {
+    const blockedByCurrentUser =
+      blockedUsersData?.getBlockedUsers.flatMap((friendship) =>
+        friendship.friend?.id ? [friendship.friend.id] : [],
+      ) ?? [];
+
+    return new Set([...blockedByCurrentUser, ...runtimeBlockedUserIds]);
+  }, [blockedUsersData, runtimeBlockedUserIds]);
 
   const {
     friends,
@@ -72,46 +125,6 @@ const Home = () => {
   } = useFriends();
 
   const [findOrCreateDM] = useFindOrCreateDirectChatMutation();
-  const {
-    data: usersData,
-    loading: isLoadingUsers,
-    error: usersError,
-  } = useFindAllUsersQuery({
-    skip: !addDialogOpen,
-    fetchPolicy: "cache-and-network",
-  });
-  const { data: blockedUsersData, refetch: refetchBlockedUsers } =
-    useGetBlockedUsersQuery({
-      fetchPolicy: "cache-and-network",
-    });
-
-  const filteredUsers = useMemo(() => {
-    const normalizedQuery = findPeopleQuery.trim().toLowerCase();
-    if (!normalizedQuery) return [];
-
-    return (usersData?.findAllUsers ?? [])
-      .filter(user => user.username.toLowerCase().includes(normalizedQuery))
-      .sort((left, right) => {
-        const leftExact = left.username.toLowerCase() === normalizedQuery;
-        const rightExact = right.username.toLowerCase() === normalizedQuery;
-
-        if (leftExact !== rightExact) {
-          return leftExact ? -1 : 1;
-        }
-
-        return left.username.localeCompare(right.username);
-      });
-  }, [findPeopleQuery, usersData]);
-
-  const blockedUserIds = useMemo(() => {
-    const blockedByCurrentUser =
-      blockedUsersData?.getBlockedUsers.flatMap(friendship =>
-        friendship.friend?.id ? [friendship.friend.id] : [],
-      ) ?? [];
-
-    return new Set([...blockedByCurrentUser, ...runtimeBlockedUserIds]);
-  }, [blockedUsersData, runtimeBlockedUserIds]);
-
   const handleMessage = async (friendUserId: string) => {
     if (blockedUserIds.has(friendUserId)) {
       toast.error(tCommon("directContactUnavailable"));
@@ -124,11 +137,12 @@ const Home = () => {
       });
       if (data?.findOrCreateDirectChat) {
         const chat = data.findOrCreateDirectChat;
+        markDirectChatStarted(userId, chat.id);
         router.push(`/group/${chat.groupId}/${chat.id}`);
       }
     } catch (error) {
       if (isDirectContactBlockedError(error)) {
-        setRuntimeBlockedUserIds(prev =>
+        setRuntimeBlockedUserIds((prev) =>
           prev.includes(friendUserId) ? prev : [...prev, friendUserId],
         );
         await Promise.allSettled([refetchFriends(), refetchBlockedUsers()]);
@@ -171,18 +185,19 @@ const Home = () => {
                 {t("findPeople")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
+            <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
+              <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
                 <DialogTitle>{t("findPeople")}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
                 <Input
                   placeholder={t("enterUsername")}
                   value={findPeopleQuery}
-                  onChange={e => setFindPeopleQuery(e.target.value)}
+                  onChange={(e) => setFindPeopleQuery(e.target.value)}
                 />
-                <div className="max-h-80 space-y-2 overflow-y-auto">
-                  {isLoadingUsers ? (
+              </DialogHeader>
+              <div className="max-h-[calc(100vh-16rem)] overflow-y-auto px-6 py-4">
+                <div className="space-y-2">
+                  {isWaitingForFindPeopleSearch ||
+                  (debouncedFindPeopleQuery && isLoadingUsers) ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="text-muted-foreground size-5 animate-spin" />
                     </div>
@@ -190,14 +205,14 @@ const Home = () => {
                     <p className="text-destructive text-sm">
                       {getGraphQLErrorMessage(usersError)}
                     </p>
-                  ) : filteredUsers.length === 0 ? (
+                  ) : visibleUsers.length === 0 ? (
                     <p className="text-muted-foreground text-sm">
-                      {findPeopleQuery.trim()
+                      {normalizedFindPeopleQuery
                         ? tSettings("noUsersFound")
                         : t("enterUsername")}
                     </p>
                   ) : (
-                    filteredUsers.map(user => (
+                    visibleUsers.map((user) => (
                       <button
                         key={user.id}
                         type="button"
@@ -275,7 +290,7 @@ const Home = () => {
               </CardContent>
             </Card>
           ) : (
-            friends.map(f => {
+            friends.map((f) => {
               const u = getFriendUser(f);
               if (!u) return null;
 
@@ -347,7 +362,7 @@ const Home = () => {
               </CardContent>
             </Card>
           ) : (
-            incoming.map(req => {
+            incoming.map((req) => {
               const u = req.user;
               if (!u) return null;
               return (
@@ -399,7 +414,7 @@ const Home = () => {
               </CardContent>
             </Card>
           ) : (
-            outgoing.map(req => {
+            outgoing.map((req) => {
               const u = req.friend;
               if (!u) return null;
               return (
