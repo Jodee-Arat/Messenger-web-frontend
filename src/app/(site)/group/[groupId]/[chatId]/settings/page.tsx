@@ -1,7 +1,9 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import ChatSettings from "@/components/features/settings/chat/ChatSettings";
 import RouteAccessGuard from "@/components/ui/elements/RouteAccessGuard";
+import { isLegacyDirectChatRoute } from "@/shared/utils/chat-route";
 
 export const generateMetadata = async (): Promise<Metadata> => {
   return {
@@ -14,6 +16,10 @@ const ChatSettingsPage = async (props: {
   params: Promise<{ groupId: string; chatId: string }>;
 }) => {
   const params = await props.params;
+
+  if (isLegacyDirectChatRoute(params.groupId)) {
+    redirect(`/dm/${params.chatId}`);
+  }
 
   return (
     <RouteAccessGuard

@@ -1,6 +1,9 @@
 import isPrime from "./is-prime";
 
-export default function generatePrime(min = 1000n, max = 100000n): bigint {
+export default function generatePrime(
+  min = BigInt(1000),
+  max = BigInt(100000),
+): bigint {
   let prime;
   do {
     prime = BigInt(

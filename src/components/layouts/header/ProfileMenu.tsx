@@ -3,6 +3,7 @@
 import { useLogoutUserMutation } from "@/shared/graphql/generated/output";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
+import { revokeCurrentWebSecretSession } from "@/shared/libs/secret/web-secret-session-lifecycle";
 import { Loader, LogOut, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,11 @@ const ProfileMenu = () => {
       toast.error("Error");
     },
   });
+
+  const handleLogout = async () => {
+    await revokeCurrentWebSecretSession();
+    await logout();
+  };
 
   return isLoadingProfile || !user ? (
     <Loader className="text-muted-foreground size-6 animate-spin" />
@@ -75,7 +81,10 @@ const ProfileMenu = () => {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => void handleLogout()}
+          >
             <LogOut className="mr-2 size-4" />
             Logout
           </DropdownMenuItem>

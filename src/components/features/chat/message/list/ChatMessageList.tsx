@@ -6,7 +6,7 @@ import {
 } from "@/shared/graphql/generated/output";
 import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
 import { MessageType } from "@/shared/types/message.type";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -14,6 +14,8 @@ import ChatToolbar from "../../toolbar/ChatToolbar";
 import PinnedMessage from "./PinnedMessage";
 
 import ChatMessageDropdownTrigger from "./ChatMessageDropdownTrigger";
+import EmptyStateCard from "@/components/ui/elements/EmptyStateCard";
+import { MessageSquareDashed } from "lucide-react";
 
 interface ChatMessageListProp {
   pinnedMessage: MessageType | null;
@@ -48,6 +50,8 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
   const t = useTranslations("messages");
   const [messageIds, setMessageIds] = useState<string[]>([]);
   const [messagesInfo, setMessagesInfo] = useState<MessageType[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const didInitialScrollRef = useRef(false);
 
   const { data: allMessagesData, loading: isLoadingFindAllMessages } =
     useFindAllMessagesByChatQuery({
@@ -122,6 +126,12 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
       : null;
 
   useEffect(() => {
+    didInitialScrollRef.current = false;
+    setMessageIds([]);
+    setMessagesInfo([]);
+  }, [chatId]);
+
+  useEffect(() => {
     if (!allMessagesData || !allMessagesData.findAllMessagesByChat) return;
 
     const messagesInfoArr = allMessagesData.findAllMessagesByChat;
@@ -178,6 +188,18 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
     setMessagesInfo(updatedMessages);
   }, [removedMessagesData]);
 
+  useEffect(() => {
+    if (didInitialScrollRef.current || messagesInfo.length === 0) return;
+
+    didInitialScrollRef.current = true;
+    requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      container.scrollTop = container.scrollHeight;
+    });
+  }, [messagesInfo.length]);
+
   if (isLoadingFindAllMessages) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -210,12 +232,15 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
         setPinnedMessage={setPinnedMessage}
         canPin={canPin}
       />
-      <div className="flex flex-1 flex-col-reverse overflow-y-auto px-1">
+      <div ref={scrollContainerRef} className="flex flex-1 overflow-y-auto px-1">
         <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-y-1.5">
           {messagesInfo.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/60 bg-card/30 px-4 py-6 text-center text-sm text-muted-foreground">
-              {t("empty")}
-            </div>
+            <EmptyStateCard
+              icon={MessageSquareDashed}
+              title={t("emptyTitle")}
+              description={t("emptyDescription")}
+              className="mx-auto max-w-xl"
+            />
           ) : (
             messagesInfo.map((messageInfo, index) =>
               messageInfo.isStarted ? (

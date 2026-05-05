@@ -34,6 +34,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/common/Tabs";
 import { Skeleton } from "@/components/ui/common/Skeleton";
+import EmptyStateCard from "@/components/ui/elements/EmptyStateCard";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import { useFriends } from "@/shared/hooks/useFriends";
@@ -47,6 +48,7 @@ import {
   getGraphQLErrorMessage,
   isDirectContactBlockedError,
 } from "@/shared/utils/direct-contact-blocked";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import { markDirectChatStarted } from "@/shared/utils/direct-chat-visibility";
 import { useUser } from "@/shared/hooks/useUser";
 
@@ -138,7 +140,13 @@ const Home = () => {
       if (data?.findOrCreateDirectChat) {
         const chat = data.findOrCreateDirectChat;
         markDirectChatStarted(userId, chat.id);
-        router.push(`/group/${chat.groupId}/${chat.id}`);
+        router.push(
+          getChatRoute({
+            chatId: chat.id,
+            groupId: chat.groupId,
+            isGroup: chat.isGroup,
+          }),
+        );
       }
     } catch (error) {
       if (isDirectContactBlockedError(error)) {
@@ -279,16 +287,11 @@ const Home = () => {
               </div>
             ))
           ) : friends.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="mb-3 flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <Users className="text-primary size-7" />
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  {t("noFriends")}
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyStateCard
+              icon={Users}
+              title={t("emptyFriendsTitle")}
+              description={t("emptyFriendsDescription")}
+            />
           ) : (
             friends.map((f) => {
               const u = getFriendUser(f);
@@ -351,16 +354,11 @@ const Home = () => {
         {/* Incoming Requests */}
         <TabsContent value="incoming" className="mt-4 space-y-2">
           {incoming.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="mb-3 flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <Clock className="text-primary size-7" />
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  {t("noIncomingRequests")}
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyStateCard
+              icon={Clock}
+              title={t("emptyIncomingTitle")}
+              description={t("emptyIncomingDescription")}
+            />
           ) : (
             incoming.map((req) => {
               const u = req.user;
@@ -403,16 +401,11 @@ const Home = () => {
         {/* Outgoing Requests */}
         <TabsContent value="outgoing" className="mt-4 space-y-2">
           {outgoing.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="mb-3 flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <Send className="text-primary size-7" />
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  {t("noOutgoingRequests")}
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyStateCard
+              icon={Send}
+              title={t("emptyOutgoingTitle")}
+              description={t("emptyOutgoingDescription")}
+            />
           ) : (
             outgoing.map((req) => {
               const u = req.friend;

@@ -99,7 +99,6 @@ export type ChatMessageModel = {
   isStarted: Scalars['Boolean']['output'];
   lastMessageForChat?: Maybe<ChatModel>;
   pinnedInChat?: Maybe<ChatModel>;
-  readCount?: Maybe<Scalars['String']['output']>;
   repliedToLinks?: Maybe<Array<Maybe<ChatMessageReplyModel>>>;
   replies?: Maybe<Array<Maybe<ChatMessageReplyModel>>>;
   text?: Maybe<Scalars['String']['output']>;

@@ -25,16 +25,18 @@ interface MessageFormProp {
 
 const formatTime = (date?: string | Date | null | undefined) => {
   if (!date) return "";
+
   try {
     const parsedDate =
       typeof date === "string" && /^\d+$/.test(date)
         ? parseInt(date, 10)
         : date;
+
     return new Intl.DateTimeFormat("ru-RU", {
       hour: "numeric",
       minute: "numeric",
     }).format(new Date(parsedDate as any));
-  } catch (e) {
+  } catch {
     return "";
   }
 };
@@ -110,7 +112,7 @@ const MessageForm: FC<MessageFormProp> = ({
             {(isEdited || createdAt) && (
               <div
                 className={cn(
-                  "mt-1.5 flex items-center justify-end gap-1.5 text-[10px]",
+                  "mt-1.5 flex flex-wrap items-center justify-end gap-x-1.5 gap-y-1 text-[10px]",
                   timeToneClass,
                 )}
               >

@@ -31,6 +31,7 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import {
   ChatPermissionEnum,
   useChatDeletedSubscription,
+  useFindAllChatsByUserQuery,
   useFindGroupByGroupIdQuery,
   useGetMemberChatRoleQuery,
   useInviteMemberToChatMutation,
@@ -40,6 +41,14 @@ import {
   getGraphQLErrorMessage,
   isDirectContactBlockedError,
 } from "@/shared/utils/direct-contact-blocked";
+import {
+  getChatCollectionRoute,
+  getChatRoute,
+} from "@/shared/utils/chat-route";
+import {
+  getDirectChatDisplayAvatar,
+  getDirectChatDisplayName,
+} from "@/shared/utils/direct-chat";
 
 import ChatMessageList from "./message/list/ChatMessageList";
 import SendMessageForm from "./message/send/SendMessageForm";
@@ -112,9 +121,31 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
       members.find((member: any) => member.user?.id !== user.id)?.user ?? null
     );
   }, [isGroup, members, user]);
+  const { data: directChatsData } = useFindAllChatsByUserQuery({
+    variables: { filters: {} },
+    skip: isGroup || !!chat || !user?.id,
+    fetchPolicy: "cache-first",
+  });
+  const fallbackDirectChat = useMemo(
+    () =>
+      directChatsData?.findAllChatsByUser.find(
+        (candidate) => candidate.id === chatId,
+      ) ?? null,
+    [chatId, directChatsData],
+  );
   const chatDisplayName =
-    directCounterpart?.username || chat?.chatName || t("title");
-  const chatDisplayAvatar = directCounterpart?.avatarUrl || chat?.avatarUrl;
+    directCounterpart?.username ||
+    (fallbackDirectChat
+      ? getDirectChatDisplayName(fallbackDirectChat, user?.id)
+      : null) ||
+    chat?.chatName ||
+    t("title");
+  const chatDisplayAvatar =
+    directCounterpart?.avatarUrl ||
+    (fallbackDirectChat
+      ? getDirectChatDisplayAvatar(fallbackDirectChat, user?.id)
+      : null) ||
+    chat?.avatarUrl;
   const chatSubtitle =
     typingUsernames.length > 0
       ? `${typingUsernames.join(", ")} ${t("typing")}`
@@ -123,14 +154,24 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
           ? `${members.length} ${t("members")}`
           : null
         : null;
-  const currentGroupId = pathname.split("/")[2];
-  const subscriptionGroupId = currentGroupId === "null" ? "" : currentGroupId;
-  const backHref = isGroup ? `/group/${currentGroupId}` : "/dm";
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const routeGroupId = pathSegments[0] === "group" ? pathSegments[1] : null;
+  const currentGroupId = routeGroupId ?? fallbackDirectChat?.groupId ?? null;
+  const subscriptionGroupId = isGroup ? (currentGroupId ?? "") : "";
+  const backHref = getChatCollectionRoute({
+    isGroup,
+    groupId: currentGroupId,
+  });
   const handleChatAccessLoss = useCallback(() => {
     if (handledAccessLossRef.current) return;
 
     handledAccessLossRef.current = true;
-    router.replace(isGroup ? `/group/${currentGroupId}` : "/dm");
+    router.replace(
+      getChatCollectionRoute({
+        isGroup,
+        groupId: currentGroupId,
+      }),
+    );
   }, [currentGroupId, isGroup, router]);
 
   const { data: roleData, loading: isLoadingMemberRole } =
@@ -190,8 +231,12 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
   const [leaveChat] = useLeaveChatMutation({
     onCompleted() {
       toast.success(t("leaveChatSuccess"));
-      const groupSegment = pathname.split("/group/")[1]?.split("/")[0];
-      router.push(groupSegment ? `/group/${groupSegment}` : "/");
+      router.push(
+        getChatCollectionRoute({
+          isGroup: true,
+          groupId: currentGroupId,
+        }),
+      );
     },
     onError(error) {
       toast.error(getGraphQLErrorMessage(error));
@@ -231,41 +276,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
     return <div>{t("loadingChat")}</div>;
   }
 
-  if (isDirectContactBlocked) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
-            <div className="bg-primary/10 flex size-14 items-center justify-center rounded-full">
-              <ShieldOff className="text-primary size-7" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold">{t("blockedChatTitle")}</h2>
-              <p className="text-muted-foreground text-sm">
-                {t("blockedChatDescription")}
-              </p>
-            </div>
-            <div className="flex w-full flex-col gap-2 sm:flex-row">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.push("/dm")}
-              >
-                {tCommon("back")}
-              </Button>
-              <Button asChild className="flex-1">
-                <Link href="/settings?tab=blocked">
-                  {tSettings("manageBlockedUsers")}
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (chatError) {
+  if (chatError && !isDirectContactBlocked) {
     return (
       <div className="flex h-full items-center justify-center p-6">
         <Card className="w-full max-w-md">
@@ -284,7 +295,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
     );
   }
 
-  if (isLoadingFindChat || !user || !chat) {
+  if (isLoadingFindChat || !user || (!chat && !isDirectContactBlocked)) {
     return <div>{t("loadingChat")}</div>;
   }
 
@@ -317,6 +328,10 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
     </>
   );
 
+  const shouldShowBlockedChatBody = isDirectContactBlocked && !chat;
+  const shouldRenderComposer =
+    messagePermissions.canSend || isDirectContactBlocked;
+
   return (
     <div className="flex h-full w-full flex-col bg-background/10">
       <div className="border-b border-border/60 bg-card/90 px-4 py-3 backdrop-blur">
@@ -330,7 +345,11 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
 
             {isGroup ? (
               <Link
-                href={`${pathname}/settings`}
+                href={`${getChatRoute({
+                  chatId,
+                  groupId: currentGroupId,
+                  isGroup,
+                })}/settings`}
                 className="group flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-2 py-2 transition-colors hover:bg-background/35"
               >
                 {chatHeaderContent}
@@ -375,21 +394,50 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-3 pt-2">
-        <DragAndDropWrapper drop={drop} className="flex h-full flex-col">
-          <ChatMessageList
-            pinnedMessage={pinnedMessage}
-            setPinnedMessage={setPinnedMessage}
-            chatId={chatId}
-            startEdit={startEdit}
-            userId={user.id}
-            handleAddForwardedMessage={handleAddForwardedMessage}
-            canEdit={messagePermissions.canEdit}
-            canDelete={messagePermissions.canDelete}
-            canPin={messagePermissions.canPin}
-            canSend={messagePermissions.canSend}
-            showSenderName={isGroup}
-          />
-          {messagePermissions.canSend && (
+        <DragAndDropWrapper
+          drop={drop}
+          disabled={isDirectContactBlocked}
+          className="flex h-full flex-col"
+        >
+          {shouldShowBlockedChatBody ? (
+            <div className="flex flex-1 items-center justify-center px-4">
+              <Card className="w-full max-w-xl">
+                <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
+                  <div className="bg-destructive/10 text-destructive flex size-14 items-center justify-center rounded-full">
+                    <ShieldOff className="size-7" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold">
+                      {t("blockedChatTitle")}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {t("blockedChatDescription")}
+                    </p>
+                  </div>
+                  <Button asChild variant="outline">
+                    <Link href="/settings?tab=blocked">
+                      {tSettings("manageBlockedUsers")}
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <ChatMessageList
+              pinnedMessage={pinnedMessage}
+              setPinnedMessage={setPinnedMessage}
+              chatId={chatId}
+              startEdit={startEdit}
+              userId={user.id}
+              handleAddForwardedMessage={handleAddForwardedMessage}
+              canEdit={messagePermissions.canEdit}
+              canDelete={messagePermissions.canDelete}
+              canPin={messagePermissions.canPin}
+              canSend={messagePermissions.canSend}
+              showSenderName={isGroup}
+            />
+          )}
+          {shouldRenderComposer && (
             <div className="mx-auto w-full max-w-4xl">
               <SendMessageForm
                 handleFileSend={handleFileSend}
@@ -407,6 +455,11 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
                 filesEdited={filesEdited}
                 setFilesEdited={setFilesEdited}
                 canSend={messagePermissions.canSend}
+                blockedStateMessage={
+                  isDirectContactBlocked
+                    ? t("blockedChatComposerMessage")
+                    : null
+                }
                 onTyping={sendTyping}
                 onDirectContactBlocked={handleDirectContactBlocked}
               />

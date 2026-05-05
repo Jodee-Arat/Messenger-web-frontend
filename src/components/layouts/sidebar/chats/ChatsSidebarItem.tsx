@@ -3,6 +3,7 @@ import {
   FindAllChatsByUserQuery,
 } from "@/shared/graphql/generated/output";
 import { useUser } from "@/shared/hooks/useUser";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import {
   getDirectChatDisplayAvatar,
   getDirectChatDisplayName,
@@ -29,8 +30,12 @@ const ChatsSidebarItem = ({ chat }: ChatsSidebarItemProps) => {
   const t = useTranslations("messages");
 
   const currentGroupId = pathname.split("/")[2];
-  const targetGroupId = chat.groupId ?? currentGroupId;
-  const chatPath = `/group/${targetGroupId}/${chat.id}`;
+  const targetGroupId = chat.isGroup ? (chat.groupId ?? currentGroupId) : null;
+  const chatPath = getChatRoute({
+    chatId: chat.id,
+    groupId: targetGroupId,
+    isGroup: chat.isGroup,
+  });
   const isActive =
     pathname === chatPath || pathname.startsWith(`${chatPath}/`);
   const isDirectChat = !chat.isGroup;

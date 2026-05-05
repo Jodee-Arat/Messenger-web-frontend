@@ -14,7 +14,7 @@ import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 import { useDirectChats } from "@/shared/hooks/useDirectChats";
 import { getDirectChatDisplayName } from "@/shared/utils/direct-chat";
-import { Loader, SearchIcon, Settings2, X } from "lucide-react";
+import { Bookmark, Loader, MessageSquare, SearchIcon, Settings2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/common/Button";
 import { Input } from "@/components/ui/common/Input";
+import EmptyStateCard from "@/components/ui/elements/EmptyStateCard";
 
 import UserPanel from "../UserPanel";
 
@@ -69,6 +70,8 @@ const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
   const { user } = useCurrentUser();
   const tChats = useTranslations("chats");
   const tDm = useTranslations("dm");
+  const tCommon = useTranslations("common");
+  const tSaved = useTranslations("saved");
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query);
@@ -246,6 +249,25 @@ const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
       </div>
 
       <div className="scrollbar-thin flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+        {isDirectRoute && (
+          <Link
+            href="/dm/saved"
+            className="flex items-center gap-3 rounded-[22px] border border-border/60 bg-background/35 px-3 py-3 transition-colors hover:border-primary/25 hover:bg-primary/8"
+          >
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-full">
+              <Bookmark className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[15px] font-semibold text-foreground">
+                {tSaved("title")}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {tSaved("sidebarDescription")}
+              </p>
+            </div>
+          </Link>
+        )}
+
         {visibleChats.map((chat) => (
           <ChatsSidebarDropdownTrigger
             chat={chat}
@@ -258,9 +280,24 @@ const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
         ))}
 
         {visibleChats.length === 0 && (
-          <p className="rounded-[22px] border border-dashed border-border/60 px-4 py-5 text-center text-xs text-muted-foreground">
-            {isDirectRoute ? tDm("noDMs") : tChats("noChatsFound")}
-          </p>
+          <EmptyStateCard
+            icon={debouncedQuery ? SearchIcon : MessageSquare}
+            title={
+              debouncedQuery
+                ? tCommon("noResults")
+                : isDirectRoute
+                  ? tDm("emptyTitle")
+                  : tChats("emptyTitle")
+            }
+            description={
+              debouncedQuery
+                ? tCommon("tryDifferentQuery")
+                : isDirectRoute
+                  ? tDm("emptyDescription")
+                  : tChats("emptyDescription")
+            }
+            size="sm"
+          />
         )}
       </div>
 

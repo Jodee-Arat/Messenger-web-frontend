@@ -44,6 +44,7 @@ import {
   getGraphQLErrorMessage,
   isDirectContactBlockedError,
 } from "@/shared/utils/direct-contact-blocked";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import { markDirectChatStarted } from "@/shared/utils/direct-chat-visibility";
 
 interface ProfileProp {
@@ -277,7 +278,13 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
       if (data?.findOrCreateDirectChat) {
         const chat = data.findOrCreateDirectChat;
         markDirectChatStarted(user?.id, chat.id);
-        router.push(`/group/${chat.groupId}/${chat.id}`);
+        router.push(
+          getChatRoute({
+            chatId: chat.id,
+            groupId: chat.groupId,
+            isGroup: chat.isGroup,
+          }),
+        );
       }
     } catch (error) {
       if (isDirectContactBlockedError(error)) {

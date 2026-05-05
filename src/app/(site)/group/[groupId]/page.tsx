@@ -3,17 +3,31 @@
 import { Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/common/Card";
 import { Button } from "@/components/ui/common/Button";
 import BackButton from "@/components/ui/elements/BackButton";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 import { useCurrentGroup } from "@/shared/hooks/useCurrentGroup";
+import { isLegacyDirectChatRoute } from "@/shared/utils/chat-route";
 
 export default function GroupPage() {
   const params = useParams<{ groupId: string }>();
+  const router = useRouter();
   const groupId = params.groupId;
+  const isLegacyDirectRoute = isLegacyDirectChatRoute(groupId);
+
+  useEffect(() => {
+    if (!isLegacyDirectRoute) return;
+    router.replace("/dm");
+  }, [isLegacyDirectRoute, router]);
+
+  if (isLegacyDirectRoute) {
+    return null;
+  }
+
   const { group, isLoadingGroup } = useCurrentGroup(groupId);
   const t = useTranslations("groups");
   const tCommon = useTranslations("common");

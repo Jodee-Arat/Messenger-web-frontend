@@ -23,8 +23,6 @@ const IMAGE_EXTENSIONS = [
   "gif",
   "webp",
   "bmp",
-  "heic",
-  "heif",
 ];
 
 const isImageFile = (format: string) =>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MessageSquare, Pin, Search, Trash2 } from "lucide-react";
+import { Bookmark, MessageSquare, Pin, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/common/ContextMenu";
 import { Input } from "@/components/ui/common/Input";
 import { Skeleton } from "@/components/ui/common/Skeleton";
+import EmptyStateCard from "@/components/ui/elements/EmptyStateCard";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 import { useDirectChats } from "@/shared/hooks/useDirectChats";
 import { useUser } from "@/shared/hooks/useUser";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import {
   getDirectChatDisplayAvatar,
   getDirectChatDisplayName,
@@ -28,7 +30,9 @@ const DirectMessages = () => {
   const { userId } = useUser();
   const t = useTranslations("dm");
   const tChats = useTranslations("chats");
+  const tCommon = useTranslations("common");
   const tMessages = useTranslations("messages");
+  const tSaved = useTranslations("saved");
   const {
     pinnedChats,
     unpinnedChats,
@@ -128,9 +132,15 @@ const DirectMessages = () => {
     );
 
     return (
-      <ContextMenu>
-        <ContextMenuTrigger>
-          <Link href={`/group/${chat.groupId}/${chat.id}`}>
+        <ContextMenu>
+          <ContextMenuTrigger>
+          <Link
+            href={getChatRoute({
+              chatId: chat.id,
+              groupId: chat.groupId,
+              isGroup: chat.isGroup,
+            })}
+          >
             <Card className="cursor-pointer transition-colors hover:bg-primary/10">
               <CardContent className="flex items-center gap-3 p-3">
                 <EntityAvatar name={displayName} avatarUrl={displayAvatar} />
@@ -195,6 +205,22 @@ const DirectMessages = () => {
         </div>
       </div>
 
+      <Link href="/dm/saved" className="mb-4 block">
+        <Card className="border-primary/20 bg-primary/6 transition-colors hover:bg-primary/10">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-full">
+              <Bookmark className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">{tSaved("title")}</p>
+              <p className="text-muted-foreground truncate text-xs">
+                {tSaved("sidebarDescription")}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
+
       {filteredPinned.length > 0 && (
         <div className="mb-4">
           <div className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase text-muted-foreground">
@@ -223,12 +249,18 @@ const DirectMessages = () => {
       )}
 
       {filteredPinned.length === 0 && filteredUnpinned.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <MessageSquare className="mb-2 size-10 text-muted-foreground" />
-            <p className="text-muted-foreground">{t("noDMs")}</p>
-          </CardContent>
-        </Card>
+        <EmptyStateCard
+          icon={MessageSquare}
+          title={
+            debouncedQuery.length > 0 ? tCommon("noResults") : t("emptyTitle")
+          }
+          description={
+            debouncedQuery.length > 0
+              ? tCommon("tryDifferentQuery")
+              : t("emptyDescription")
+          }
+          className="mt-2"
+        />
       )}
     </div>
   );

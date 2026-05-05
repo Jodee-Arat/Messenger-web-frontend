@@ -6,18 +6,20 @@ import { useAuth } from "@/shared/hooks/useAuth";
 import { useDirectChats } from "@/shared/hooks/useDirectChats";
 import { useFriends } from "@/shared/hooks/useFriends";
 import { useUser } from "@/shared/hooks/useUser";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import {
   getDirectChatDisplayAvatar,
   getDirectChatDisplayName,
 } from "@/shared/utils/direct-chat";
 import { cn } from "@/shared/utils/tw-merge";
-import { Loader, LogIn, MessageSquare, UserPlus, Users } from "lucide-react";
+import { Bookmark, Loader, LogIn, MessageSquare, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/common/Button";
 import BrandMark from "@/components/ui/elements/BrandMark";
+import EmptyStateCard from "@/components/ui/elements/EmptyStateCard";
 import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 
 import UserPanel from "./UserPanel";
@@ -26,8 +28,10 @@ const DirectMessagesSidebarContent = ({ pathname }: { pathname: string }) => {
   const { userId } = useUser();
   const { pinnedChats, unpinnedChats, isLoading } = useDirectChats();
   const tDm = useTranslations("dm");
+  const tSaved = useTranslations("saved");
 
   const allDMs = [...pinnedChats, ...unpinnedChats];
+  const isSavedActive = pathname === "/dm/saved";
 
   return (
     <>
@@ -38,20 +42,49 @@ const DirectMessagesSidebarContent = ({ pathname }: { pathname: string }) => {
       </div>
 
       <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+        <Link
+          href="/dm/saved"
+          className={cn(
+            "mb-2 flex items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition-colors",
+            isSavedActive
+              ? "border-primary/20 bg-primary/12 text-primary"
+              : "border-border/60 text-muted-foreground hover:bg-primary/10 hover:text-foreground",
+          )}
+        >
+          <div className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full">
+            <Bookmark className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium">{tSaved("title")}</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              {tSaved("sidebarDescription")}
+            </p>
+          </div>
+        </Link>
+
         {isLoading ? (
           <div className="flex items-center justify-center px-3 py-4">
             <Loader className="text-muted-foreground size-4 animate-spin" />
           </div>
         ) : allDMs.length === 0 ? (
-          <p className="text-muted-foreground px-3 py-4 text-center text-xs">
-            {tDm("noDMs")}
-          </p>
+          <EmptyStateCard
+            icon={MessageSquare}
+            title={tDm("emptyTitle")}
+            description={tDm("emptyDescription")}
+            size="sm"
+            className="mx-1 mt-1"
+          />
         ) : (
           allDMs.map(chat => {
             const displayName = getDirectChatDisplayName(chat, userId);
             const displayAvatar = getDirectChatDisplayAvatar(chat, userId);
-            const chatPath = `/group/${chat.groupId}/${chat.id}`;
-            const isActive = pathname === chatPath;
+            const chatPath = getChatRoute({
+              chatId: chat.id,
+              groupId: chat.groupId,
+              isGroup: chat.isGroup,
+            });
+            const isActive =
+              pathname === chatPath || pathname.startsWith(`${chatPath}/`);
 
             return (
               <Link
@@ -109,9 +142,13 @@ const FriendsOverviewSidebarContent = ({ pathname }: { pathname: string }) => {
               <Loader className="text-muted-foreground size-4 animate-spin" />
             </div>
           ) : friendsPreview.length === 0 ? (
-            <p className="text-muted-foreground flex flex-1 items-center justify-center rounded-xl border border-dashed border-border/60 px-3 py-4 text-center text-xs">
-              {t("noFriends")}
-            </p>
+            <EmptyStateCard
+              icon={Users}
+              title={t("emptyFriendsTitle")}
+              description={t("emptyFriendsDescription")}
+              size="sm"
+              className="m-1 flex-1"
+            />
           ) : (
             <div className="scrollbar-thin min-h-0 flex-1 space-y-1 overflow-y-auto">
               {friendsPreview.map(friendship => {

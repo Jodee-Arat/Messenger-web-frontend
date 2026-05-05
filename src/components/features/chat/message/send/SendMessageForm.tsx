@@ -11,7 +11,7 @@ import {
 import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.type";
 import { SendFileType } from "@/shared/types/send-file.type";
 import { haveItemsChangedById } from "@/shared/utils/have-items-changedById";
-import { Check, Paperclip, SendHorizonal, X } from "lucide-react";
+import { Check, Paperclip, SendHorizonal, ShieldOff, X } from "lucide-react";
 import { ChangeEvent, FC, useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -59,6 +59,7 @@ interface SendMessageFormProp {
   filesEdited: SendFileType[];
   setFilesEdited: (files: SendFileType[]) => void;
   canSend?: boolean;
+  blockedStateMessage?: string | null;
   onTyping?: () => void;
   onDirectContactBlocked?: () => void;
 }
@@ -79,6 +80,7 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
   filesEdited,
   setFilesEdited,
   canSend = true,
+  blockedStateMessage,
   onTyping,
   onDirectContactBlocked,
 }) => {
@@ -380,6 +382,19 @@ const SendMessageForm: FC<SendMessageFormProp> = ({
       false,
     );
   });
+
+  if (blockedStateMessage) {
+    return (
+      <div className="mt-3">
+        <div className="flex items-center gap-3 rounded-[24px] border border-border/60 bg-card/85 px-4 py-3 shadow-sm backdrop-blur">
+          <div className="bg-destructive/10 text-destructive flex size-10 shrink-0 items-center justify-center rounded-full">
+            <ShieldOff className="size-4" />
+          </div>
+          <p className="text-sm text-muted-foreground">{blockedStateMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-3">

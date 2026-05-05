@@ -15,13 +15,13 @@
       "@/*": ["./src/*"]
     },
     "isolatedModules": true,
-    "target": "ES2017",
+    "target": "ES2020",
     "skipLibCheck": true,
     "strict": false,
     "module": "esnext",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0", //без этого ошибка
+    "ignoreDeprecations": "5.0",
     "resolveJsonModule": true
   },
   "include": [

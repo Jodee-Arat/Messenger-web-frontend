@@ -13,6 +13,7 @@ import {
   getDirectChatDisplayAvatar,
   getDirectChatDisplayName,
 } from "@/shared/utils/direct-chat";
+import { getChatRoute } from "@/shared/utils/chat-route";
 import { cn } from "@/shared/utils/tw-merge";
 import { useRouter } from "next/navigation";
 import { FC, ReactElement, useState } from "react";
@@ -110,7 +111,13 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
         if (form.getValues("targetChatsId").length === 1 && selectedChatId) {
           const selectedChat = chats.find((chat) => chat.id === selectedChatId);
           if (selectedChat) {
-            router.push(`/group/${selectedChat.groupId}/${selectedChat.id}`);
+            router.push(
+              getChatRoute({
+                chatId: selectedChat.id,
+                groupId: selectedChat.groupId,
+                isGroup: selectedChat.isGroup,
+              }),
+            );
           }
         }
         toast.success(t("messageForwarded"));

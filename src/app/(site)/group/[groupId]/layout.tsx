@@ -13,14 +13,23 @@ const GroupLayout = async ({
 }: LayoutProps & { params: Promise<{ groupId: string }> }) => {
   const params = await paramsPromise;
   const groupId = params.groupId;
+  const isDirectRoute = groupId === "null";
+  const layoutContent = (
+    <div className="flex min-w-0 flex-1">
+      <ChatsSidebar groupId={groupId} />
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {children}
+      </main>
+    </div>
+  );
+
+  if (isDirectRoute) {
+    return layoutContent;
+  }
+
   return (
     <RouteAccessGuard scope="group" groupId={groupId} fallbackHref="/">
-      <div className="flex min-w-0 flex-1">
-        <ChatsSidebar groupId={groupId} />
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          {children}
-        </main>
-      </div>
+      {layoutContent}
     </RouteAccessGuard>
   );
 };

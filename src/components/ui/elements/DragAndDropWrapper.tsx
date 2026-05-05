@@ -7,12 +7,14 @@ import DragOverplay from "./DragOverplay";
 
 interface DragAndDropWrapperProps {
   drop: (e: React.DragEvent<HTMLDivElement>) => void | Promise<void>;
+  disabled?: boolean;
   className?: string;
   children: ReactNode;
 }
 
 const DragAndDropWrapper: FC<DragAndDropWrapperProps> = ({
   drop,
+  disabled = false,
   className,
   children,
 }) => {
@@ -23,6 +25,7 @@ const DragAndDropWrapper: FC<DragAndDropWrapperProps> = ({
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
     setDragCounter(prev => {
       const newCount = prev + 1;
       if (newCount > 0) setIsOver(true);
@@ -33,6 +36,7 @@ const DragAndDropWrapper: FC<DragAndDropWrapperProps> = ({
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
     setDragCounter(prev => {
       const newCount = prev - 1;
       if (newCount <= 0) {
@@ -46,11 +50,13 @@ const DragAndDropWrapper: FC<DragAndDropWrapperProps> = ({
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (disabled) return;
     setDragCounter(0);
     setIsOver(false);
     drop(e);
@@ -64,7 +70,7 @@ const DragAndDropWrapper: FC<DragAndDropWrapperProps> = ({
       onDragLeave={handleDragLeave}
       className={cn("relative", className)}
     >
-      <DragOverplay isOver={isOver}>
+      <DragOverplay isOver={!disabled && isOver}>
         <div className="flex h-full w-full items-center justify-center">
           <FileIcon className="size-15" />
           <p className="text-lg">{t("dropFilesHere")}</p>

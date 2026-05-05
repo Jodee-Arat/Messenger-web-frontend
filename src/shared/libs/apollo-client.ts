@@ -36,6 +36,28 @@ export const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache({
     typePolicies: {
+      Query: {
+        fields: {
+          getSecretSessionPreKeys: {
+            keyArgs: ["chatId"],
+            merge(_existing, incoming) {
+              return incoming;
+            },
+          },
+          getSessionSecretMessages: {
+            keyArgs: ["chatId", "secretSessionId"],
+            merge(_existing, incoming) {
+              return incoming;
+            },
+          },
+          getSessionSharedSecretKeys: {
+            keyArgs: ["chatId", "secretSessionId"],
+            merge(_existing, incoming) {
+              return incoming;
+            },
+          },
+        },
+      },
       ChatModel: {
         fields: {
           members: {
@@ -44,6 +66,15 @@ export const client = new ApolloClient({
             },
           },
         },
+      },
+      SecretSessionPreKeyModel: {
+        keyFields: ["secretSessionId"],
+      },
+      QueueSecretMessageModel: {
+        keyFields: ["id"],
+      },
+      QueueSharedSecretKeyModel: {
+        keyFields: ["id"],
       },
     },
   }),
