@@ -97,6 +97,8 @@ const LOCAL_SAVED_ATTACHMENT_PREFIX = "local-web:";
 const MAX_SAVED_ATTACHMENTS = 7;
 let lastLocalSavedMessageTimestamp = 0;
 
+// Client-visible attachment metadata. It is serialized only into the
+// plaintext that is encrypted as encryptedMessage, never into upload metadata.
 type SecretAttachmentPayload = {
   attachmentId: string;
   fileName: string;

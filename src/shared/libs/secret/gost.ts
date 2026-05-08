@@ -100,6 +100,9 @@ export function fromHex(hex: string): Uint8Array {
   if (normalized.length % 2 !== 0) {
     throw new Error("fromHex: invalid hex length");
   }
+  if (!/^[0-9a-f]*$/.test(normalized)) {
+    throw new Error("fromHex: invalid hex");
+  }
 
   const out = new Uint8Array(normalized.length / 2);
   for (let index = 0; index < out.length; index += 1) {

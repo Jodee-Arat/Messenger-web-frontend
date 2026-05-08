@@ -939,6 +939,9 @@ export type QueueSecretMessageModel = {
   isKey: Scalars['Boolean']['output'];
   iv: Scalars['String']['output'];
   secretAttachmentIds: Array<Scalars['String']['output']>;
+  senderKeyEpoch?: Maybe<Scalars['Int']['output']>;
+  senderKeyId?: Maybe<Scalars['String']['output']>;
+  senderKeyIteration?: Maybe<Scalars['Int']['output']>;
   sig: Scalars['String']['output'];
   toSessionIds: Array<Scalars['String']['output']>;
   toUserIds: Array<Scalars['String']['output']>;
@@ -960,6 +963,9 @@ export type QueueSharedSecretKeyModel = {
   id: Scalars['ID']['output'];
   ikPub: Scalars['String']['output'];
   iv: Scalars['String']['output'];
+  keyKind: Scalars['String']['output'];
+  senderKeyEpoch?: Maybe<Scalars['Int']['output']>;
+  senderKeyId?: Maybe<Scalars['String']['output']>;
   sig: Scalars['String']['output'];
   toSessionId?: Maybe<Scalars['String']['output']>;
   toUserId: Scalars['String']['output'];
@@ -1088,6 +1094,9 @@ export type SessionSecretMessageInput = {
   isKey?: InputMaybe<Scalars['Boolean']['input']>;
   iv: Scalars['String']['input'];
   secretAttachmentIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  senderKeyEpoch?: InputMaybe<Scalars['Int']['input']>;
+  senderKeyId?: InputMaybe<Scalars['String']['input']>;
+  senderKeyIteration?: InputMaybe<Scalars['Int']['input']>;
   sig: Scalars['String']['input'];
   toSessionIds: Array<Scalars['String']['input']>;
   toUserIds: Array<Scalars['String']['input']>;
@@ -1102,6 +1111,9 @@ export type SessionSharedSecretKeyInput = {
   groupId?: InputMaybe<Scalars['String']['input']>;
   ikPub: Scalars['String']['input'];
   iv: Scalars['String']['input'];
+  keyKind?: InputMaybe<Scalars['String']['input']>;
+  senderKeyEpoch?: InputMaybe<Scalars['Int']['input']>;
+  senderKeyId?: InputMaybe<Scalars['String']['input']>;
   sig: Scalars['String']['input'];
   toSessionId: Scalars['String']['input'];
   toUserId: Scalars['String']['input'];
