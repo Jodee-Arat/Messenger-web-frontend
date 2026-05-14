@@ -1,6 +1,15 @@
 "use client";
 
-import { Apple, Globe, Lock, MessageSquare, Shield, Smartphone, Users, Zap } from "lucide-react";
+import {
+  Apple,
+  Globe,
+  Lock,
+  MessageSquare,
+  Shield,
+  Smartphone,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -28,9 +37,10 @@ const techStack = {
   backend: ["NestJS", "GraphQL", "PostgreSQL", "Prisma", "Redis"],
   mobile: ["React Native", "Expo"],
   crypto: [
-    "ГОСТ Р 34.10-2012",
-    "ГОСТ Р 34.11-2012 (Стрибог)",
-    "ГОСТ Р 34.12-2018 (Кузнечик)",
+    "ГОСТ 34.10-2018",
+    "ГОСТ 34.11-2018 (Стрибог)",
+    "ГОСТ 34.12-2018 (Кузнечик)",
+    "ГОСТ 34.13-2018",
     "X3DH",
   ],
 };
@@ -43,13 +53,13 @@ export default function ProjectOverview() {
       {/* Hero Welcome Section */}
       <div className="relative flex flex-col items-center text-center space-y-6 w-full">
         <div className="absolute -top-20 left-1/2 -z-10 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]" />
-        
+
         <BrandMark
           priority
           className="size-24 rounded-[2rem] bg-background/80 ring-1 ring-border shadow-2xl shadow-primary/20 backdrop-blur-xl"
           imageClassName="p-[10%]"
         />
-        
+
         <div className="space-y-4 max-w-2xl">
           <h1 className="bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
             {t("welcomeTitle")}
@@ -67,27 +77,44 @@ export default function ProjectOverview() {
       <Card className="w-full max-w-3xl border-primary/30 bg-gradient-to-br from-background to-primary/5 backdrop-blur-sm shadow-xl shadow-primary/5">
         <div className="flex flex-col md:flex-row items-center justify-between p-6 md:p-8 gap-8">
           <div className="space-y-2 text-center md:text-left">
-            <h3 className="text-2xl font-bold tracking-tight text-foreground">{t("getMobileApp")}</h3>
-            <p className="text-muted-foreground">
-              {t("getMobileAppDesc")}
-            </p>
+            <h3 className="text-2xl font-bold tracking-tight text-foreground">
+              {t("getMobileApp")}
+            </h3>
+            <p className="text-muted-foreground">{t("getMobileAppDesc")}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <Button size="lg" className="gap-2 h-14 rounded-xl px-6 bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95" asChild>
+            <Button
+              size="lg"
+              className="gap-2 h-14 rounded-xl px-6 bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95"
+              asChild
+            >
               <Link href="#">
                 <Apple className="size-5" />
                 <div className="flex flex-col items-start space-y-0 text-left">
-                  <span className="text-[10px] leading-none opacity-80 font-medium tracking-wide uppercase">{t("downloadIOS")}</span>
-                  <span className="text-sm font-bold leading-none">{t("appStore")}</span>
+                  <span className="text-[10px] leading-none opacity-80 font-medium tracking-wide uppercase">
+                    {t("downloadIOS")}
+                  </span>
+                  <span className="text-sm font-bold leading-none">
+                    {t("appStore")}
+                  </span>
                 </div>
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="gap-2 h-14 rounded-xl px-6 border-border shadow-sm bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-all hover:scale-105 active:scale-95" asChild>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2 h-14 rounded-xl px-6 border-border shadow-sm bg-background text-foreground hover:bg-accent hover:text-accent-foreground transition-all hover:scale-105 active:scale-95"
+              asChild
+            >
               <Link href="#">
                 <Smartphone className="size-5 text-primary" />
                 <div className="flex flex-col items-start space-y-0 text-left">
-                  <span className="text-[10px] leading-none opacity-80 font-medium tracking-wide uppercase">{t("downloadAndroid")}</span>
-                  <span className="text-sm font-bold leading-none">{t("googlePlay")}</span>
+                  <span className="text-[10px] leading-none opacity-80 font-medium tracking-wide uppercase">
+                    {t("downloadAndroid")}
+                  </span>
+                  <span className="text-sm font-bold leading-none">
+                    {t("googlePlay")}
+                  </span>
                 </div>
               </Link>
             </Button>
@@ -99,7 +126,10 @@ export default function ProjectOverview() {
       <div className="w-full space-y-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(({ icon: Icon, translationKey }) => (
-            <Card key={translationKey} className="group relative overflow-hidden border-border/60 bg-background/60 backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:bg-secondary/50 hover:shadow-lg hover:shadow-primary/5">
+            <Card
+              key={translationKey}
+              className="group relative overflow-hidden border-border/60 bg-background/60 backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:bg-secondary/50 hover:shadow-lg hover:shadow-primary/5"
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <CardHeader className="flex flex-row items-center gap-4 pb-4">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
@@ -140,7 +170,7 @@ export default function ProjectOverview() {
               </CardHeader>
               <CardContent className="flex flex-col flex-1">
                 <div className="flex flex-wrap gap-2 content-start">
-                  {items.map((item) => (
+                  {items.map(item => (
                     <span
                       key={item}
                       className="rounded-lg bg-secondary border border-border px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary-foreground/10"

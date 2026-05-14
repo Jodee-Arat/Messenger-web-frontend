@@ -4,13 +4,10 @@ import ChatsSidebar from "@/components/layouts/sidebar/chats/ChatsSidebar";
 import RouteAccessGuard from "@/components/ui/elements/RouteAccessGuard";
 
 type LayoutProps = PropsWithChildren<{
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 }>;
 
-const GroupLayout = async ({
-  children,
-  params: paramsPromise,
-}: LayoutProps & { params: Promise<{ groupId: string }> }) => {
+const GroupLayout = async ({ children, params: paramsPromise }: LayoutProps) => {
   const params = await paramsPromise;
   const groupId = params.groupId;
   const isDirectRoute = groupId === "null";
