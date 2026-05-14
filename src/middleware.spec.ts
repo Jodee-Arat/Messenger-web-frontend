@@ -86,6 +86,22 @@ describe("middleware", () => {
     expect(mockNext).toHaveBeenCalledTimes(1);
   });
 
+  it("should use NEXT_PUBLIC_SERVER_URL as-is when it already points to GraphQL", async () => {
+    process.env.NEXT_PUBLIC_SERVER_URL = "https://api.example.com/graphql";
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ data: { checkChatAccess: true } }),
+    });
+
+    const request = createMockRequest("/group/grp1/chat1", "valid-session");
+
+    await middleware(request);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.example.com/graphql",
+      expect.any(Object),
+    );
+  });
+
   it("should redirect to /403 if chat access denied", async () => {
     mockFetch.mockResolvedValue({
       json: () => Promise.resolve({ data: { checkChatAccess: false } }),

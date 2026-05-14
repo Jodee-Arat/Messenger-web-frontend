@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function getGraphqlEndpoint() {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
+  if (!serverUrl) {
+    throw new Error("NEXT_PUBLIC_SERVER_URL is not configured");
+  }
+
+  const normalizedServerUrl = serverUrl.replace(/\/$/, "");
+  return normalizedServerUrl.endsWith("/graphql")
+    ? normalizedServerUrl
+    : `${normalizedServerUrl}/graphql`;
+}
+
 export default async function middleware(request: NextRequest) {
   const { url, cookies, nextUrl } = request;
 
@@ -24,7 +37,7 @@ export default async function middleware(request: NextRequest) {
 
   if (chatId && !staticSubRoutes.includes(chatId)) {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/graphql`, {
+      const res = await fetch(getGraphqlEndpoint(), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -65,9 +65,14 @@ const Home = () => {
   const { userId } = useUser();
   const normalizedFindPeopleQuery = findPeopleQuery.trim();
   const debouncedFindPeopleQuery = useDebouncedValue(normalizedFindPeopleQuery);
+  const hasFindPeopleQuery = debouncedFindPeopleQuery.length > 0;
   const isWaitingForFindPeopleSearch =
     normalizedFindPeopleQuery.length > 0 &&
     normalizedFindPeopleQuery !== debouncedFindPeopleQuery;
+  const hasSettledFindPeopleQuery =
+    normalizedFindPeopleQuery.length > 0 &&
+    normalizedFindPeopleQuery === debouncedFindPeopleQuery &&
+    hasFindPeopleQuery;
 
   const {
     data: usersData,
@@ -80,7 +85,7 @@ const Home = () => {
         take: 20,
       },
     },
-    skip: !addDialogOpen || !debouncedFindPeopleQuery,
+    skip: !addDialogOpen || !hasFindPeopleQuery,
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true,
   });
@@ -205,11 +210,11 @@ const Home = () => {
               <div className="max-h-[calc(100vh-16rem)] overflow-y-auto px-6 py-4">
                 <div className="space-y-2">
                   {isWaitingForFindPeopleSearch ||
-                  (debouncedFindPeopleQuery && isLoadingUsers) ? (
+                  (hasSettledFindPeopleQuery && isLoadingUsers) ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="text-muted-foreground size-5 animate-spin" />
                     </div>
-                  ) : usersError ? (
+                  ) : hasSettledFindPeopleQuery && usersError ? (
                     <p className="text-destructive text-sm">
                       {getGraphQLErrorMessage(usersError)}
                     </p>
