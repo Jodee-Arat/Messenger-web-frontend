@@ -1,6 +1,13 @@
 "use client";
 
-import { Globe, Monitor, Smartphone, Loader2, MapPin, LogOut } from "lucide-react";
+import {
+  Globe,
+  Monitor,
+  Smartphone,
+  Loader2,
+  MapPin,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -94,7 +101,7 @@ export default function SessionsList() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {sessions.map(session => (
+            {sessions.map((session) => (
               <SessionRow
                 key={session.id}
                 session={session}
@@ -132,16 +139,22 @@ interface SessionRowProps {
   removeLabel?: string;
 }
 
-function SessionRow({ session, isCurrent, onRemove, isRemoving, removeLabel }: SessionRowProps) {
+function SessionRow({
+  session,
+  isCurrent,
+  onRemove,
+  isRemoving,
+  removeLabel,
+}: SessionRowProps) {
   const t = useTranslations("sessions");
   const { metadata } = session;
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
       <div className="mt-0.5 text-muted-foreground">
         {getDeviceIcon(metadata.device.type)}
       </div>
-      <div className="flex-1 space-y-1">
+      <div className="min-w-0 flex-1 space-y-1">
         <p className="text-sm font-medium">
           {metadata.device.browser} on {metadata.device.os}
           {isCurrent && (
@@ -172,7 +185,7 @@ function SessionRow({ session, isCurrent, onRemove, isRemoving, removeLabel }: S
         <button
           onClick={onRemove}
           disabled={isRemoving}
-          className="mt-1 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 sm:w-auto"
           title={removeLabel || "Terminate"}
         >
           {isRemoving ? (

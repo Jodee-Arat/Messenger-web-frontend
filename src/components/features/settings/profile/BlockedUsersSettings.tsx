@@ -162,6 +162,7 @@ const BlockedUsersSettings = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     disabled={pendingUnblockId === friendship.id}
                     onClick={() => handleUnblock(friendship.id)}
                   >

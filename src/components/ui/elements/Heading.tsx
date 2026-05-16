@@ -5,9 +5,9 @@ const headingSizes = cva("", {
   variants: {
     size: {
       sm: "text-lg",
-      default: "text-2xl",
-      lg: "text-4xl",
-      xl: "text-5xl",
+      default: "text-xl sm:text-2xl",
+      lg: "text-3xl sm:text-4xl",
+      xl: "text-4xl sm:text-5xl",
     },
   },
   defaultVariants: {
@@ -22,13 +22,18 @@ interface HeadingProps extends VariantProps<typeof headingSizes> {
 
 const Heading = ({ size, title, description }: HeadingProps) => {
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <h1
-        className={cn("text-foreground font-semibold", headingSizes({ size }))}
+        className={cn(
+          "text-foreground break-words font-semibold",
+          headingSizes({ size }),
+        )}
       >
         {title}
       </h1>
-      {description && <p className="text-muted-foreground">{description}</p>}
+      {description && (
+        <p className="text-muted-foreground break-words">{description}</p>
+      )}
     </div>
   );
 };

@@ -14,8 +14,17 @@ import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 import { useDebouncedValue } from "@/shared/hooks/useDebouncedValue";
 import { useDirectChats } from "@/shared/hooks/useDirectChats";
 import { getDirectChatDisplayName } from "@/shared/utils/direct-chat";
-import { Bookmark, Loader, MessageSquare, SearchIcon, Settings2, X } from "lucide-react";
+import { cn } from "@/shared/utils/tw-merge";
+import {
+  Bookmark,
+  Loader,
+  MessageSquare,
+  SearchIcon,
+  Settings2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -63,6 +72,7 @@ const filterChatsByQuery = (
 
 const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
   const isDirectRoute = groupId === "null";
+  const pathname = usePathname();
   const [allChats, setAllChats] = useState<
     FindAllChatsByGroupQuery["findAllChatsByGroup"]
   >([]);
@@ -201,10 +211,18 @@ const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
   const isLoadingSidebar = isDirectRoute
     ? isLoadingDirectChats
     : isLoadingFindAllChats;
+  const isBaseRoute = isDirectRoute
+    ? pathname === "/dm"
+    : pathname === `/group/${groupId}`;
+  const shouldHideOnMobile = !isBaseRoute;
+  const sidebarClassName = cn(
+    "flex w-full shrink-0 flex-col border-b border-border/60 bg-card/95 md:w-80 md:border-r md:border-b-0",
+    shouldHideOnMobile ? "hidden md:flex" : "min-h-0 flex-1 md:flex-none",
+  );
 
   if (isLoadingSidebar) {
     return (
-      <aside className="flex w-80 shrink-0 flex-col border-r border-border/60 bg-card/95">
+      <aside className={sidebarClassName}>
         <div className="flex h-16 items-center px-4">
           <Loader className="text-muted-foreground size-4 animate-spin" />
         </div>
@@ -213,7 +231,7 @@ const ChatsSidebar = ({ groupId }: ChatsSidebarProps) => {
   }
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-r border-border/60 bg-card/95 backdrop-blur">
+    <aside className={cn(sidebarClassName, "backdrop-blur")}>
       <div className="px-3 pt-3 pb-2">
         <div className="flex items-center justify-between gap-3">
           <h2 className="truncate px-1 text-lg font-semibold">

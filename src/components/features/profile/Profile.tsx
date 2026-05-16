@@ -383,7 +383,7 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
 
         <Card className="overflow-hidden border-border/60 bg-card/85 shadow-xl">
           <div className="h-36 bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.36),transparent_58%),linear-gradient(135deg,rgba(139,92,246,0.24),rgba(18,18,28,0))]" />
-          <CardContent className="-mt-20 px-6 pb-10 sm:px-8">
+          <CardContent className="-mt-20 px-4 pb-8 sm:px-8 sm:pb-10">
             <div className="flex flex-col items-center text-center">
               <div className="rounded-full border-[6px] border-background bg-background p-1.5 shadow-2xl">
                 <EntityAvatar
@@ -394,7 +394,7 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
               </div>
 
               <div className="mt-5 space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                <h1 className="break-words text-3xl font-bold tracking-tight sm:text-5xl">
                   {user.username}
                 </h1>
                 <p className="text-muted-foreground text-sm font-medium sm:text-base">
@@ -503,11 +503,11 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
             </div>
 
             <div className="mt-4 space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight">
+              <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">
                 {targetUser.username}
               </h1>
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="text-muted-foreground text-sm">
+                <span className="text-muted-foreground break-all text-sm">
                   @{targetUser.username}
                 </span>
                 <Button
@@ -582,13 +582,13 @@ const Profile: FC<ProfileProp> = ({ profileId }) => {
         <Card className="border-border/60 bg-card/70 shadow-lg">
           <CardContent className="p-4 sm:p-5">
             <div className="mb-4 rounded-2xl border border-border/50 bg-background/30 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-muted-foreground text-xs font-semibold uppercase tracking-[0.18em]">
                     {tFriend("actions")}
                   </p>
                   <h2 className="mt-2 text-lg font-semibold tracking-tight">
-                    {targetUser.username}
+                    <span className="break-words">{targetUser.username}</span>
                   </h2>
                   <p className="text-muted-foreground mt-1 text-sm leading-6">
                     {isBlockedByCurrentUser

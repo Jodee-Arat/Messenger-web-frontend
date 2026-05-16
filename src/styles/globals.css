@@ -167,6 +167,7 @@
 
   html {
     scroll-behavior: smooth;
+    height: 100%;
   }
 
   body {
@@ -179,7 +180,7 @@
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    @apply bg-background text-foreground font-geist-sans h-[100vh] overscroll-none;
+    @apply bg-background text-foreground font-geist-sans min-h-dvh overflow-x-hidden overscroll-none;
   }
 }
 

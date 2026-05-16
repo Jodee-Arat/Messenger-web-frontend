@@ -68,10 +68,10 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
     skip: !inviteOpen || !groupId,
     fetchPolicy: "network-only",
   });
-  const existingIds = new Set(members.map(m => m.user.id));
+  const existingIds = new Set(members.map((m) => m.user.id));
   const invitableUsers = (groupData?.findGroupByGroupId?.members ?? [])
-    .map(member => member.user)
-    .filter(u => !existingIds.has(u.id));
+    .map((member) => member.user)
+    .filter((u) => !existingIds.has(u.id));
 
   // Group members by role
   const grouped = useMemo(() => {
@@ -82,17 +82,17 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
     const assignedIds = new Set<string>();
 
     for (const role of sortedRoles) {
-      const roleMembers = members.filter(m => {
+      const roleMembers = members.filter((m) => {
         const ur = getRoleForUser(m.user.id);
         return ur?.id === role.id;
       });
       if (roleMembers.length > 0) {
         groups.push({ role, members: roleMembers });
-        roleMembers.forEach(m => assignedIds.add(m.user.id));
+        roleMembers.forEach((m) => assignedIds.add(m.user.id));
       }
     }
 
-    const unassigned = members.filter(m => !assignedIds.has(m.user.id));
+    const unassigned = members.filter((m) => !assignedIds.has(m.user.id));
     return { groups, unassigned };
   }, [members, roles, getRoleForUser]);
 
@@ -100,14 +100,14 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
     const role = getRoleForUser(member.user.id);
     return (
       <Card className="mb-1">
-        <CardContent className="flex items-center gap-3 p-3">
+        <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
           <EntityAvatar
             name={member.user.username}
             avatarUrl={member.user.avatarUrl}
           />
-          <div className="flex-1">
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-semibold">
+          <div className="w-full min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="break-words text-sm font-semibold">
                 {member.user.username}
               </span>
               {member.isCreator && (
@@ -126,7 +126,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
               )}
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex w-full justify-end gap-1 sm:w-auto">
             {canManageRoles && !member.isCreator && (
               <Button
                 size="sm"
@@ -165,7 +165,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
   return (
     <div className="mt-5 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-muted-foreground flex items-center gap-2 text-sm font-semibold">
           <Users className="size-4" />
           {t("membersTab")} — {members.length}
@@ -173,7 +173,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
         {canInviteMembers && (
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
+              <Button size="sm" className="w-full gap-1 sm:w-auto">
                 <UserPlus className="size-4" />
                 {t("invite")}
               </Button>
@@ -182,13 +182,13 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
               <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
                 <DialogTitle>{t("inviteMember")}</DialogTitle>
               </DialogHeader>
-              <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
+              <div className="max-h-[calc(100dvh-10rem)] space-y-1 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
                 {invitableUsers.length === 0 ? (
                   <p className="text-muted-foreground py-4 text-center text-sm">
                     {t("noUsersToInvite")}
                   </p>
                 ) : (
-                  invitableUsers.map(u => (
+                  invitableUsers.map((u) => (
                     <div
                       key={u.id}
                       className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
@@ -228,7 +228,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
               {role.name} — {roleMembers.length}
             </span>
           </div>
-          {roleMembers.map(m => (
+          {roleMembers.map((m) => (
             <MemberRow key={m.user.id} member={m} />
           ))}
         </div>
@@ -242,7 +242,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
               {t("noRole")} — {grouped.unassigned.length}
             </span>
           )}
-          {grouped.unassigned.map(m => (
+          {grouped.unassigned.map((m) => (
             <MemberRow key={m.user.id} member={m} />
           ))}
         </div>
@@ -251,18 +251,18 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
       {/* Assign Role Dialog */}
       <Dialog
         open={!!assignUserId}
-        onOpenChange={open => !open && setAssignUserId(null)}
+        onOpenChange={(open) => !open && setAssignUserId(null)}
       >
         <DialogContent className="overflow-hidden p-0 sm:max-w-md">
           <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>
               {t("assignRoleTo", {
-                username: members.find(m => m.user.id === assignUserId)?.user
+                username: members.find((m) => m.user.id === assignUserId)?.user
                   .username,
               })}
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
+          <div className="max-h-[calc(100dvh-10rem)] space-y-1 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
             {/* No role option */}
             <button
               onClick={() => {
@@ -282,7 +282,7 @@ const ChatMembersSection: FC<ChatMembersSectionProps> = ({
                 {t("noRole")}
               </span>
             </button>
-            {roles.map(role => {
+            {roles.map((role) => {
               const isSelected =
                 assignUserId && userRoles[assignUserId] === role.id;
               return (

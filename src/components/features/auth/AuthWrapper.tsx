@@ -18,15 +18,15 @@ const AuthWrapper: FC<PropsWithChildren<AuthWrapperProp>> = ({
   children,
 }) => {
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="w-9/12 max-w-[400px]">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-8">
+      <div className="w-full max-w-[400px]">
         <div className="mb-6 flex flex-col items-center gap-3">
           <BrandMark priority className="size-16" />
           <p className="text-primary text-xs font-semibold uppercase tracking-[0.3em]">
             МесАгат
           </p>
         </div>
-        <h1 className="text-foreground mb-8 text-center text-3xl font-medium">
+        <h1 className="text-foreground mb-8 text-center text-2xl font-medium sm:text-3xl">
           {heading}
         </h1>
         {children}

@@ -1,12 +1,4 @@
-import {
-  Pencil,
-  Pin,
-  PinOff,
-  Reply,
-  Share2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Pencil, Pin, PinOff, Reply, Share2, Trash2, X } from "lucide-react";
 import { FC, memo } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -59,9 +51,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
 }) => {
   const t = useTranslations("messages");
   const canEditSelectedMessage =
-    !!selectedMessage &&
-    canEdit &&
-    selectedMessage.user.id === userId;
+    !!selectedMessage && canEdit && selectedMessage.user.id === userId;
   const canPinSelectedMessage = !!selectedMessage && canPin;
   const isPinnedSelectedMessage = selectedMessage?.id === pinnedMessageId;
   const canForward = canSend && !!messageIds && messageIds.length > 0;
@@ -94,7 +84,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
 
     const forwardedMessages =
       selectedMessage.repliedToLinks
-        ?.map(link => link?.repliedTo)
+        ?.map((link) => link?.repliedTo)
         .filter((msg): msg is ForwardedMessageType => !!msg) ?? [];
 
     startEdit(selectedMessage, forwardedMessages);
@@ -124,7 +114,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
   }
 
   return (
-    <div className="mx-auto mb-2 flex w-full max-w-4xl items-center justify-between gap-3 rounded-[22px] border border-border/60 bg-card/75 px-3 py-2 shadow-sm">
+    <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-2 rounded-[22px] border border-border/60 bg-card/75 px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <div className="flex min-w-0 items-center gap-2">
         <Button
           onClick={handleClearMessagesId}
@@ -140,7 +130,7 @@ const ChatToolbar: FC<ChatToolbarProp> = ({
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
         {canEditSelectedMessage && (
           <Button
             onClick={handleEditMessage}

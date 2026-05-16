@@ -49,7 +49,7 @@ export default function ProjectOverview() {
   const t = useTranslations("overview");
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-12 pb-10 pt-4 md:pt-12">
+    <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-center space-y-8 pb-8 pt-2 sm:space-y-12 md:pt-12">
       {/* Hero Welcome Section */}
       <div className="relative flex flex-col items-center text-center space-y-6 w-full">
         <div className="absolute -top-20 left-1/2 -z-10 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]" />
@@ -61,7 +61,7 @@ export default function ProjectOverview() {
         />
 
         <div className="space-y-4 max-w-2xl">
-          <h1 className="bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
+          <h1 className="bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
             {t("welcomeTitle")}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium">
@@ -75,14 +75,14 @@ export default function ProjectOverview() {
 
       {/* Download App CTA */}
       <Card className="w-full max-w-3xl border-primary/30 bg-gradient-to-br from-background to-primary/5 backdrop-blur-sm shadow-xl shadow-primary/5">
-        <div className="flex flex-col md:flex-row items-center justify-between p-6 md:p-8 gap-8">
+        <div className="flex flex-col items-center justify-between gap-5 p-4 sm:p-6 md:flex-row md:gap-8 md:p-8">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="text-2xl font-bold tracking-tight text-foreground">
               {t("getMobileApp")}
             </h3>
             <p className="text-muted-foreground">{t("getMobileAppDesc")}</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
             <Button
               size="lg"
               className="gap-2 h-14 rounded-xl px-6 bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95"
@@ -170,7 +170,7 @@ export default function ProjectOverview() {
               </CardHeader>
               <CardContent className="flex flex-col flex-1">
                 <div className="flex flex-wrap gap-2 content-start">
-                  {items.map(item => (
+                  {items.map((item) => (
                     <span
                       key={item}
                       className="rounded-lg bg-secondary border border-border px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary-foreground/10"

@@ -7,14 +7,17 @@ type LayoutProps = PropsWithChildren<{
   params: Promise<{ groupId: string }>;
 }>;
 
-const GroupLayout = async ({ children, params: paramsPromise }: LayoutProps) => {
+const GroupLayout = async ({
+  children,
+  params: paramsPromise,
+}: LayoutProps) => {
   const params = await paramsPromise;
   const groupId = params.groupId;
   const isDirectRoute = groupId === "null";
   const layoutContent = (
-    <div className="flex min-w-0 flex-1">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex-row">
       <ChatsSidebar groupId={groupId} />
-      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {children}
       </main>
     </div>

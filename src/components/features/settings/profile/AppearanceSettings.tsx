@@ -49,15 +49,15 @@ export default function AppearanceSettings() {
           <CardTitle>{t("theme")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-3">
-            {themes.map(themeOption => {
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {themes.map((themeOption) => {
               const Icon = themeOption.icon;
               const isActive = theme === themeOption.value;
               return (
                 <Button
                   key={themeOption.value}
                   variant={isActive ? "default" : "outline"}
-                  className="flex h-20 flex-col items-center justify-center gap-2"
+                  className="flex h-20 flex-col items-center justify-center gap-2 whitespace-normal text-center"
                   onClick={() => setTheme(themeOption.value)}
                 >
                   <Icon className="size-5" />
@@ -75,12 +75,12 @@ export default function AppearanceSettings() {
           <CardTitle>{t("language")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {languages.map(lang => (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {languages.map((lang) => (
               <Button
                 key={lang.value}
                 variant="outline"
-                className="flex h-14 items-center justify-start gap-3"
+                className="flex h-14 items-center justify-start gap-3 whitespace-normal"
                 onClick={() => handleLanguageChange(lang.value)}
                 disabled={isPending}
               >

@@ -65,7 +65,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
     >
       <div
         className={cn(
-          "flex min-w-0 max-w-[82%] flex-col gap-2",
+          "flex min-w-0 max-w-[92%] flex-col gap-2 sm:max-w-[82%]",
           isOwnMessage ? "items-end text-right" : "items-start text-left",
         )}
       >
@@ -86,7 +86,7 @@ const ChatMessageItem: FC<ChatMessageItemProp> = ({
             <div
               className={cn(
                 "space-y-3 rounded-[20px] border border-border/60 bg-card/55 p-3 shadow-sm",
-                isOwnMessage ? "mr-6" : "ml-6",
+                isOwnMessage ? "mr-2 sm:mr-6" : "ml-2 sm:ml-6",
               )}
             >
               <ForwardMessageList

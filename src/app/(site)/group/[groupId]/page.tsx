@@ -49,7 +49,7 @@ export default function GroupPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-6 p-6">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto p-4 sm:p-6">
       <BackButton className="w-fit" />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6">
@@ -59,10 +59,10 @@ export default function GroupPage() {
           avatarUrl={group.avatarUrl ?? undefined}
         />
 
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">{group.groupName}</h1>
+        <div className="max-w-full text-center">
+          <h1 className="break-words text-2xl font-bold">{group.groupName}</h1>
           {group.description && (
-            <p className="text-muted-foreground mt-2 max-w-md">
+            <p className="text-muted-foreground mt-2 max-w-md break-words">
               {group.description}
             </p>
           )}
@@ -81,8 +81,11 @@ export default function GroupPage() {
 
         <p className="text-muted-foreground text-sm">{t("selectChatHint")}</p>
 
-        <Link href={`/group/${groupId}/settings`}>
-          <Button variant="outline" className="gap-2">
+        <Link
+          href={`/group/${groupId}/settings`}
+          className="w-full max-w-md sm:w-auto"
+        >
+          <Button variant="outline" className="w-full gap-2 sm:w-auto">
             <Settings className="size-4" />
             {t("groupSettings")}
           </Button>

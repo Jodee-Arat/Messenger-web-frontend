@@ -329,7 +329,7 @@ const ChatSettings = () => {
   if (isLoadingChat || isLoadingMemberRole) {
     return (
       <div className="flex h-full flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-6xl px-6 py-8 lg:px-10 xl:px-12">
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 xl:px-12">
           <BackButton
             href={`/group/${groupId}/${chatId}`}
             className="mb-4 h-11 w-fit px-5 text-sm"
@@ -347,14 +347,14 @@ const ChatSettings = () => {
 
   return (
     <div className="flex h-full flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:px-10 xl:px-12">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:gap-8 lg:px-10 xl:px-12">
         <BackButton
           href={`/group/${groupId}/${chatId}`}
           className="mb-4 h-11 w-fit px-5 text-sm"
         />
 
         <Card className="rounded-[28px] border-border/60 bg-card/70 shadow-sm">
-          <CardContent className="px-6 pb-6 sm:px-8 sm:pb-8">
+          <CardContent className="px-4 pb-5 sm:px-8 sm:pb-8">
             <div className="flex flex-col gap-6 pt-6 sm:gap-8 sm:pt-8 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
                 <div className="rounded-[28px] border border-primary/20 bg-background/70 p-2 shadow-sm">
@@ -377,7 +377,7 @@ const ChatSettings = () => {
 
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-3">
-                      <h1 className="text-foreground break-words text-3xl font-semibold tracking-tight xl:text-4xl">
+                      <h1 className="text-foreground break-words text-2xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
                         {displayName}
                       </h1>
                       {chat?.isSecret && (
@@ -420,7 +420,7 @@ const ChatSettings = () => {
         {isDM ? (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <Card className="overflow-hidden rounded-[28px] border-border/60 bg-card/70 shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center gap-2">
                   <Users className="text-primary size-4" />
                   <h2 className="text-foreground text-lg font-semibold">
@@ -450,7 +450,7 @@ const ChatSettings = () => {
             </Card>
 
             <Card className="rounded-[28px] border-destructive/20 bg-destructive/5 shadow-none">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="space-y-2">
                   <h2 className="text-foreground text-lg font-semibold">
                     {tC("deleteChat")}
@@ -480,23 +480,23 @@ const ChatSettings = () => {
           </div>
         ) : (
           <Tabs defaultValue="chat" className="w-full">
-            <TabsList className="h-auto rounded-full border border-border/60 bg-card/70 p-1.5 shadow-sm backdrop-blur">
+            <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-2xl border border-border/60 bg-card/70 p-1.5 shadow-sm backdrop-blur sm:grid-cols-3 md:inline-flex md:w-auto md:rounded-full">
               <TabsTrigger
                 value="chat"
-                className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+                className="rounded-full px-4 py-2 text-sm font-semibold whitespace-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
               >
                 {t("chatTab")}
               </TabsTrigger>
               <TabsTrigger
                 value="members"
-                className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+                className="rounded-full px-4 py-2 text-sm font-semibold whitespace-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
               >
                 {t("membersTab")}
               </TabsTrigger>
               {canAccessRoles && (
                 <TabsTrigger
                   value="roles"
-                  className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+                  className="rounded-full px-4 py-2 text-sm font-semibold whitespace-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
                 >
                   {t("rolesTab")}
                 </TabsTrigger>
@@ -523,7 +523,7 @@ const ChatSettings = () => {
                 )}
 
                 <Card className="rounded-[28px] border-border/60 bg-card/70 shadow-sm">
-                  <CardContent className="flex flex-col gap-3 p-5 sm:flex-row">
+                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:p-5">
                     {canDeleteChat && (
                       <ConfirmModal
                         heading={tC("deleteChat")}
@@ -532,7 +532,7 @@ const ChatSettings = () => {
                       >
                         <Button
                           variant="destructive"
-                          className="h-11 rounded-2xl px-5"
+                          className="h-11 w-full rounded-2xl px-5 sm:w-auto"
                         >
                           <Trash2 className="size-4" />
                           {tC("deleteChat")}
@@ -548,7 +548,7 @@ const ChatSettings = () => {
                       >
                         <Button
                           variant="outline"
-                          className="text-destructive h-11 rounded-2xl px-5"
+                          className="text-destructive h-11 w-full rounded-2xl px-5 sm:w-auto"
                         >
                           <LogOut className="size-4" />
                           {tC("leaveChat")}

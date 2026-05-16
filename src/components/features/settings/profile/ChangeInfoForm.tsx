@@ -75,7 +75,7 @@ const ChangeInfoForm = () => {
             control={form.control}
             name="username"
             render={({ field }) => (
-              <FormItem className="px-5 pb-3">
+              <FormItem className="px-4 pb-3 sm:px-5">
                 <FormLabel>{t("username")}</FormLabel>
                 <FormControl>
                   <Input
@@ -95,7 +95,7 @@ const ChangeInfoForm = () => {
             name="bio"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="px-5 pb-3">
+              <FormItem className="px-4 pb-3 sm:px-5">
                 <FormLabel>{t("bio")}</FormLabel>
                 <FormControl>
                   <Textarea
@@ -111,8 +111,11 @@ const ChangeInfoForm = () => {
           ></FormField>
           <Separator />
 
-          <div className="flex justify-end p-5">
-            <Button disabled={!isValid || !isDirty || isLoadingInfoUpdate}>
+          <div className="flex justify-end p-4 sm:p-5">
+            <Button
+              className="w-full sm:w-auto"
+              disabled={!isValid || !isDirty || isLoadingInfoUpdate}
+            >
               {t("submit")}
             </Button>
           </div>

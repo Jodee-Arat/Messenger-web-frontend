@@ -105,14 +105,14 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
   const handleChooseMessage = (messageId: string) => {
     if (messageIds.includes(messageId)) {
-      setMessageIds(prev => prev.filter(id => id !== messageId));
+      setMessageIds((prev) => prev.filter((id) => id !== messageId));
     } else {
-      setMessageIds(prev => [...prev, messageId]);
+      setMessageIds((prev) => [...prev, messageId]);
     }
   };
 
   const handleAddForwarded = (messageIds: string[], reply = true) => {
-    const messages = messagesInfo.filter(message =>
+    const messages = messagesInfo.filter((message) =>
       messageIds.includes(message.id),
     );
 
@@ -122,7 +122,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
   const selectedMessage =
     messageIds.length === 1
-      ? messagesInfo.find(message => message.id === messageIds[0]) ?? null
+      ? (messagesInfo.find((message) => message.id === messageIds[0]) ?? null)
       : null;
 
   useEffect(() => {
@@ -144,9 +144,9 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
     const newMessage = newMessageData.chatMessageAdded;
 
-    setMessagesInfo(prevMessages => {
+    setMessagesInfo((prevMessages) => {
       if (newMessage.isEdited) {
-        return prevMessages.map(message =>
+        return prevMessages.map((message) =>
           message.id === newMessage.id
             ? ({
                 ...message,
@@ -157,7 +157,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
         );
       }
 
-      if (prevMessages.some(message => message.id === newMessage.id)) {
+      if (prevMessages.some((message) => message.id === newMessage.id)) {
         return prevMessages;
       }
 
@@ -170,12 +170,12 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
 
     const removedMessagesId = removedMessagesData.chatMessageRemoved;
 
-    const removedIds = removedMessagesId.map(msg => msg.id);
+    const removedIds = removedMessagesId.map((msg) => msg.id);
     const updatedMessages = messagesInfo
-      .filter(message => !removedIds.includes(message.id))
-      .map(message => {
+      .filter((message) => !removedIds.includes(message.id))
+      .map((message) => {
         const cleanedLinks =
-          message.repliedToLinks?.filter(link => {
+          message.repliedToLinks?.filter((link) => {
             return link?.repliedTo && !removedIds.includes(link.repliedTo.id);
           }) ?? [];
 
@@ -232,7 +232,10 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
         setPinnedMessage={setPinnedMessage}
         canPin={canPin}
       />
-      <div ref={scrollContainerRef} className="flex flex-1 overflow-y-auto px-1">
+      <div
+        ref={scrollContainerRef}
+        className="flex flex-1 overflow-y-auto px-1"
+      >
         <div className="mx-auto mb-2 flex w-full max-w-4xl flex-col gap-y-1.5">
           {messagesInfo.length === 0 ? (
             <EmptyStateCard
@@ -246,7 +249,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
               messageInfo.isStarted ? (
                 <div
                   key={messageInfo.id}
-                  className="flex items-center gap-3 px-6 py-2"
+                  className="flex items-center gap-3 px-2 py-2 sm:px-6"
                 >
                   <div className="h-px flex-1 bg-border" />
                   <span className="text-xs text-muted-foreground">
@@ -273,7 +276,7 @@ const ChatMessageList: FC<ChatMessageListProp> = ({
                   canSend={canSend}
                   showSenderName={showSenderName}
                 />
-              )
+              ),
             )
           )}
         </div>

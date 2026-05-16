@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 export default async function NotFoundPage() {
   const t = await getTranslations("common");
   return (
-    <div className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-6 bg-background text-foreground">
+    <div className="flex h-full min-h-dvh w-full flex-col items-center justify-center gap-6 bg-background px-4 text-foreground">
       <div className="text-center space-y-2">
         <h1 className="text-7xl font-bold">404</h1>
         <p className="text-xl text-muted-foreground">{t("pageNotFound")}</p>

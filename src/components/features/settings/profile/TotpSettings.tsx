@@ -78,7 +78,9 @@ export default function TotpSettings() {
     }
 
     try {
-      const { data } = await disableTotp({ variables: { token: disableToken } });
+      const { data } = await disableTotp({
+        variables: { token: disableToken },
+      });
       if (data?.disableTotp) {
         toast.success(t("totpDisabled"));
         setDisableToken("");
@@ -114,13 +116,11 @@ export default function TotpSettings() {
             <p className="text-sm text-muted-foreground">
               {t("disableConfirm")}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 value={disableToken}
-                onChange={e =>
-                  setDisableToken(
-                    e.target.value.replace(/\D/g, "").slice(0, 6)
-                  )
+                onChange={(e) =>
+                  setDisableToken(e.target.value.replace(/\D/g, "").slice(0, 6))
                 }
                 placeholder="000000"
                 maxLength={6}
@@ -130,6 +130,7 @@ export default function TotpSettings() {
                 variant="destructive"
                 onClick={handleDisable}
                 disabled={disabling || disableToken.length !== 6}
+                className="w-full sm:w-auto"
               >
                 {disabling ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
@@ -158,18 +159,23 @@ export default function TotpSettings() {
           <p className="text-sm text-muted-foreground">{t("scanQRDesc")}</p>
 
           {qrCodeUrl && (
-            <div className="flex justify-center rounded-lg bg-white p-4">
+            <div className="flex justify-center rounded-lg bg-white p-3 sm:p-4">
               <img src={qrCodeUrl} alt="TOTP QR Code" className="size-48" />
             </div>
           )}
 
           <div className="space-y-2">
             <p className="text-sm font-medium">{t("manualSecret")}</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono break-all">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-sm font-mono break-all">
                 {totpSecret}
               </code>
-              <Button variant="outline" size="icon" onClick={copySecret}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="self-end sm:self-auto"
+                onClick={copySecret}
+              >
                 <Copy className="size-4" />
               </Button>
             </div>
@@ -177,10 +183,10 @@ export default function TotpSettings() {
 
           <div className="space-y-2">
             <p className="text-sm font-medium">{t("enterSixDigitCode")}</p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 value={token}
-                onChange={e =>
+                onChange={(e) =>
                   setToken(e.target.value.replace(/\D/g, "").slice(0, 6))
                 }
                 placeholder="000000"
@@ -190,6 +196,7 @@ export default function TotpSettings() {
               <Button
                 onClick={handleEnable}
                 disabled={enabling || token.length !== 6}
+                className="w-full sm:w-auto"
               >
                 {enabling ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
@@ -227,7 +234,11 @@ export default function TotpSettings() {
           <span className="font-medium text-destructive">{t("disabled")}</span>.{" "}
           {t("enableDescription")}
         </p>
-        <Button onClick={handleGenerate} disabled={generating}>
+        <Button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="w-full sm:w-auto"
+        >
           {generating ? (
             <Loader2 className="mr-2 size-4 animate-spin" />
           ) : (

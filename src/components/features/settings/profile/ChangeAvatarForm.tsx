@@ -80,24 +80,24 @@ const ChangeAvatarForm = () => {
           control={form.control}
           name="file"
           render={({ field }) => (
-            <div className="px-5 pb-5">
-              <div className="w-full items-center space-x-6 lg:flex">
+            <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+              <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
                 <EntityAvatar
                   size="xl"
                   avatarUrl={user?.avatarUrl || null}
                   name={user?.username}
                 />
-                <div className="space-y-3">
-                  <div className="flex items-center gap-x-3">
+                <div className="min-w-0 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <input
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={e => handleImageChange(e)}
+                      onChange={(e) => handleImageChange(e)}
                     />
                     <Button
-                      className="mt-5 lg:mt-0"
                       variant="secondary"
+                      type="button"
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
                     >
@@ -112,6 +112,7 @@ const ChangeAvatarForm = () => {
                         <Button
                           className=""
                           variant="ghost"
+                          type="button"
                           disabled={
                             isLoadingRemoveAvatar || isLoadingUpdateAvatar
                           }

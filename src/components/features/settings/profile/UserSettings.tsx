@@ -35,7 +35,7 @@ const UserSettings = () => {
   }, [requestedTab]);
 
   return (
-    <div className="lg:px-10">
+    <div className="mx-auto w-full max-w-5xl lg:px-10">
       <Heading
         title={tS("userSettings")}
         description={tS("manageAccount")}
@@ -46,12 +46,22 @@ const UserSettings = () => {
         onValueChange={setActiveTab}
         className="mt-3 w-full"
       >
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 md:grid-cols-5">
-          <TabsTrigger value="profile">{tP("profileTab")}</TabsTrigger>
-          <TabsTrigger value="security">{tP("securityTab")}</TabsTrigger>
-          <TabsTrigger value="appearance">{tP("appearanceTab")}</TabsTrigger>
-          <TabsTrigger value="sessions">{tP("sessionsTab")}</TabsTrigger>
-          <TabsTrigger value="blocked">{tP("blockedTab")}</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 sm:grid-cols-2 md:grid-cols-5">
+          <TabsTrigger className="whitespace-normal" value="profile">
+            {tP("profileTab")}
+          </TabsTrigger>
+          <TabsTrigger className="whitespace-normal" value="security">
+            {tP("securityTab")}
+          </TabsTrigger>
+          <TabsTrigger className="whitespace-normal" value="appearance">
+            {tP("appearanceTab")}
+          </TabsTrigger>
+          <TabsTrigger className="whitespace-normal" value="sessions">
+            {tP("sessionsTab")}
+          </TabsTrigger>
+          <TabsTrigger className="whitespace-normal" value="blocked">
+            {tP("blockedTab")}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <div className="mt-5 space-y-6">

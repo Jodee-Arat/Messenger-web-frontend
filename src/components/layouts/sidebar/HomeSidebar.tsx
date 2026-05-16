@@ -12,7 +12,14 @@ import {
   getDirectChatDisplayName,
 } from "@/shared/utils/direct-chat";
 import { cn } from "@/shared/utils/tw-merge";
-import { Bookmark, Loader, LogIn, MessageSquare, UserPlus, Users } from "lucide-react";
+import {
+  Bookmark,
+  Loader,
+  LogIn,
+  MessageSquare,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -75,7 +82,7 @@ const DirectMessagesSidebarContent = ({ pathname }: { pathname: string }) => {
             className="mx-1 mt-1"
           />
         ) : (
-          allDMs.map(chat => {
+          allDMs.map((chat) => {
             const displayName = getDirectChatDisplayName(chat, userId);
             const displayAvatar = getDirectChatDisplayAvatar(chat, userId);
             const chatPath = getChatRoute({
@@ -151,7 +158,7 @@ const FriendsOverviewSidebarContent = ({ pathname }: { pathname: string }) => {
             />
           ) : (
             <div className="scrollbar-thin min-h-0 flex-1 space-y-1 overflow-y-auto">
-              {friendsPreview.map(friendship => {
+              {friendsPreview.map((friendship) => {
                 const friend = getFriendUser(friendship);
                 if (!friend) return null;
 
@@ -203,14 +210,14 @@ const HomeSidebar = () => {
   // Пока zustand не загрузился из localStorage — показываем скелетон
   if (!hasHydrated) {
     return (
-      <aside className="flex w-60 flex-col border-r border-border bg-card">
+      <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
             <h2 className="text-sm font-semibold">МесАгат</h2>
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-center">
+        <div className="hidden flex-1 items-center justify-center md:flex">
           <Loader className="text-muted-foreground size-5 animate-spin" />
         </div>
       </aside>
@@ -219,15 +226,15 @@ const HomeSidebar = () => {
 
   if (!isAuthenticated) {
     return (
-      <aside className="flex w-60 flex-col border-r border-border bg-card">
+      <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
         <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
             <h2 className="text-sm font-semibold">МесАгат</h2>
           </div>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-end gap-3 px-4 pb-6">
-          <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col gap-3 px-4 py-3 md:flex-1 md:items-center md:justify-end md:pb-6">
+          <div className="hidden flex-col items-center gap-2 md:flex">
             <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
               <Users className="size-8 text-primary" />
             </div>
@@ -235,25 +242,27 @@ const HomeSidebar = () => {
               {tAuth("loginToChat")}
             </p>
           </div>
-          <Button className="w-full" asChild>
-            <Link href="/account/login">
-              <LogIn className="mr-2 size-4" />
-              {tAuth("login")}
-            </Link>
-          </Button>
-          <Button className="w-full" variant="outline" asChild>
-            <Link href="/account/create">
-              <UserPlus className="mr-2 size-4" />
-              {tAuth("register")}
-            </Link>
-          </Button>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:w-full md:grid-cols-1">
+            <Button className="w-full" asChild>
+              <Link href="/account/login">
+                <LogIn className="size-4" />
+                {tAuth("login")}
+              </Link>
+            </Button>
+            <Button className="w-full" variant="outline" asChild>
+              <Link href="/account/create">
+                <UserPlus className="size-4" />
+                {tAuth("register")}
+              </Link>
+            </Button>
+          </div>
         </div>
       </aside>
     );
   }
 
   return (
-    <aside className="flex w-60 flex-col border-r border-border bg-card">
+    <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
       {/* Header */}
       <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -263,11 +272,11 @@ const HomeSidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-0.5 px-2 pt-3 pb-2">
+      <nav className="flex gap-2 overflow-x-auto px-2 py-2 md:block md:space-y-0.5 md:overflow-visible md:pt-3 md:pb-2">
         <Link
           href="/friends"
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:justify-start",
             pathname === "/friends"
               ? "bg-primary/15 text-primary"
               : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
@@ -279,7 +288,7 @@ const HomeSidebar = () => {
         <Link
           href="/dm"
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:justify-start",
             pathname === "/dm"
               ? "bg-primary/15 text-primary"
               : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
@@ -290,11 +299,13 @@ const HomeSidebar = () => {
         </Link>
       </nav>
 
-      {isFriendsPage ? (
-        <DirectMessagesSidebarContent pathname={pathname} />
-      ) : (
-        <FriendsOverviewSidebarContent pathname={pathname} />
-      )}
+      <div className="hidden min-h-0 flex-1 flex-col md:flex">
+        {isFriendsPage ? (
+          <DirectMessagesSidebarContent pathname={pathname} />
+        ) : (
+          <FriendsOverviewSidebarContent pathname={pathname} />
+        )}
+      </div>
 
       {/* User Panel */}
       <UserPanel />

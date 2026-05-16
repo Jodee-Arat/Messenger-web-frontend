@@ -176,9 +176,9 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
 
   const { data: roleData, loading: isLoadingMemberRole } =
     useGetMemberChatRoleQuery({
-    variables: { chatId },
-    skip: !isGroup,
-  });
+      variables: { chatId },
+      skip: !isGroup,
+    });
 
   useChatDeletedSubscription({
     variables: {
@@ -198,12 +198,22 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
     }
 
     if (isLoadingMemberRole) {
-      return { canSend: false, canEdit: false, canDelete: false, canPin: false };
+      return {
+        canSend: false,
+        canEdit: false,
+        canDelete: false,
+        canPin: false,
+      };
     }
 
     const role = roleData?.getMemberChatRole;
     if (!role) {
-      return { canSend: false, canEdit: false, canDelete: false, canPin: false };
+      return {
+        canSend: false,
+        canEdit: false,
+        canDelete: false,
+        canPin: false,
+      };
     }
 
     if (role.isCreator) {
@@ -334,9 +344,9 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
 
   return (
     <div className="flex h-full w-full flex-col bg-background/10">
-      <div className="border-b border-border/60 bg-card/90 px-4 py-3 backdrop-blur">
+      <div className="border-b border-border/60 bg-card/90 px-2 py-2 backdrop-blur sm:px-4 sm:py-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
             <BackButton
               href={backHref}
               className="size-10 shrink-0 rounded-full px-0"
@@ -350,12 +360,12 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
                   groupId: currentGroupId,
                   isGroup,
                 })}/settings`}
-                className="group flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-2 py-2 transition-colors hover:bg-background/35"
+                className="group flex min-w-0 flex-1 items-center gap-2 rounded-[24px] px-2 py-2 transition-colors hover:bg-background/35 sm:gap-3"
               >
                 {chatHeaderContent}
               </Link>
             ) : (
-              <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-2 py-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[24px] px-2 py-2 sm:gap-3">
                 {chatHeaderContent}
               </div>
             )}
@@ -393,7 +403,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-3 pt-2">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-2 pt-2 sm:px-3 sm:pb-3">
         <DragAndDropWrapper
           drop={drop}
           disabled={isDirectContactBlocked}
@@ -402,7 +412,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
           {shouldShowBlockedChatBody ? (
             <div className="flex flex-1 items-center justify-center px-4">
               <Card className="w-full max-w-xl">
-                <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
+                <CardContent className="flex flex-col items-center gap-4 p-4 text-center sm:p-6">
                   <div className="bg-destructive/10 text-destructive flex size-14 items-center justify-center rounded-full">
                     <ShieldOff className="size-7" />
                   </div>
@@ -473,7 +483,7 @@ const Chat: FC<ChatProp> = ({ chatId }) => {
           <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>{tSettings("inviteMember")}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[calc(100vh-16rem)] space-y-1 overflow-y-auto px-6 py-4">
+          <div className="max-h-[calc(100dvh-10rem)] space-y-1 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
             {invitableUsers.length === 0 ? (
               <p className="text-muted-foreground py-4 text-center text-sm">
                 {tSettings("noUsersToInvite")}

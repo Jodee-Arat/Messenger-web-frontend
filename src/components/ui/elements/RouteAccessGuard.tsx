@@ -35,12 +35,12 @@ const hasAuthLikeMessage = (error: unknown) => {
     "message" in error && typeof error.message === "string"
       ? error.message
       : null,
-    ...(("graphQLErrors" in error && Array.isArray(error.graphQLErrors)
+    ...("graphQLErrors" in error && Array.isArray(error.graphQLErrors)
       ? error.graphQLErrors
       : []
     ).flatMap((graphQLError) =>
       typeof graphQLError?.message === "string" ? [graphQLError.message] : [],
-    )),
+    ),
   ].filter((message): message is string => Boolean(message));
 
   return messages.some((message) => {
@@ -65,7 +65,7 @@ const GuardCard = ({
   description: string;
   actions: ReactNode;
 }) => (
-  <div className="flex min-h-full flex-1 items-center justify-center p-6">
+  <div className="flex min-h-full flex-1 items-center justify-center p-4 sm:p-6">
     <Card className="w-full max-w-xl border-border/60 bg-card/80 shadow-sm backdrop-blur">
       <CardContent className="flex flex-col items-center gap-5 p-8 text-center">
         <div className="bg-primary/10 text-primary flex size-14 items-center justify-center rounded-full">
@@ -86,7 +86,7 @@ const GuardCard = ({
 );
 
 const GuardLoadingState = () => (
-  <div className="flex min-h-full flex-1 items-center justify-center p-6">
+  <div className="flex min-h-full flex-1 items-center justify-center p-4 sm:p-6">
     <div className="flex flex-col items-center gap-4">
       <div className="border-primary/30 border-t-primary size-10 animate-spin rounded-full border-2" />
     </div>
@@ -155,7 +155,8 @@ const RouteAccessGuard = ({
       typeof chatAccessData?.checkChatAccess !== "boolean" &&
       !chatAccessError);
   const shouldShowLoadingState =
-    !hasHydrated || (scope !== "auth" && (isLoadingAccess || isAwaitingInitialAccessResult));
+    !hasHydrated ||
+    (scope !== "auth" && (isLoadingAccess || isAwaitingInitialAccessResult));
   const accessAllowed =
     scope === "auth"
       ? true
@@ -247,10 +248,15 @@ const RouteAccessGuard = ({
       <GuardCard
         icon={<TriangleAlert className="size-7" />}
         title={t("accessCheckFailedTitle")}
-        description={getGraphQLErrorMessage(accessError, t("accessCheckFailedDescription"))}
+        description={getGraphQLErrorMessage(
+          accessError,
+          t("accessCheckFailedDescription"),
+        )}
         actions={
           <>
-            <Button onClick={() => void handleRetry()}>{tCommon("retry")}</Button>
+            <Button onClick={() => void handleRetry()}>
+              {tCommon("retry")}
+            </Button>
             <Button variant="outline" asChild>
               <Link href={fallbackHref}>{tCommon("back")}</Link>
             </Button>

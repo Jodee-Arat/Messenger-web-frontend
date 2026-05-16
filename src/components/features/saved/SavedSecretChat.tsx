@@ -1148,9 +1148,9 @@ const SavedSecretChat = () => {
 
   if (loadError) {
     return (
-      <div className="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center">
+      <div className="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center px-4">
         <Card className="w-full">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <Alert variant="destructive">
               <LockKeyhole className="size-4" />
               <AlertTitle>{t("loadErrorTitle")}</AlertTitle>
@@ -1174,7 +1174,7 @@ const SavedSecretChat = () => {
       disabled={!canCompose || isSendingSavedMessage}
       className="flex h-full min-h-0 flex-col"
     >
-      <div className="scrollbar-thin flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-4 pr-1">
+      <div className="scrollbar-thin flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-4 sm:pr-1">
       <Card className="shrink-0 border-border/60 bg-card/90">
         <CardHeader className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -1293,7 +1293,7 @@ const SavedSecretChat = () => {
         </CardContent>
       </Card>
 
-      <Card className="flex min-h-[28rem] flex-1 flex-col border-border/60 bg-card/90">
+      <Card className="flex min-h-[24rem] flex-1 flex-col border-border/60 bg-card/90 sm:min-h-[28rem]">
         <CardHeader>
           <CardTitle className="text-base">{t("messagesTitle")}</CardTitle>
         </CardHeader>
@@ -1313,7 +1313,7 @@ const SavedSecretChat = () => {
               savedMessages.map((message) => (
                 <div
                   key={message.id}
-                  className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground"
+                  className="ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground sm:max-w-[80%]"
                 >
                   {message.text && (
                     <p className="whitespace-pre-wrap break-words text-sm">

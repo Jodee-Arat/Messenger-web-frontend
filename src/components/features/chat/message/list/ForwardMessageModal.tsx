@@ -183,7 +183,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="flex h-[min(42rem,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex-col gap-0 overflow-hidden border-border/60 bg-background/95 p-0 shadow-2xl backdrop-blur sm:max-w-md">
+      <DialogContent className="flex h-[min(42rem,calc(100dvh-1rem))] max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-hidden border-border/60 bg-background/95 p-0 shadow-2xl backdrop-blur sm:h-[min(42rem,calc(100vh-2rem))] sm:max-h-[calc(100vh-2rem)] sm:max-w-md">
         <DialogHeader className="border-b border-border/60 bg-card/40 px-6 pb-4 pt-6 pr-12">
           <DialogTitle>{t("forwardMessages")}</DialogTitle>
           <DialogDescription>{""}</DialogDescription>
@@ -193,7 +193,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <div className="flex min-h-0 flex-1 flex-col gap-6 px-6 py-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-6 px-4 py-4 sm:px-6">
               <FormField
                 control={form.control}
                 name="text"
@@ -348,7 +348,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
               )}
             </div>
 
-            <div className="border-t border-border/60 bg-card/40 px-6 py-4">
+            <div className="border-t border-border/60 bg-card/40 px-4 py-4 sm:px-6">
               <Button
                 className="w-full"
                 disabled={

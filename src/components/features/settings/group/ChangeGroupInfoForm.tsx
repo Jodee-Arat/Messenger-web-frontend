@@ -91,7 +91,7 @@ const ChangeGroupInfoForm = ({
                 control={form.control}
                 name="groupName"
                 render={({ field }) => (
-                  <FormItem className="px-5 pb-3">
+                  <FormItem className="px-4 pb-3 sm:px-5">
                     <FormLabel>{t("groupNameLabel")}</FormLabel>
                     <FormControl>
                       <Input
@@ -114,7 +114,7 @@ const ChangeGroupInfoForm = ({
                 name="description"
                 control={form.control}
                 render={({ field }) => (
-                  <FormItem className="px-5 pb-3">
+                  <FormItem className="px-4 pb-3 sm:px-5">
                     <FormLabel>{t("groupDescLabel")}</FormLabel>
                     <FormControl>
                       <Textarea
@@ -131,8 +131,9 @@ const ChangeGroupInfoForm = ({
             </>
           )}
 
-          <div className="flex justify-end p-5">
+          <div className="flex justify-end p-4 sm:p-5">
             <Button
+              className="w-full sm:w-auto"
               disabled={
                 !isValid ||
                 !isDirty ||

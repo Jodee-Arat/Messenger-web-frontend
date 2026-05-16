@@ -105,12 +105,12 @@ const GroupsSidebar = () => {
   }, [deleteGroupData]);
 
   return (
-    <aside className="flex h-full w-[72px] flex-shrink-0 flex-col items-center border-r border-border bg-background py-3">
+    <aside className="order-last flex h-[calc(4rem+env(safe-area-inset-bottom))] w-full flex-shrink-0 items-center border-t border-border bg-background px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:order-none md:h-full md:w-[72px] md:flex-col md:border-r md:border-t-0 md:px-0 md:py-3">
       {/* Home button - like Discord's DM icon */}
       <Link
         href="/"
         className={cn(
-          "mb-2 flex size-12 items-center justify-center rounded-2xl transition-all hover:rounded-xl",
+          "mr-2 flex size-12 shrink-0 items-center justify-center rounded-2xl transition-all hover:rounded-xl md:mr-0 md:mb-2",
           pathname === "/" || pathname === "/friends" || pathname === "/dm"
             ? "bg-primary text-primary-foreground rounded-xl"
             : "bg-card text-foreground hover:bg-primary hover:text-primary-foreground",
@@ -123,11 +123,11 @@ const GroupsSidebar = () => {
       </Link>
 
       {/* Separator */}
-      <div className="bg-border mx-auto mb-2 h-0.5 w-8 rounded-full" />
+      <div className="bg-border mx-auto mb-2 hidden h-0.5 w-8 rounded-full md:block" />
 
       {/* Group list */}
       {user?.id ? (
-        <div className="scrollbar-thin scrollbar-transparent flex flex-1 flex-col items-center space-y-2 overflow-y-auto overflow-x-hidden [&>*]:shrink-0">
+        <div className="scrollbar-thin scrollbar-transparent flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overflow-y-hidden md:min-h-0 md:flex-col md:gap-0 md:space-y-2 md:overflow-x-hidden md:overflow-y-auto [&>*]:shrink-0">
           {allGroups.map((group) => (
             <GroupDropdownTrigger
               key={group.id}

@@ -81,7 +81,7 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
           control={form.control}
           name="file"
           render={({ field }) => (
-            <div className="px-5 pb-5 pt-5">
+            <div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5">
               <div className="flex flex-col gap-5 rounded-[22px] border border-border/60 bg-background/40 p-4 sm:p-5">
                 <EntityAvatar
                   size="xl"
@@ -94,11 +94,12 @@ const ChangeChatAvatarForm = ({ chatId }: { chatId: string }) => {
                       className="hidden"
                       type="file"
                       ref={inputRef}
-                      onChange={e => handleImageChange(e)}
+                      onChange={(e) => handleImageChange(e)}
                     />
                     <Button
                       type="button"
                       variant="secondary"
+                      className="w-full sm:w-auto"
                       onClick={() => inputRef.current?.click()}
                       disabled={isLoadingRemoveAvatar || isLoadingUpdateAvatar}
                     >

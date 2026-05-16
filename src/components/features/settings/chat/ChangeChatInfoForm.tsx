@@ -88,7 +88,7 @@ const ChangeChatInfoForm = ({
                 control={form.control}
                 name="chatName"
                 render={({ field }) => (
-                  <FormItem className="px-5 pb-3 pt-5">
+                  <FormItem className="px-4 pb-3 pt-4 sm:px-5 sm:pt-5">
                     <FormLabel>{t("chatNameLabel")}</FormLabel>
                     <FormControl>
                       <Input
@@ -111,7 +111,7 @@ const ChangeChatInfoForm = ({
                 name="description"
                 control={form.control}
                 render={({ field }) => (
-                  <FormItem className="px-5 pb-3 pt-5">
+                  <FormItem className="px-4 pb-3 pt-4 sm:px-5 sm:pt-5">
                     <FormLabel>{t("chatDescLabel")}</FormLabel>
                     <FormControl>
                       <Textarea
@@ -128,8 +128,9 @@ const ChangeChatInfoForm = ({
             </>
           )}
 
-          <div className="flex justify-end p-5">
+          <div className="flex justify-end p-4 sm:p-5">
             <Button
+              className="w-full sm:w-auto"
               disabled={
                 !isValid ||
                 !isDirty ||

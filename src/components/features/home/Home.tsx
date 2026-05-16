@@ -182,10 +182,10 @@ const Home = () => {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t("friends")}</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold sm:text-3xl">{t("friends")}</h1>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
             <Link href="/dm">
               <MessageSquare className="mr-2 size-4" />
               {t("messages")}
@@ -193,7 +193,7 @@ const Home = () => {
           </Button>
           <Dialog open={addDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Search className="mr-2 size-4" />
                 {t("findPeople")}
               </Button>
@@ -207,7 +207,7 @@ const Home = () => {
                   onChange={(e) => setFindPeopleQuery(e.target.value)}
                 />
               </DialogHeader>
-              <div className="max-h-[calc(100vh-16rem)] overflow-y-auto px-6 py-4">
+              <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
                 <div className="space-y-2">
                   {isWaitingForFindPeopleSearch ||
                   (hasSettledFindPeopleQuery && isLoadingUsers) ? (
@@ -255,8 +255,8 @@ const Home = () => {
       </div>
 
       <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 sm:grid-cols-3 md:inline-flex md:w-auto">
+          <TabsTrigger className="whitespace-normal" value="all">
             {t("all")}{" "}
             {friends.length > 0 && (
               <span className="text-muted-foreground ml-1">
@@ -264,7 +264,7 @@ const Home = () => {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="incoming">
+          <TabsTrigger className="whitespace-normal" value="incoming">
             {t("incoming")}{" "}
             {incoming.length > 0 && (
               <span className="text-muted-foreground ml-1">
@@ -272,7 +272,7 @@ const Home = () => {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="outgoing">
+          <TabsTrigger className="whitespace-normal" value="outgoing">
             {t("outgoing")}{" "}
             {outgoing.length > 0 && (
               <span className="text-muted-foreground ml-1">
@@ -306,10 +306,10 @@ const Home = () => {
 
               return (
                 <Card key={f.id} className="group">
-                  <CardContent className="flex items-center gap-3 p-3">
+                  <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
                     <Link
                       href={`/${u.id}`}
-                      className="flex items-center gap-3 flex-1 min-w-0"
+                      className="flex w-full min-w-0 flex-1 items-center gap-3"
                     >
                       <EntityAvatar name={u.username} avatarUrl={u.avatarUrl} />
                       <div className="min-w-0 flex-1">
@@ -323,7 +323,7 @@ const Home = () => {
                         </p>
                       </div>
                     </Link>
-                    <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex w-full justify-end gap-1 opacity-100 transition-opacity sm:w-auto sm:opacity-0 sm:group-hover:opacity-100">
                       <Button
                         size="icon"
                         variant="ghost"
@@ -370,15 +370,15 @@ const Home = () => {
               if (!u) return null;
               return (
                 <Card key={req.id}>
-                  <CardContent className="flex items-center gap-3 p-3">
+                  <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
                     <EntityAvatar name={u.username} avatarUrl={u.avatarUrl} />
-                    <div className="flex-1">
+                    <div className="w-full min-w-0 flex-1">
                       <p className="text-sm font-semibold">{u.username}</p>
                       <p className="text-muted-foreground text-xs">
                         {t("incomingFriendRequest")}
                       </p>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex w-full justify-end gap-1 sm:w-auto">
                       <Button
                         size="icon"
                         variant="default"
@@ -417,9 +417,9 @@ const Home = () => {
               if (!u) return null;
               return (
                 <Card key={req.id}>
-                  <CardContent className="flex items-center gap-3 p-3">
+                  <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
                     <EntityAvatar name={u.username} avatarUrl={u.avatarUrl} />
-                    <div className="flex-1">
+                    <div className="w-full min-w-0 flex-1">
                       <p className="text-sm font-semibold">{u.username}</p>
                       <p className="text-muted-foreground text-xs">
                         {t("outgoingPending")}
@@ -428,6 +428,7 @@ const Home = () => {
                     <Button
                       size="icon"
                       variant="outline"
+                      className="self-end sm:self-auto"
                       onClick={() => handleCancel(req.id)}
                       title={t("cancel")}
                     >

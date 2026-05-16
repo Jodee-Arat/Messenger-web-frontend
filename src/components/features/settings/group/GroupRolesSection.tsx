@@ -147,7 +147,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
   // Sync selectedRole with updated roles prop (e.g. after permission toggle mutation)
   useEffect(() => {
     if (selectedRole) {
-      const updated = roles.find(r => r.id === selectedRole.id);
+      const updated = roles.find((r) => r.id === selectedRole.id);
       if (updated) {
         setSelectedRole(updated);
       } else {
@@ -170,7 +170,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
   };
 
   const toggleNewPerm = (key: GroupPermissionEnum) => {
-    setNewPerms(prev => {
+    setNewPerms((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
@@ -181,7 +181,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
   return (
     <div className="mt-5 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-muted-foreground flex items-center gap-2 text-sm font-semibold">
           <Crown className="size-4 text-yellow-500" />
           {t("roles")} — {roles.length}
@@ -189,7 +189,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
       </div>
 
       {/* Roles list */}
-      {roles.map(role => (
+      {roles.map((role) => (
         <Card
           key={role.id}
           className="cursor-pointer transition-colors hover:bg-accent/50"
@@ -200,9 +200,11 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
               className="size-3.5 rounded-full"
               style={{ backgroundColor: role.color }}
             />
-            <div className="flex-1">
-              <span className="text-sm font-semibold">{role.name}</span>
-              <span className="text-muted-foreground ml-2 text-xs">
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold">
+                {role.name}
+              </span>
+              <span className="text-muted-foreground block truncate text-xs sm:ml-2 sm:inline">
                 {role.permissions.length} of {ALL_PERMISSIONS.length}{" "}
                 {t("permissionsCount")}
               </span>
@@ -232,7 +234,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
           <DialogHeader className="border-b border-border/60 bg-background px-6 pb-4 pt-6 pr-12">
             <DialogTitle>{t("createRole")}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[calc(100vh-16rem)] space-y-4 overflow-y-auto px-6 py-4">
+          <div className="max-h-[calc(100dvh-10rem)] space-y-4 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
             {/* Name */}
             <div>
               <label className="text-muted-foreground mb-1 block text-xs font-semibold uppercase">
@@ -241,7 +243,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
               <Input
                 placeholder={t("exampleRole")}
                 value={newName}
-                onChange={e => setNewName(e.target.value)}
+                onChange={(e) => setNewName(e.target.value)}
               />
             </div>
 
@@ -260,7 +262,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                 </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2.5">
-                {GROUP_ROLE_COLORS.map(color => {
+                {GROUP_ROLE_COLORS.map((color) => {
                   const isSelected = newColor === color;
                   const isLightColor = color.toLowerCase() === "#ffffff";
 
@@ -306,7 +308,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                 {t("permissions")}
               </label>
               <div className="space-y-2">
-                {ALL_PERMISSIONS.map(perm => (
+                {ALL_PERMISSIONS.map((perm) => (
                   <label
                     key={perm.key}
                     className="flex items-start gap-3 rounded-md p-2 hover:bg-accent/30"
@@ -329,7 +331,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
             </div>
           </div>
 
-          <div className="border-t border-border/60 bg-background px-6 py-4">
+          <div className="border-t border-border/60 bg-background px-4 py-4 sm:px-6">
             <Button
               className="w-full gap-2"
               disabled={!newName.trim()}
@@ -345,7 +347,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
       {/* Role Detail Dialog */}
       <Dialog
         open={!!selectedRole}
-        onOpenChange={open => !open && setSelectedRole(null)}
+        onOpenChange={(open) => !open && setSelectedRole(null)}
       >
         <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
           {selectedRole && (
@@ -360,18 +362,18 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="max-h-[calc(100vh-16rem)] space-y-4 overflow-y-auto px-6 py-4">
+              <div className="max-h-[calc(100dvh-10rem)] space-y-4 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
                 {/* Permissions */}
                 <div>
                   <label className="text-muted-foreground mb-2 block text-xs font-semibold uppercase">
                     {t("permissions")}
                   </label>
-                  {ALL_PERMISSIONS.map(perm => {
+                  {ALL_PERMISSIONS.map((perm) => {
                     const enabled = selectedRole.permissions.includes(perm.key);
                     return (
                       <div
                         key={perm.key}
-                        className="flex items-center justify-between border-b py-2.5 last:border-0"
+                        className="flex flex-col gap-2 border-b py-2.5 last:border-0 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div>
                           <span className="text-sm font-medium">
@@ -418,7 +420,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
                       {t("noMembersWithRole")}
                     </p>
                   ) : (
-                    getMembersWithRole(selectedRole.id).map(m => (
+                    getMembersWithRole(selectedRole.id).map((m) => (
                       <div
                         key={m.user.id}
                         className="flex items-center gap-2 border-b py-2 last:border-0"
@@ -436,7 +438,7 @@ const GroupRolesSection: FC<GroupRolesSectionProps> = ({
               </div>
 
               {canDeleteRoles && (
-                <div className="border-t border-border/60 bg-background px-6 py-4">
+                <div className="border-t border-border/60 bg-background px-4 py-4 sm:px-6">
                   <ConfirmModal
                     heading={t("deleteRole")}
                     message={t("deleteRoleConfirm", {

@@ -128,8 +128,8 @@ const GroupSettings = () => {
     onData: ({ data: subData }) => {
       const upserted = subData.data?.groupUpsertedRole;
       if (!upserted) return;
-      setRoles(prev => {
-        const idx = prev.findIndex(r => r.id === upserted.id);
+      setRoles((prev) => {
+        const idx = prev.findIndex((r) => r.id === upserted.id);
         if (idx >= 0) {
           const copy = [...prev];
           copy[idx] = upserted;
@@ -145,10 +145,10 @@ const GroupSettings = () => {
     onData: ({ data: subData }) => {
       const deleted = subData.data?.groupDeletedRole;
       if (!deleted) return;
-      setRoles(prev => prev.filter(r => r.id !== deleted.id));
-      setUserRoles(prev => {
+      setRoles((prev) => prev.filter((r) => r.id !== deleted.id));
+      setUserRoles((prev) => {
         const copy = { ...prev };
-        Object.keys(copy).forEach(uid => {
+        Object.keys(copy).forEach((uid) => {
           if (copy[uid] === deleted.id) delete copy[uid];
         });
         return copy;
@@ -211,7 +211,7 @@ const GroupSettings = () => {
   ) => {
     const has = role.permissions.includes(permKey);
     const newPerms = has
-      ? role.permissions.filter(p => p !== permKey)
+      ? role.permissions.filter((p) => p !== permKey)
       : [...role.permissions, permKey];
 
     await upsertGroupRole({
@@ -222,8 +222,8 @@ const GroupSettings = () => {
     });
 
     // Optimistically update local roles state
-    setRoles(prev =>
-      prev.map(r => (r.id === role.id ? { ...r, permissions: newPerms } : r)),
+    setRoles((prev) =>
+      prev.map((r) => (r.id === role.id ? { ...r, permissions: newPerms } : r)),
     );
   };
 
@@ -236,9 +236,9 @@ const GroupSettings = () => {
     }
     if (roleId && roleId !== currentRoleId) {
       await assignGroupRole({ variables: { groupId, roleId, memberId } });
-      setUserRoles(prev => ({ ...prev, [memberId]: roleId }));
+      setUserRoles((prev) => ({ ...prev, [memberId]: roleId }));
     } else {
-      setUserRoles(prev => {
+      setUserRoles((prev) => {
         const copy = { ...prev };
         delete copy[memberId];
         return copy;
@@ -272,16 +272,16 @@ const GroupSettings = () => {
 
   const getRoleForUser = (userId: string): GroupRoleData | undefined => {
     const roleId = userRoles[userId];
-    return roleId ? roles.find(r => r.id === roleId) : undefined;
+    return roleId ? roles.find((r) => r.id === roleId) : undefined;
   };
 
   const getMembersWithRole = (roleId: string) =>
-    members.filter(m => userRoles[m.user.id] === roleId);
+    members.filter((m) => userRoles[m.user.id] === roleId);
 
   if (isLoadingGroup || isLoadingMemberRole) {
     return (
       <div className="flex h-full flex-1 justify-center overflow-y-auto">
-        <div className="w-full max-w-3xl px-6 py-8 lg:px-12">
+        <div className="w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12">
           <BackButton href={`/group/${groupId}`} className="mb-4 w-fit" />
           <Heading
             title={t("groupSettingsTitle")}
@@ -295,7 +295,7 @@ const GroupSettings = () => {
 
   return (
     <div className="flex h-full flex-1 justify-center overflow-y-auto">
-      <div className="w-full max-w-3xl px-6 py-8 lg:px-12">
+      <div className="w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-12">
         <BackButton href={`/group/${groupId}`} className="mb-4 w-fit" />
         <Heading
           title={t("groupSettingsTitle")}
@@ -303,17 +303,25 @@ const GroupSettings = () => {
           size="lg"
         />
         <Tabs defaultValue="group" className="mt-6 w-full">
-          <TabsList>
-            <TabsTrigger value="group">{t("info")}</TabsTrigger>
-            <TabsTrigger value="members">{t("membersTab")}</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-1 gap-1 sm:grid-cols-3 md:inline-flex md:w-auto">
+            <TabsTrigger className="whitespace-normal" value="group">
+              {t("info")}
+            </TabsTrigger>
+            <TabsTrigger className="whitespace-normal" value="members">
+              {t("membersTab")}
+            </TabsTrigger>
             {canAccessRoles && (
-              <TabsTrigger value="roles">{t("rolesTab")}</TabsTrigger>
+              <TabsTrigger className="whitespace-normal" value="roles">
+                {t("rolesTab")}
+              </TabsTrigger>
             )}
           </TabsList>
 
           <TabsContent value="group">
             <div className="mt-6 space-y-8">
-              {canChangeGroupAvatar && <ChangeGroupAvatarForm groupId={groupId} />}
+              {canChangeGroupAvatar && (
+                <ChangeGroupAvatarForm groupId={groupId} />
+              )}
 
               {(canChangeGroupInfo || canChangeGroupName) && (
                 <ChangeGroupInfoForm

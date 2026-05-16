@@ -74,7 +74,7 @@ const DirectMessages = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl space-y-3">
+      <div className="mx-auto w-full max-w-2xl space-y-3">
         <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 p-3">
@@ -132,8 +132,8 @@ const DirectMessages = () => {
     );
 
     return (
-        <ContextMenu>
-          <ContextMenuTrigger>
+      <ContextMenu>
+        <ContextMenuTrigger>
           <Link
             href={getChatRoute({
               chatId: chat.id,
@@ -144,8 +144,10 @@ const DirectMessages = () => {
             <Card className="cursor-pointer transition-colors hover:bg-primary/10">
               <CardContent className="flex items-center gap-3 p-3">
                 <EntityAvatar name={displayName} avatarUrl={displayAvatar} />
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-semibold">{displayName}</p>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <p className="truncate text-sm font-semibold">
+                    {displayName}
+                  </p>
                   <p
                     className={`truncate text-xs ${
                       hasDraft ? "text-primary" : "text-muted-foreground"
@@ -154,7 +156,7 @@ const DirectMessages = () => {
                     {previewContent}
                   </p>
                 </div>
-                <div className="ml-2 flex flex-col items-end gap-1">
+                <div className="ml-2 flex shrink-0 flex-col items-end gap-1">
                   <span className="text-[10px] text-muted-foreground">
                     {formatTime(chat.lastMessageAt || chat.updatedAt)}
                   </span>
@@ -191,7 +193,7 @@ const DirectMessages = () => {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <div className="relative w-full max-w-sm">

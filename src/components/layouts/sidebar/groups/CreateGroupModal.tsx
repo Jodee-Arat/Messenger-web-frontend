@@ -223,7 +223,7 @@ const CreateGroupModal: FC<CreateGroupModalProp> = ({}) => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col"
           >
-            <div className="min-h-0 max-h-[calc(100vh-16rem)] space-y-6 overflow-y-auto px-6 py-4">
+            <div className="min-h-0 max-h-[calc(100dvh-10rem)] space-y-6 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-16rem)] sm:px-6">
               <div className="space-y-3">
                 <div>
                   <FormLabel>{t("groupAvatar")}</FormLabel>
@@ -361,7 +361,7 @@ const CreateGroupModal: FC<CreateGroupModalProp> = ({}) => {
               )}
             </div>
 
-            <div className="border-t border-border/60 bg-background px-6 py-4">
+            <div className="border-t border-border/60 bg-background px-4 py-4 sm:px-6">
               <Button
                 className="w-full"
                 disabled={!isValid || isSubmitting || isLoadingFriends}
