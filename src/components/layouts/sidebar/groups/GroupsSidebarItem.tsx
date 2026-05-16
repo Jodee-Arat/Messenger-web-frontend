@@ -10,12 +10,38 @@ import Hint from "@/components/ui/elements/Hint";
 
 interface GroupsSidebarItemProps {
   group: FindAllGroupsByUserQuery["findAllGroupsByUser"][0];
+  variant?: "icon" | "row";
+  onNavigate?: () => void;
 }
 
-const GroupsSidebarItem = ({ group }: GroupsSidebarItemProps) => {
+const GroupsSidebarItem = ({
+  group,
+  variant = "icon",
+  onNavigate,
+}: GroupsSidebarItemProps) => {
   const pathname = usePathname();
 
   const isActive = pathname.startsWith("/group/" + group.id);
+
+  if (variant === "row") {
+    return (
+      <Link
+        href={"/group/" + group.id}
+        onClick={onNavigate}
+        className={cn(
+          "flex min-w-0 items-center gap-3 border-b border-border/50 px-5 py-3 transition-colors",
+          isActive
+            ? "bg-primary/12 text-primary"
+            : "text-foreground hover:bg-primary/10",
+        )}
+      >
+        <EntityAvatar name={group.groupName} avatarUrl={group.avatarUrl} />
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">
+          {group.groupName}
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <Hint label={group.groupName} asChild side="right">

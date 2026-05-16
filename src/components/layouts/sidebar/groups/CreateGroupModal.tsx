@@ -7,8 +7,8 @@ import {
 } from "@/shared/graphql/generated/output";
 import { uploadFileSchema } from "@/shared/schemas/upload-file.schema";
 import {
-  createGroupSchema,
   createGroupSchemaType,
+  createGroupSchemaFactory,
 } from "@/shared/schemas/group/create-group.schema";
 import { CirclePlus, Trash } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -48,6 +48,11 @@ interface CreateGroupModalProp {}
 
 const CreateGroupModal: FC<CreateGroupModalProp> = ({}) => {
   const t = useTranslations("groups");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createGroupSchemaFactory(tValidation),
+    [tValidation],
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const { user: currentUser } = useCurrentUser();
@@ -60,7 +65,7 @@ const CreateGroupModal: FC<CreateGroupModalProp> = ({}) => {
   } = useGetFriendsQuery({ skip: !isOpen });
 
   const form = useForm<createGroupSchemaType>({
-    resolver: zodResolver(createGroupSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       groupName: "",

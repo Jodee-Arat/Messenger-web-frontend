@@ -127,7 +127,12 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
         )}
         <ContextMenuItem
           className="cursor-pointer"
-          onClick={() => copyToClipboard(messageInfo.text ?? "")}
+          onClick={() =>
+            copyToClipboard(messageInfo.text ?? "", {
+              copied: t("textCopied"),
+              failed: t("copyFailed"),
+            })
+          }
         >
           {t("copy")}
         </ContextMenuItem>
@@ -138,7 +143,7 @@ const ChatMessageDropdownTrigger: FC<ChatMessageDropdownProp> = ({
               startEdit(
                 messageInfo,
                 messageInfo?.repliedToLinks
-                  ?.map(link => link?.repliedTo)
+                  ?.map((link) => link?.repliedTo)
                   .filter((msg): msg is ForwardedMessageType => !!msg) ?? [],
               )
             }

@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useChangeProfileInfoMutation } from "@/shared/graphql/generated/output";
 import { useCurrentUser } from "@/shared/hooks/useCurrentUser";
 import {
-  ChangeInfoProfileSchema,
   TypeChangeInfoProfileSchema,
+  createChangeInfoProfileSchema,
 } from "@/shared/schemas/user/change-info-profile.schema";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -29,10 +30,15 @@ import { FormWrapper } from "@/components/ui/elements/FormWrapper";
 
 const ChangeInfoForm = () => {
   const t = useTranslations("profileSettings");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createChangeInfoProfileSchema(tValidation),
+    [tValidation],
+  );
   const { user, isLoadingProfile, refetch } = useCurrentUser();
 
   const form = useForm<TypeChangeInfoProfileSchema>({
-    resolver: zodResolver(ChangeInfoProfileSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     reValidateMode: "onChange",
     values: {

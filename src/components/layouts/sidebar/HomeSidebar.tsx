@@ -211,7 +211,7 @@ const HomeSidebar = () => {
   if (!hasHydrated) {
     return (
       <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
-        <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
+        <div className="hidden h-12 items-center border-b border-border px-4 shadow-sm md:flex">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
             <h2 className="text-sm font-semibold">МесАгат</h2>
@@ -227,7 +227,7 @@ const HomeSidebar = () => {
   if (!isAuthenticated) {
     return (
       <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
-        <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
+        <div className="hidden h-12 items-center border-b border-border px-4 shadow-sm md:flex">
           <div className="flex items-center gap-3">
             <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
             <h2 className="text-sm font-semibold">МесАгат</h2>
@@ -264,7 +264,7 @@ const HomeSidebar = () => {
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card md:h-full md:w-60 md:border-r md:border-b-0">
       {/* Header */}
-      <div className="flex h-12 items-center border-b border-border px-4 shadow-sm">
+      <div className="hidden h-12 items-center border-b border-border px-4 shadow-sm md:flex">
         <div className="flex items-center gap-3">
           <BrandMark className="size-8 rounded-xl" imageClassName="p-[10%]" />
           <h2 className="text-sm font-semibold">МесАгат</h2>
@@ -272,13 +272,13 @@ const HomeSidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex gap-2 overflow-x-auto px-2 py-2 md:block md:space-y-0.5 md:overflow-visible md:pt-3 md:pb-2">
+      <nav className="flex gap-2 overflow-x-auto px-3 py-2 md:block md:space-y-0.5 md:overflow-visible md:px-2 md:pt-3 md:pb-2">
         <Link
           href="/friends"
           className={cn(
-            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:justify-start",
+            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors md:justify-start md:rounded-md md:py-2 md:font-medium",
             pathname === "/friends"
-              ? "bg-primary/15 text-primary"
+              ? "bg-primary/20 text-primary"
               : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
           )}
         >
@@ -288,9 +288,9 @@ const HomeSidebar = () => {
         <Link
           href="/dm"
           className={cn(
-            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:justify-start",
+            "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors md:justify-start md:rounded-md md:py-2 md:font-medium",
             pathname === "/dm"
-              ? "bg-primary/15 text-primary"
+              ? "bg-primary/20 text-primary"
               : "text-muted-foreground hover:bg-primary/10 hover:text-foreground",
           )}
         >

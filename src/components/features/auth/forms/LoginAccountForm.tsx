@@ -5,9 +5,10 @@ import { useLoginUserMutation } from "@/shared/graphql/generated/output";
 import { useAuth } from "@/shared/hooks/useAuth";
 import {
   LoginUserSchemaType,
-  loginUserSchema,
+  createLoginUserSchema,
 } from "@/shared/schemas/auth/login-user.schema";
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -25,16 +26,21 @@ import { PasswordInput } from "@/components/ui/common/PasswordInput";
 import AuthWrapper from "../AuthWrapper";
 
 const LoginAccountForm = () => {
+  const t = useTranslations("auth");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createLoginUserSchema(tValidation),
+    [tValidation],
+  );
+
   const form = useForm<LoginUserSchemaType>({
-    resolver: zodResolver(loginUserSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       login: "",
       password: "",
     },
   });
-
-  const t = useTranslations("auth");
 
   const { auth } = useAuth();
 

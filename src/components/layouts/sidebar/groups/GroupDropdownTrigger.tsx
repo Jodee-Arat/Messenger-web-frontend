@@ -18,11 +18,15 @@ import GroupsSidebarItem from "./GroupsSidebarItem";
 interface GroupDropdownTriggerProps {
   group: FindAllGroupsByUserQuery["findAllGroupsByUser"][0];
   deleteGroup: (groupId: string) => void;
+  variant?: "icon" | "row";
+  onNavigate?: () => void;
 }
 
 const GroupDropdownTrigger = ({
   group,
   deleteGroup,
+  variant = "icon",
+  onNavigate,
 }: GroupDropdownTriggerProps) => {
   const t = useTranslations("groups");
   const { data: roleData } = useGetMemberRoleQuery({
@@ -35,13 +39,23 @@ const GroupDropdownTrigger = ({
     (currentRole?.permissions ?? []).includes(GroupPermissionEnum.DeleteGroup);
 
   if (!canDeleteGroup) {
-    return <GroupsSidebarItem group={group} />;
+    return (
+      <GroupsSidebarItem
+        group={group}
+        variant={variant}
+        onNavigate={onNavigate}
+      />
+    );
   }
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>
-        <GroupsSidebarItem group={group} />
+      <ContextMenuTrigger asChild>
+        <GroupsSidebarItem
+          group={group}
+          variant={variant}
+          onNavigate={onNavigate}
+        />
       </ContextMenuTrigger>
       <ContextMenuContent className="w-[230px]">
         <ContextMenuItem

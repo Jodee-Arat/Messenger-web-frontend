@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useChangeChatInfoMutation } from "@/shared/graphql/generated/output";
 import { useCurrentChat } from "@/shared/hooks/useCurrentChat";
 import {
-  ChangeInfoChatSchema,
   TypeChangeInfoChatSchema,
+  createChangeInfoChatSchema,
 } from "@/shared/schemas/chat/change-info-group.schema";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -19,6 +20,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
 import { Separator } from "@/components/ui/common/Separator";
@@ -38,12 +40,17 @@ const ChangeChatInfoForm = ({
   canChangeChatName = false,
 }: ChangeChatInfoFormProps) => {
   const t = useTranslations("settings");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createChangeInfoChatSchema(tValidation),
+    [tValidation],
+  );
   const { chat, isLoadingChat, refetch } = useCurrentChat(chatId);
   const initialChatName = chat?.chatName ?? "";
   const initialDescription = chat?.description ?? "";
 
   const form = useForm<TypeChangeInfoChatSchema>({
-    resolver: zodResolver(ChangeInfoChatSchema),
+    resolver: zodResolver(schema),
     values: {
       chatName: initialChatName,
       description: initialDescription,
@@ -98,6 +105,7 @@ const ChangeChatInfoForm = ({
                       />
                     </FormControl>
                     <FormDescription>{t("chatNameDesc")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -121,6 +129,7 @@ const ChangeChatInfoForm = ({
                       />
                     </FormControl>
                     <FormDescription>{t("chatDescDesc")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

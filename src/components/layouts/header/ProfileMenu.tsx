@@ -7,6 +7,7 @@ import { revokeCurrentWebSecretSession } from "@/shared/libs/secret/web-secret-s
 import { Loader, LogOut, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ import EntityAvatar from "@/components/ui/elements/EntityAvatar";
 const ProfileMenu = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const router = useRouter();
+  const t = useTranslations("profile");
 
   const { exit } = useAuth();
   const { user, isLoadingProfile } = useCurrentUser();
@@ -31,10 +33,10 @@ const ProfileMenu = () => {
     onCompleted() {
       router.push("/account/login");
       exit();
-      toast.success("Successfully");
+      toast.success(t("logoutSuccess"));
     },
     onError() {
-      toast.error("Error");
+      toast.error(t("logoutError"));
     },
   });
 
@@ -76,7 +78,7 @@ const ProfileMenu = () => {
             onClick={() => router.push(`/settings`)}
           >
             <Settings2 className="mr-2 size-4" />
-            Settings
+            {t("settings")}
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -86,7 +88,7 @@ const ProfileMenu = () => {
             onClick={() => void handleLogout()}
           >
             <LogOut className="mr-2 size-4" />
-            Logout
+            {t("logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

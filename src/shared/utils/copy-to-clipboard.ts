@@ -16,31 +16,44 @@ const copyWithFallback = (text: string): boolean => {
   return copied;
 };
 
-export const copyToClipboard = (text: string): void => {
+interface CopyToClipboardMessages {
+  copied: string;
+  failed: string;
+}
+
+const defaultMessages: CopyToClipboardMessages = {
+  copied: "Copied to clipboard",
+  failed: "Failed to copy",
+};
+
+export const copyToClipboard = (
+  text: string,
+  messages: CopyToClipboardMessages = defaultMessages,
+): void => {
   if (!text) return;
 
   if (!navigator.clipboard) {
     if (copyWithFallback(text)) {
-      toast.success("Copied to clipboard");
+      toast.success(messages.copied);
       return;
     }
 
-    toast.error("Failed to copy");
+    toast.error(messages.failed);
     return;
   }
 
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      toast.success("Copied to clipboard");
+      toast.success(messages.copied);
     })
     .catch((err) => {
       if (copyWithFallback(text)) {
-        toast.success("Copied to clipboard");
+        toast.success(messages.copied);
         return;
       }
 
-      toast.error("Failed to copy: " + err.message);
+      toast.error(`${messages.failed}: ${err.message}`);
       console.error("Failed to copy text: ", err);
     });
 };

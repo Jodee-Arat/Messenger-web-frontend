@@ -15,6 +15,7 @@ import {
   useUnPinChatMutation,
   useUpdatePinnedChatsOrderMutation,
 } from "@/shared/graphql/generated/output";
+import { useTranslations } from "next-intl";
 import {
   forgetStartedDirectChat,
   loadStartedDirectChats,
@@ -49,14 +50,15 @@ const compareDirectChats = (left: Chat, right: Chat) => {
     return leftHasMessage ? -1 : 1;
   }
 
-  return getDirectChatActivityTimestamp(right) -
-    getDirectChatActivityTimestamp(left);
+  return (
+    getDirectChatActivityTimestamp(right) - getDirectChatActivityTimestamp(left)
+  );
 };
 
 const dedupeDirectChats = (chats: Chat[], currentUserId?: string) => {
   const uniqueChats = new Map<string, Chat>();
 
-  [...chats].sort(compareDirectChats).forEach(chat => {
+  [...chats].sort(compareDirectChats).forEach((chat) => {
     const counterpartId = getDirectChatCounterpartKey(chat, currentUserId);
 
     if (!uniqueChats.has(counterpartId)) {
@@ -68,6 +70,7 @@ const dedupeDirectChats = (chats: Chat[], currentUserId?: string) => {
 };
 
 export function useDirectChats() {
+  const tChats = useTranslations("chats");
   const { userId } = useUser();
 
   const { data, loading, refetch } = useFindAllChatsByUserQuery({
@@ -125,9 +128,9 @@ export function useDirectChats() {
       markDirectChatStarted(userId, updated.id);
     }
 
-    setChats(prev => {
-      const previousChat = prev.find(chat => chat.id === updated.id);
-      const without = prev.filter(c => c.id !== updated.id);
+    setChats((prev) => {
+      const previousChat = prev.find((chat) => chat.id === updated.id);
+      const without = prev.filter((c) => c.id !== updated.id);
 
       if (!previousChat) {
         void refetch();
@@ -144,13 +147,15 @@ export function useDirectChats() {
   useEffect(() => {
     if (!deletedData?.chatDeleted) return;
 
-    setChats(prev => prev.filter(chat => chat.id !== deletedData.chatDeleted.id));
+    setChats((prev) =>
+      prev.filter((chat) => chat.id !== deletedData.chatDeleted.id),
+    );
   }, [deletedData]);
 
   // ── Mutations ──
   const [deleteChat] = useDeleteChatMutation({
-    onCompleted: () => toast.success("Chat deleted"),
-    onError: e => toast.error(e.message),
+    onCompleted: () => toast.success(tChats("chatDeleted")),
+    onError: (e) => toast.error(e.message),
   });
 
   const [pinChat] = usePinChatMutation();
@@ -159,9 +164,9 @@ export function useDirectChats() {
 
   const handleDelete = async (chatId: string) => {
     await deleteChat({ variables: { chatId } });
-    setChats(prev => prev.filter(c => c.id !== chatId));
+    setChats((prev) => prev.filter((c) => c.id !== chatId));
     forgetStartedDirectChat(userId, chatId);
-    setStartedDirectChatIds(prev => prev.filter(id => id !== chatId));
+    setStartedDirectChatIds((prev) => prev.filter((id) => id !== chatId));
   };
 
   const handlePin = async (chatId: string) => {
@@ -179,16 +184,16 @@ export function useDirectChats() {
   };
 
   const visibleChats = dedupeDirectChats(
-    chats.filter(chat => isVisibleDirectChat(chat, startedDirectChatIds)),
+    chats.filter((chat) => isVisibleDirectChat(chat, startedDirectChatIds)),
     userId,
   );
 
   const pinnedChats = visibleChats
-    .filter(c => c.isPinned)
+    .filter((c) => c.isPinned)
     .sort((a, b) => (a.pinnedOrder ?? 0) - (b.pinnedOrder ?? 0));
 
   const visibleUnpinnedChats = visibleChats
-    .filter(c => !c.isPinned)
+    .filter((c) => !c.isPinned)
     .sort(compareDirectChats);
 
   return {

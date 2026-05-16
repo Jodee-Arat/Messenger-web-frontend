@@ -6,8 +6,8 @@ import {
 } from "@/shared/graphql/generated/output";
 import { uploadFileSchema } from "@/shared/schemas/upload-file.schema";
 import {
-  createChatSchema,
   createChatSchemaType,
+  createChatSchemaFactory,
 } from "@/shared/schemas/user/create-chat.schema";
 import { SquarePen, Trash } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -48,6 +48,11 @@ interface CreateChatModalProp {
 
 const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
   const t = useTranslations("chats");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createChatSchemaFactory(tValidation),
+    [tValidation],
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const { user: currentUser } = useCurrentUser();
@@ -63,7 +68,7 @@ const CreateChatModal: FC<CreateChatModalProp> = ({ groupId }) => {
   });
 
   const form = useForm<createChatSchemaType>({
-    resolver: zodResolver(createChatSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       chatName: "",

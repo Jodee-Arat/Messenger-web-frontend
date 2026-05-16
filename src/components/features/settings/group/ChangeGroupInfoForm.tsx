@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useChangeGroupInfoMutation } from "@/shared/graphql/generated/output";
 import { useCurrentGroup } from "@/shared/hooks/useCurrentGroup";
 import {
-  ChangeInfoGroupSchema,
   TypeChangeInfoGroupSchema,
+  createChangeInfoGroupSchema,
 } from "@/shared/schemas/group/change-info-group.schema";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -19,6 +20,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/common/Form";
 import { Input } from "@/components/ui/common/Input";
 import { Separator } from "@/components/ui/common/Separator";
@@ -38,12 +40,17 @@ const ChangeGroupInfoForm = ({
   canChangeGroupName = false,
 }: ChangeGroupInfoFormProps) => {
   const t = useTranslations("settings");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createChangeInfoGroupSchema(tValidation),
+    [tValidation],
+  );
   const { group, isLoadingGroup, refetch } = useCurrentGroup(groupId);
   const initialGroupName = group?.groupName ?? "";
   const initialDescription = group?.description ?? "";
 
   const form = useForm<TypeChangeInfoGroupSchema>({
-    resolver: zodResolver(ChangeInfoGroupSchema),
+    resolver: zodResolver(schema),
     values: {
       groupName: initialGroupName,
       description: initialDescription,
@@ -101,6 +108,7 @@ const ChangeGroupInfoForm = ({
                       />
                     </FormControl>
                     <FormDescription>{t("groupNameDesc")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -124,6 +132,7 @@ const ChangeGroupInfoForm = ({
                       />
                     </FormControl>
                     <FormDescription>{t("groupDescDesc")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

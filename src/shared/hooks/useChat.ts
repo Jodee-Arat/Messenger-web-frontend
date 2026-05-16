@@ -7,6 +7,7 @@ import { ForwardedMessageType } from "@/shared/types/forward/forwarded-message.t
 import { MessageFileType } from "@/shared/types/message-file.type";
 import { MessageType } from "@/shared/types/message.type";
 import { SendFileType } from "@/shared/types/send-file.type";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ export const useChat = (
   chatId: string,
   onDirectContactBlocked?: () => void,
 ) => {
+  const t = useTranslations("messages");
   const [messageId, setMessageId] = useState<string | null>(null);
 
   const [forwardedMessages, setForwardedMessages] = useState<
@@ -127,7 +129,7 @@ export const useChat = (
         return;
       }
 
-      toast.error("Failed to remove file: " + getGraphQLErrorMessage(error));
+      toast.error(`${t("fileRemoveFailed")}: ${getGraphQLErrorMessage(error)}`);
     },
   });
 
@@ -177,12 +179,12 @@ export const useChat = (
 
   const handleFileSend = async (file: File) => {
     if (files.length >= 7) {
-      toast.error("You can only upload up to 5 files at a time.");
+      toast.error(t("fileLimitExceeded", { count: 7 }));
       return;
     }
 
     if (files.some((fileState) => fileState.name === file.name)) {
-      toast.error("File with this name already exists in the chat.");
+      toast.error(t("fileDuplicate"));
       return;
     }
 
@@ -205,7 +207,7 @@ export const useChat = (
 
     if (files.length < 7) {
       if (files.some((fileState) => fileState.name === file.name)) {
-        toast.error("File with this name already exists in the chat.");
+        toast.error(t("fileDuplicate"));
         return;
       }
 
@@ -222,7 +224,7 @@ export const useChat = (
         },
       }).catch(() => {});
     } else {
-      toast.error("You can only upload up to 5 files at a time.");
+      toast.error(t("fileLimitExceeded", { count: 7 }));
     }
   };
 

@@ -26,9 +26,18 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/common/Alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/common/Alert";
 import { Button } from "@/components/ui/common/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/common/Card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/common/Card";
 import { Textarea } from "@/components/ui/common/Textarea";
 import {
   Dialog,
@@ -124,14 +133,7 @@ type SelectedSavedFile = {
   errorMessage?: string;
 };
 
-const IMAGE_EXTENSIONS = [
-  "jpg",
-  "jpeg",
-  "png",
-  "gif",
-  "webp",
-  "bmp",
-];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
 
 const isImageFile = (format: string) =>
   IMAGE_EXTENSIONS.includes(format.toLowerCase());
@@ -410,9 +412,7 @@ const SavedSecretAttachmentPreview = ({
           <DialogTitle className="sr-only">
             {tMessages("imagePreview")}
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            {fileName}
-          </DialogDescription>
+          <DialogDescription className="sr-only">{fileName}</DialogDescription>
 
           <div className="flex max-h-[82vh] items-center justify-center overflow-hidden rounded-xl bg-black/80">
             {fileUrl ? (
@@ -650,8 +650,9 @@ const SavedSecretChat = () => {
 
           const senderIkPub =
             packet.ikPub ||
-            bundles.find((bundle) => bundle.secretSessionId === packet.fromSessionId)
-              ?.ikPub;
+            bundles.find(
+              (bundle) => bundle.secretSessionId === packet.fromSessionId,
+            )?.ikPub;
 
           if (senderIkPub) {
             const senderKey = await importPublicRaw(fromHex(senderIkPub));
@@ -700,22 +701,30 @@ const SavedSecretChat = () => {
 
   const processSecretMessages = useCallback(
     async (packets: SessionSecretMessageRecord[]) => {
-      if (!chatId || !session || !sessionKeyRef.current || packets.length === 0) {
+      if (
+        !chatId ||
+        !session ||
+        !sessionKeyRef.current ||
+        packets.length === 0
+      ) {
         return;
       }
 
       const bundles = await loadBundles();
       const processedIds: string[] = [];
 
-      for (const packet of packets.sort((left, right) =>
-        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+      for (const packet of packets.sort(
+        (left, right) =>
+          new Date(left.createdAt).getTime() -
+          new Date(right.createdAt).getTime(),
       )) {
         try {
           const senderIkPub =
             bundles.find(
               (bundle) => bundle.secretSessionId === packet.fromSessionId,
             )?.ikPub ??
-            bundles.find((bundle) => bundle.userId === packet.fromUserId)?.ikPub;
+            bundles.find((bundle) => bundle.userId === packet.fromUserId)
+              ?.ikPub;
 
           if (!senderIkPub) {
             continue;
@@ -861,38 +870,41 @@ const SavedSecretChat = () => {
     }
   };
 
-  const addSelectedFiles = useCallback((files: File[]) => {
-    if (files.length === 0) return;
+  const addSelectedFiles = useCallback(
+    (files: File[]) => {
+      if (files.length === 0) return;
 
-    setSelectedFiles((current) => {
-      const nextFiles = [...current];
+      setSelectedFiles((current) => {
+        const nextFiles = [...current];
 
-      for (const file of files) {
-        if (nextFiles.length >= MAX_SAVED_ATTACHMENTS) {
-          toast.error(`Можно прикрепить не больше ${MAX_SAVED_ATTACHMENTS} файлов.`);
-          break;
+        for (const file of files) {
+          if (nextFiles.length >= MAX_SAVED_ATTACHMENTS) {
+            toast.error(t("maxAttachments", { count: MAX_SAVED_ATTACHMENTS }));
+            break;
+          }
+
+          const isDuplicate = nextFiles.some(
+            (selectedFile) =>
+              selectedFile.file.name === file.name &&
+              selectedFile.file.size === file.size,
+          );
+          if (isDuplicate) {
+            continue;
+          }
+
+          nextFiles.push({
+            id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
+            file,
+            previewUrl: URL.createObjectURL(file),
+            status: "idle",
+          });
         }
 
-        const isDuplicate = nextFiles.some(
-          (selectedFile) =>
-            selectedFile.file.name === file.name &&
-            selectedFile.file.size === file.size,
-        );
-        if (isDuplicate) {
-          continue;
-        }
-
-        nextFiles.push({
-          id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
-          file,
-          previewUrl: URL.createObjectURL(file),
-          status: "idle",
-        });
-      }
-
-      return nextFiles;
-    });
-  }, []);
+        return nextFiles;
+      });
+    },
+    [t],
+  );
 
   const handleSelectFiles = (event: ChangeEvent<HTMLInputElement>) => {
     addSelectedFiles(Array.from(event.target.files ?? []));
@@ -919,7 +931,9 @@ const SavedSecretChat = () => {
           errorMessage: undefined,
         });
 
-        const plaintextBytes = new Uint8Array(await selectedFile.file.arrayBuffer());
+        const plaintextBytes = new Uint8Array(
+          await selectedFile.file.arrayBuffer(),
+        );
         const { keyBytes, keyHex } = await generateKuznechikKey();
         const encryptedFile = await encryptKuz(keyBytes, plaintextBytes);
         const ciphertextBase64 = bytesToBase64(encryptedFile.ciphertext);
@@ -990,11 +1004,7 @@ const SavedSecretChat = () => {
   const handleSend = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (
-      !chatId ||
-      !user ||
-      (!draft.trim() && selectedFiles.length === 0)
-    ) {
+    if (!chatId || !user || (!draft.trim() && selectedFiles.length === 0)) {
       return;
     }
 
@@ -1119,8 +1129,7 @@ const SavedSecretChat = () => {
       [...messages]
         .sort(
           (left, right) =>
-            left.createdAt - right.createdAt ||
-            left.id.localeCompare(right.id),
+            left.createdAt - right.createdAt || left.id.localeCompare(right.id),
         )
         .map((message) => {
           const parsedContent = parseSecretMessageContent(message.plaintext);
@@ -1175,292 +1184,301 @@ const SavedSecretChat = () => {
       className="flex h-full min-h-0 flex-col"
     >
       <div className="scrollbar-thin flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-4 sm:pr-1">
-      <Card className="shrink-0 border-border/60 bg-card/90">
-        <CardHeader className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <div>
-              <CardTitle className="text-2xl">{t("title")}</CardTitle>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t("description")}
-              </p>
-            </div>
-            <div
-              className={`flex shrink-0 items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-medium sm:self-center ${
-                hasActivePhoneLink
-                  ? "bg-emerald-500/12 text-emerald-400"
-                  : "bg-amber-500/12 text-amber-400"
-              }`}
-            >
-              {hasActivePhoneLink ? (
-                <ShieldCheck className="size-4" />
-              ) : (
-                <Smartphone className="size-4" />
-              )}
-              {hasActivePhoneLink ? t("statusLinked") : t("statusLocal")}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      <Card className="shrink-0 border-border/60 bg-card/90">
-        <CardHeader>
-          <CardTitle className="text-base">{t("pairingTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {t("pairingDescription")}
-          </p>
-
-          {pairingData ? (
-            <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
-              <div className="rounded-2xl border border-border/60 bg-background/50 p-4">
-                {pairingData.qrCodeUrl ? (
-                  <img
-                    src={pairingData.qrCodeUrl}
-                    alt={t("pairingQrTitle")}
-                    className="mx-auto size-44 rounded-xl bg-white p-2 sm:size-52"
-                  />
-                ) : (
-                  <div className="mx-auto flex size-44 items-center justify-center rounded-xl border border-dashed border-border/70 text-center text-sm text-muted-foreground sm:size-52">
-                    {t("pairingQrUnavailable")}
-                  </div>
-                )}
-                <p className="mt-3 text-center text-sm font-semibold">
-                  {t("pairingQrTitle")}
-                </p>
-                <p className="mt-1 text-center text-xs text-muted-foreground">
-                  {t("pairingQrDescription")}
+        <Card className="shrink-0 border-border/60 bg-card/90">
+          <CardHeader className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div>
+                <CardTitle className="text-2xl">{t("title")}</CardTitle>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("description")}
                 </p>
               </div>
-
-              <div className="grid content-start gap-3 md:grid-cols-2">
-                <div className="rounded-xl border border-border/60 bg-background/40 p-3 md:col-span-2">
-                  <p className="text-xs uppercase text-muted-foreground">
-                    {t("safetyCodeLabel")}
-                  </p>
-                  <p className="mt-1 text-2xl font-semibold tracking-[0.18em]">
-                    {pairingData.safetyCode}
-                  </p>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {t("pairingSafetyHint")}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border/60 bg-background/40 p-3">
-                  <p className="text-xs uppercase text-muted-foreground">
-                    {t("pairingIdLabel")}
-                  </p>
-                  <p className="mt-1 break-all text-sm font-medium">
-                    {pairingData.pairingId}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border/60 bg-background/40 p-3">
-                  <p className="text-xs uppercase text-muted-foreground">
-                    {t("challengeLabel")}
-                  </p>
-                  <p className="mt-1 break-all text-sm font-medium">
-                    {pairingData.challenge}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-border/70 bg-background/30 p-4">
-              <p className="text-sm text-muted-foreground">
-                {t("pairingEmpty")}
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={handleCreatePairing}
-              disabled={!user || isCreatingPairing || isLoadingSession}
-            >
-              {(isCreatingPairing || isLoadingSession) && (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              )}
-              {t("createPairing")}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => void refreshPendingSecretState()}
-              disabled={!session || !chatId}
-            >
-              <RefreshCw className="mr-2 size-4" />
-              {t("refreshState")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="flex min-h-[24rem] flex-1 flex-col border-border/60 bg-card/90 sm:min-h-[28rem]">
-        <CardHeader>
-          <CardTitle className="text-base">{t("messagesTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-          <div className="scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-border/60 bg-background/35 p-4">
-            {savedMessages.length === 0 ? (
-              <EmptyStateCard
-                icon={ShieldCheck}
-                title={t("emptyTitle")}
-                description={
+              <div
+                className={`flex shrink-0 items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-medium sm:self-center ${
                   hasActivePhoneLink
-                    ? t("emptyDescription")
-                    : t("emptyLocalDescription")
-                }
-              />
-            ) : (
-              savedMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className="ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground sm:max-w-[80%]"
-                >
-                  {message.text && (
-                    <p className="whitespace-pre-wrap break-words text-sm">
-                      {message.text}
-                    </p>
-                  )}
-                  {message.attachments.map((attachment) => (
-                    <SavedSecretAttachmentPreview
-                      key={attachment.attachmentId}
-                      attachment={attachment}
-                      chatId={chatId ?? ""}
+                    ? "bg-emerald-500/12 text-emerald-400"
+                    : "bg-amber-500/12 text-amber-400"
+                }`}
+              >
+                {hasActivePhoneLink ? (
+                  <ShieldCheck className="size-4" />
+                ) : (
+                  <Smartphone className="size-4" />
+                )}
+                {hasActivePhoneLink ? t("statusLinked") : t("statusLocal")}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card className="shrink-0 border-border/60 bg-card/90">
+          <CardHeader>
+            <CardTitle className="text-base">{t("pairingTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t("pairingDescription")}
+            </p>
+
+            {pairingData ? (
+              <div className="grid gap-4 lg:grid-cols-[auto_1fr]">
+                <div className="rounded-2xl border border-border/60 bg-background/50 p-4">
+                  {pairingData.qrCodeUrl ? (
+                    <img
+                      src={pairingData.qrCodeUrl}
+                      alt={t("pairingQrTitle")}
+                      className="mx-auto size-44 rounded-xl bg-white p-2 sm:size-52"
                     />
-                  ))}
-                  <p className="mt-2 text-right text-[11px] text-primary-foreground/80">
-                    {message.time}
+                  ) : (
+                    <div className="mx-auto flex size-44 items-center justify-center rounded-xl border border-dashed border-border/70 text-center text-sm text-muted-foreground sm:size-52">
+                      {t("pairingQrUnavailable")}
+                    </div>
+                  )}
+                  <p className="mt-3 text-center text-sm font-semibold">
+                    {t("pairingQrTitle")}
+                  </p>
+                  <p className="mt-1 text-center text-xs text-muted-foreground">
+                    {t("pairingQrDescription")}
                   </p>
                 </div>
-              ))
-            )}
-          </div>
 
-          {selectedFiles.length > 0 && (
-            <div className="scrollbar-thin flex max-h-36 flex-wrap gap-2 overflow-y-auto rounded-2xl border border-border/60 bg-background/35 p-3">
-              {selectedFiles.map((file) => {
-                const fileFormat = getFileFormatFromName(file.file.name);
-                const isImage = isBrowserPreviewableImageFile(
-                  fileFormat,
-                  file.file.type,
-                );
-                const isPreparing =
-                  file.status === "encrypting" || file.status === "uploading";
-                const statusText =
-                  file.status === "encrypting"
-                    ? t("fileEncrypting")
-                    : file.status === "uploading"
-                      ? t("fileUploading")
-                      : null;
-
-                return (
-                  <div
-                    key={file.id}
-                    className={`group relative flex min-h-20 w-28 flex-col overflow-hidden rounded-xl border bg-background/60 ${
-                      file.status === "failed"
-                        ? "border-destructive/70"
-                        : "border-border/60"
-                    }`}
-                  >
-                    {isImage ? (
-                      <img
-                        src={file.previewUrl}
-                        alt={file.file.name}
-                        className="h-20 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-20 w-full items-center justify-center bg-background/60">
-                        <FileIcon className="size-8 text-muted-foreground" />
-                      </div>
-                    )}
-                    <span className="truncate px-2 py-1 text-xs text-muted-foreground">
-                      {file.file.name}
-                    </span>
-                    {isPreparing && statusText && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 px-2 text-center backdrop-blur-sm">
-                        <Loader2 className="size-5 animate-spin text-primary" />
-                        <span className="text-[11px] font-medium text-foreground">
-                          {statusText}
-                        </span>
-                      </div>
-                    )}
-                    {file.status === "failed" && (
-                      <div className="px-2 pb-2 text-[11px] font-medium text-destructive">
-                        {file.errorMessage || t("fileFailed")}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-90 transition hover:bg-black/75 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() =>
-                        setSelectedFiles((current) => {
-                          const target = current.find((item) => item.id === file.id);
-                          if (target) {
-                            URL.revokeObjectURL(target.previewUrl);
-                          }
-
-                          return current.filter((item) => item.id !== file.id);
-                        })
-                      }
-                      disabled={isPreparing}
-                      aria-label="Remove file"
-                    >
-                      <X className="size-3.5" />
-                    </button>
+                <div className="grid content-start gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-border/60 bg-background/40 p-3 md:col-span-2">
+                    <p className="text-xs uppercase text-muted-foreground">
+                      {t("safetyCodeLabel")}
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold tracking-[0.18em]">
+                      {pairingData.safetyCode}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {t("pairingSafetyHint")}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          <form className="flex flex-col gap-3 xl:flex-row" onSubmit={handleSend}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleSelectFiles}
-            />
-            <Textarea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={handleComposerKeyDown}
-              placeholder={
-                hasActivePhoneLink
-                  ? t("composerPlaceholder")
-                  : t("composerLocalPlaceholder")
-              }
-              disabled={!canCompose || isSendingSavedMessage}
-              className="min-h-20 w-full flex-1 resize-none"
-            />
-            <div className="flex shrink-0 flex-row flex-wrap gap-2 xl:w-32 xl:flex-col">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!canCompose || isSendingSavedMessage}
-                onClick={() => fileInputRef.current?.click()}
-                className="min-w-0 flex-1 xl:min-w-28 xl:flex-none"
-                title={attachFileLabel}
-              >
-                <Paperclip className="size-4" />
-                {attachFileLabel}
-              </Button>
-              <Button
-                type="submit"
-                disabled={!canSendSavedMessage}
-                className="min-w-0 flex-1 xl:min-w-28 xl:flex-none"
-              >
-                {isSendingSavedMessage && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {t("send")}
-              </Button>
-              {!hasActivePhoneLink && (
-                <p className="w-full text-xs text-muted-foreground xl:max-w-28">
-                  {t("composerLocalHint")}
+                  <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">
+                      {t("pairingIdLabel")}
+                    </p>
+                    <p className="mt-1 break-all text-sm font-medium">
+                      {pairingData.pairingId}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+                    <p className="text-xs uppercase text-muted-foreground">
+                      {t("challengeLabel")}
+                    </p>
+                    <p className="mt-1 break-all text-sm font-medium">
+                      {pairingData.challenge}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/70 bg-background/30 p-4">
+                <p className="text-sm text-muted-foreground">
+                  {t("pairingEmpty")}
                 </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleCreatePairing}
+                disabled={!user || isCreatingPairing || isLoadingSession}
+              >
+                {(isCreatingPairing || isLoadingSession) && (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                )}
+                {t("createPairing")}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => void refreshPendingSecretState()}
+                disabled={!session || !chatId}
+              >
+                <RefreshCw className="mr-2 size-4" />
+                {t("refreshState")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="flex min-h-[24rem] flex-1 flex-col border-border/60 bg-card/90 sm:min-h-[28rem]">
+          <CardHeader>
+            <CardTitle className="text-base">{t("messagesTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="scrollbar-thin flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-border/60 bg-background/35 p-4">
+              {savedMessages.length === 0 ? (
+                <EmptyStateCard
+                  icon={ShieldCheck}
+                  title={t("emptyTitle")}
+                  description={
+                    hasActivePhoneLink
+                      ? t("emptyDescription")
+                      : t("emptyLocalDescription")
+                  }
+                />
+              ) : (
+                savedMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground sm:max-w-[80%]"
+                  >
+                    {message.text && (
+                      <p className="whitespace-pre-wrap break-words text-sm">
+                        {message.text}
+                      </p>
+                    )}
+                    {message.attachments.map((attachment) => (
+                      <SavedSecretAttachmentPreview
+                        key={attachment.attachmentId}
+                        attachment={attachment}
+                        chatId={chatId ?? ""}
+                      />
+                    ))}
+                    <p className="mt-2 text-right text-[11px] text-primary-foreground/80">
+                      {message.time}
+                    </p>
+                  </div>
+                ))
               )}
             </div>
-          </form>
-        </CardContent>
-      </Card>
+
+            {selectedFiles.length > 0 && (
+              <div className="scrollbar-thin flex max-h-36 flex-wrap gap-2 overflow-y-auto rounded-2xl border border-border/60 bg-background/35 p-3">
+                {selectedFiles.map((file) => {
+                  const fileFormat = getFileFormatFromName(file.file.name);
+                  const isImage = isBrowserPreviewableImageFile(
+                    fileFormat,
+                    file.file.type,
+                  );
+                  const isPreparing =
+                    file.status === "encrypting" || file.status === "uploading";
+                  const statusText =
+                    file.status === "encrypting"
+                      ? t("fileEncrypting")
+                      : file.status === "uploading"
+                        ? t("fileUploading")
+                        : null;
+
+                  return (
+                    <div
+                      key={file.id}
+                      className={`group relative flex min-h-20 w-28 flex-col overflow-hidden rounded-xl border bg-background/60 ${
+                        file.status === "failed"
+                          ? "border-destructive/70"
+                          : "border-border/60"
+                      }`}
+                    >
+                      {isImage ? (
+                        <img
+                          src={file.previewUrl}
+                          alt={file.file.name}
+                          className="h-20 w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-20 w-full items-center justify-center bg-background/60">
+                          <FileIcon className="size-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <span className="truncate px-2 py-1 text-xs text-muted-foreground">
+                        {file.file.name}
+                      </span>
+                      {isPreparing && statusText && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 px-2 text-center backdrop-blur-sm">
+                          <Loader2 className="size-5 animate-spin text-primary" />
+                          <span className="text-[11px] font-medium text-foreground">
+                            {statusText}
+                          </span>
+                        </div>
+                      )}
+                      {file.status === "failed" && (
+                        <div className="px-2 pb-2 text-[11px] font-medium text-destructive">
+                          {file.errorMessage || t("fileFailed")}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-90 transition hover:bg-black/75 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() =>
+                          setSelectedFiles((current) => {
+                            const target = current.find(
+                              (item) => item.id === file.id,
+                            );
+                            if (target) {
+                              URL.revokeObjectURL(target.previewUrl);
+                            }
+
+                            return current.filter(
+                              (item) => item.id !== file.id,
+                            );
+                          })
+                        }
+                        disabled={isPreparing}
+                        aria-label="Remove file"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <form
+              className="flex flex-col gap-3 xl:flex-row"
+              onSubmit={handleSend}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleSelectFiles}
+              />
+              <Textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleComposerKeyDown}
+                placeholder={
+                  hasActivePhoneLink
+                    ? t("composerPlaceholder")
+                    : t("composerLocalPlaceholder")
+                }
+                disabled={!canCompose || isSendingSavedMessage}
+                className="min-h-20 w-full flex-1 resize-none"
+              />
+              <div className="flex shrink-0 flex-row flex-wrap gap-2 xl:w-32 xl:flex-col">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!canCompose || isSendingSavedMessage}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="min-w-0 flex-1 xl:min-w-28 xl:flex-none"
+                  title={attachFileLabel}
+                >
+                  <Paperclip className="size-4" />
+                  {attachFileLabel}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!canSendSavedMessage}
+                  className="min-w-0 flex-1 xl:min-w-28 xl:flex-none"
+                >
+                  {isSendingSavedMessage && (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  )}
+                  {t("send")}
+                </Button>
+                {!hasActivePhoneLink && (
+                  <p className="w-full text-xs text-muted-foreground xl:max-w-28">
+                    {t("composerLocalHint")}
+                  </p>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </DragAndDropWrapper>
   );

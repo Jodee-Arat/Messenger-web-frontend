@@ -3,10 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateUserWEmailMutation } from "@/shared/graphql/generated/output";
 import {
-  createAccountWEmailSchema,
   createAccountWEmailSchemaType,
+  createAccountWEmailSchemaFactory,
 } from "@/shared/schemas/auth/create-account-w-email.schema";
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -24,8 +25,15 @@ import { PasswordInput } from "@/components/ui/common/PasswordInput";
 import AuthWrapper from "../AuthWrapper";
 
 const CreateAccountForm = () => {
+  const t = useTranslations("auth");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => createAccountWEmailSchemaFactory(tValidation),
+    [tValidation],
+  );
+
   const form = useForm<createAccountWEmailSchemaType>({
-    resolver: zodResolver(createAccountWEmailSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       username: "",
@@ -33,8 +41,6 @@ const CreateAccountForm = () => {
       password: "",
     },
   });
-
-  const t = useTranslations("auth");
 
   const [create, { loading: isLoadingCreateUserWEmail }] =
     useCreateUserWEmailMutation({

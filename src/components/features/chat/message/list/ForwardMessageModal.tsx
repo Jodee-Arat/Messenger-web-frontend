@@ -7,7 +7,7 @@ import {
 import { useUser } from "@/shared/hooks/useUser";
 import {
   ForwardMessageSchemaType,
-  forwardMessageSchema,
+  forwardMessageSchemaFactory,
 } from "@/shared/schemas/chat/forward-message.schema";
 import {
   getDirectChatDisplayAvatar,
@@ -16,7 +16,7 @@ import {
 import { getChatRoute } from "@/shared/utils/chat-route";
 import { cn } from "@/shared/utils/tw-merge";
 import { useRouter } from "next/navigation";
-import { FC, ReactElement, useState } from "react";
+import { FC, ReactElement, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -76,6 +76,11 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const t = useTranslations("messages");
+  const tValidation = useTranslations("validation");
+  const schema = useMemo(
+    () => forwardMessageSchemaFactory(tValidation),
+    [tValidation],
+  );
   const { userId } = useUser();
   const router = useRouter();
 
@@ -91,7 +96,7 @@ const ForwardMessageModal: FC<ForwardMessageModalProp> = ({
   });
 
   const form = useForm<ForwardMessageSchemaType>({
-    resolver: zodResolver(forwardMessageSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       text: "",

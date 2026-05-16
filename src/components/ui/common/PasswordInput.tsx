@@ -2,6 +2,7 @@
 
 import { cn } from "@/shared/utils/tw-merge";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { forwardRef, useState } from "react";
 
 const PasswordInput = forwardRef<
@@ -9,6 +10,7 @@ const PasswordInput = forwardRef<
   Omit<React.ComponentProps<"input">, "type">
 >(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false);
+  const t = useTranslations("auth");
 
   return (
     <div className="relative">
@@ -26,8 +28,8 @@ const PasswordInput = forwardRef<
         type="button"
         tabIndex={-1}
         className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-        onClick={() => setShowPassword(prev => !prev)}
-        aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+        onClick={() => setShowPassword((prev) => !prev)}
+        aria-label={showPassword ? t("hidePassword") : t("showPassword")}
       >
         {showPassword ? (
           <EyeOff className="size-4" />

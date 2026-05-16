@@ -1,21 +1,52 @@
 import { z } from "zod";
-import { usernameSchema } from "@/shared/schemas/user/username.schema";
+import { createUsernameSchema } from "@/shared/schemas/user/username.schema";
 
-export const createAccountWEmailSchema = z.object({
-  username: usernameSchema,
-  email: z
-    .string()
-    .email({ message: "Invalid email address" })
-    .min(3, { message: "Email must be at least 3 characters long" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/, {
-      message:
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-    }),
-});
+type CreateAccountValidationTranslator = (
+  key:
+    | "usernameMin"
+    | "usernamePattern"
+    | "emailInvalid"
+    | "emailMin"
+    | "passwordMin"
+    | "passwordComplexity",
+) => string;
+
+const defaultMessages: Record<
+  Parameters<CreateAccountValidationTranslator>[0],
+  string
+> = {
+  usernameMin: "Username must be at least 5 characters long",
+  usernamePattern:
+    "Username can only contain Russian/English letters, digits, _ and -",
+  emailInvalid: "Invalid email address",
+  emailMin: "Email must be at least 3 characters long",
+  passwordMin: "Password must be at least 8 characters long",
+  passwordComplexity:
+    "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+};
+
+const defaultT: CreateAccountValidationTranslator = (key) =>
+  defaultMessages[key];
+
+export const createAccountWEmailSchemaFactory = (
+  t: CreateAccountValidationTranslator = defaultT,
+) =>
+  z.object({
+    username: createUsernameSchema(t),
+    email: z
+      .string()
+      .email({ message: t("emailInvalid") })
+      .min(3, { message: t("emailMin") }),
+    password: z
+      .string()
+      .min(8, { message: t("passwordMin") })
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/, {
+        message: t("passwordComplexity"),
+      }),
+  });
+
+export const createAccountWEmailSchema = createAccountWEmailSchemaFactory();
 
 export type createAccountWEmailSchemaType = z.infer<
-  typeof createAccountWEmailSchema
+  ReturnType<typeof createAccountWEmailSchemaFactory>
 >;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -31,6 +32,7 @@ type OutgoingRequest =
   GetOutgoingFriendRequestsQuery["getOutgoingFriendRequests"][0];
 
 export function useFriends() {
+  const t = useTranslations("home");
   const { userId } = useUser();
 
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -90,14 +92,14 @@ export function useFriends() {
     if (!sentData?.friendRequestSent) return;
     const req = sentData.friendRequestSent;
     if (req.userId === userId) {
-      setOutgoing(prev =>
-        prev.some(r => r.id === req.id)
+      setOutgoing((prev) =>
+        prev.some((r) => r.id === req.id)
           ? prev
           : [req as OutgoingRequest, ...prev],
       );
     } else {
-      setIncoming(prev =>
-        prev.some(r => r.id === req.id)
+      setIncoming((prev) =>
+        prev.some((r) => r.id === req.id)
           ? prev
           : [req as IncomingRequest, ...prev],
       );
@@ -107,10 +109,10 @@ export function useFriends() {
   useEffect(() => {
     if (!acceptedData?.friendRequestAccepted) return;
     const accepted = acceptedData.friendRequestAccepted;
-    setIncoming(prev => prev.filter(r => r.id !== accepted.id));
-    setOutgoing(prev => prev.filter(r => r.id !== accepted.id));
-    setFriends(prev =>
-      prev.some(f => f.id === accepted.id)
+    setIncoming((prev) => prev.filter((r) => r.id !== accepted.id));
+    setOutgoing((prev) => prev.filter((r) => r.id !== accepted.id));
+    setFriends((prev) =>
+      prev.some((f) => f.id === accepted.id)
         ? prev
         : [accepted as Friend, ...prev],
     );
@@ -119,21 +121,21 @@ export function useFriends() {
   useEffect(() => {
     if (!declinedData?.friendRequestDeclined) return;
     const declined = declinedData.friendRequestDeclined;
-    setOutgoing(prev => prev.filter(r => r.id !== declined.id));
-    setIncoming(prev => prev.filter(r => r.id !== declined.id));
+    setOutgoing((prev) => prev.filter((r) => r.id !== declined.id));
+    setIncoming((prev) => prev.filter((r) => r.id !== declined.id));
   }, [declinedData]);
 
   useEffect(() => {
     if (!cancelledData?.friendRequestCancelled) return;
     const cancelled = cancelledData.friendRequestCancelled;
-    setOutgoing(prev => prev.filter(r => r.id !== cancelled.id));
-    setIncoming(prev => prev.filter(r => r.id !== cancelled.id));
+    setOutgoing((prev) => prev.filter((r) => r.id !== cancelled.id));
+    setIncoming((prev) => prev.filter((r) => r.id !== cancelled.id));
   }, [cancelledData]);
 
   useEffect(() => {
     if (!removedData?.friendRemoved) return;
     const removed = removedData.friendRemoved;
-    setFriends(prev => prev.filter(f => f.id !== removed.id));
+    setFriends((prev) => prev.filter((f) => f.id !== removed.id));
   }, [removedData]);
 
   // ── Mutations ──
@@ -159,12 +161,12 @@ export function useFriends() {
       if (!username.trim()) return;
       try {
         await sendRequest({ variables: { username: username.trim() } });
-        toast.success("Friend request sent!");
+        toast.success(t("friendRequestSent"));
       } catch (e: any) {
-        toast.error(e.message ?? "Failed to send friend request");
+        toast.error(e.message ?? t("friendRequestError"));
       }
     },
-    [sendRequest],
+    [sendRequest, t],
   );
 
   const handleAccept = useCallback(
@@ -204,12 +206,12 @@ export function useFriends() {
     async (id: string, successMessage?: string) => {
       try {
         await removeFriendMut({ variables: { friendshipId: id } });
-        toast.success(successMessage ?? "Friend removed");
+        toast.success(successMessage ?? t("friendRemoved"));
       } catch (e: any) {
         toast.error(e.message);
       }
     },
-    [removeFriendMut],
+    [removeFriendMut, t],
   );
 
   const getFriendUser = (f: Friend) =>
